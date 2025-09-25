@@ -13,6 +13,20 @@ import { useAuth } from "@/hooks/useAuth";
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("home");
   const { user, loading } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const handleTabChange = (tab: string) => {
+    // Check if tab requires authentication
+    const protectedTabs = ['profile', 'tutor'];
+    
+    if (protectedTabs.includes(tab) && !user) {
+      setShowAuthModal(true);
+      return;
+    }
+    
+    setActiveTab(tab);
+    setShowAuthModal(false);
+  };
 
   if (loading) {
     return (
@@ -25,28 +39,25 @@ const Dashboard = () => {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-6 py-8">
-          {/* Header */}
-          <div className="flex items-center justify-center mb-8">
-            <h1 className="text-2xl font-bold text-primary">UniqueHub</h1>
-          </div>
-
-          {/* Auth Form */}
-          <div className="flex justify-center items-center min-h-[60vh]">
+  const renderContent = () => {
+    if (showAuthModal) {
+      return (
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="max-w-md">
             <FarcasterAuth />
+            <div className="text-center mt-4">
+              <button
+                onClick={() => setShowAuthModal(false)}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
-        
-        {/* Wallet Connector at bottom */}
-        <WalletConnector />
-      </div>
-    );
-  }
+      );
+    }
 
-  const renderContent = () => {
     switch (activeTab) {
       case "home":
         return <HomeSection />;
@@ -75,7 +86,7 @@ const Dashboard = () => {
 
         {/* Navigation - Always visible */}
         <div className="flex justify-center mb-8">
-          <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+          <Navigation activeTab={activeTab} onTabChange={handleTabChange} />
         </div>
 
         {/* Content */}

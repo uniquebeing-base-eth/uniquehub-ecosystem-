@@ -1,9 +1,12 @@
 import { Wallet, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { FarcasterAuth } from "./FarcasterAuth";
+import { useState } from "react";
 
 export const WalletConnector = () => {
   const { user, signOut } = useAuth();
+  const [showAuth, setShowAuth] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -12,6 +15,28 @@ export const WalletConnector = () => {
       console.error('Sign out error:', error);
     }
   };
+
+  const handleConnect = () => {
+    setShowAuth(true);
+  };
+
+  if (showAuth && !user) {
+    return (
+      <div className="bg-card border-t border-border p-6">
+        <div className="container mx-auto px-6">
+          <FarcasterAuth />
+          <div className="text-center mt-4">
+            <button
+              onClick={() => setShowAuth(false)}
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-card border-t border-border p-4">
@@ -47,7 +72,14 @@ export const WalletConnector = () => {
               <LogOut className="w-3 h-3 mr-1" />
               Sign Out
             </Button>
-          ) : null}
+          ) : (
+            <Button
+              onClick={handleConnect}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+            >
+              Connect
+            </Button>
+          )}
         </div>
       </div>
     </div>
