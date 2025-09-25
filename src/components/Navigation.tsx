@@ -8,8 +8,8 @@ interface NavigationProps {
 
 const tabs = [
   { id: "home", label: "Home" },
-  { id: "earning", label: "Earning" },
-  { id: "marketplace", label: "Marketplace" },
+  { id: "earning", label: "Earn" },
+  { id: "marketplace", label: "Market" },
   { id: "courses", label: "Courses" },
   { id: "profile", label: "Profile" },
   { id: "tutor", label: "Tutor" },
@@ -17,13 +17,13 @@ const tabs = [
 
 export const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   return (
-    <nav className="flex gap-1 bg-secondary rounded-lg p-1 mb-8">
+    <nav className="flex gap-0.5 bg-secondary rounded-lg p-1 mb-8 w-full max-w-lg mx-auto">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
           className={cn(
-            "px-6 py-2 rounded-md text-sm font-medium transition-all duration-200",
+            "flex-1 px-2 py-2 rounded-md text-xs font-medium transition-all duration-200 min-w-0",
             activeTab === tab.id
               ? "bg-primary text-primary-foreground shadow-glow"
               : "text-muted-foreground hover:text-foreground hover:bg-card-hover"
