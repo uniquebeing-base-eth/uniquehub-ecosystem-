@@ -1,17 +1,25 @@
 import { EarningCard } from "@/components/EarningCard";
 import { TutorInfo } from "@/components/TutorInfo";
 import { BookOpen, DollarSign, Users, Trophy, GraduationCap, Coins } from "lucide-react";
+import heroImage from "@/assets/uniquehub-hero.jpg";
 
 export const HomeSection = () => {
   return (
     <div className="space-y-8">
-      <div className="text-center space-y-4 mb-12">
-        <h1 className="text-4xl font-bold text-primary mb-4">
-          Learn. Earn. Trade.
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Your Web3 super app for learning, earning crypto, and trading digital assets
-        </p>
+      {/* Hero Section with Anime Background */}
+      <div 
+        className="relative rounded-2xl overflow-hidden bg-cover bg-center min-h-[300px] flex items-center justify-center"
+        style={{ backgroundImage: `url(${heroImage})` }}
+      >
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="relative z-10 text-center text-white">
+          <h1 className="text-4xl font-bold mb-4">
+            UniqueHub
+          </h1>
+          <p className="text-xl">
+            Learn. Earn. Trade.
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-6">
