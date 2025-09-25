@@ -7,19 +7,9 @@ import { EarningCard } from "@/components/EarningCard";
 import { BookOpen, Rocket, DollarSign, Hexagon, Diamond } from "lucide-react";
 import penguinAvatar from "@/assets/penguin-avatar.png";
 
-interface HomeSectionProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-}
-
-export const HomeSection = ({ activeTab, onTabChange }: HomeSectionProps) => {
+export const HomeSection = () => {
   return (
     <div className="space-y-8">
-      {/* UniqueHub Header */}
-      <div className="flex items-center justify-center mb-8">
-        <h1 className="text-2xl font-bold text-foreground">UniqueHub</h1>
-      </div>
-
       {/* User Profile Section with Penguin */}
       <div className="flex items-center justify-center mb-8">
         <div className="flex items-center gap-6">
@@ -34,11 +24,6 @@ export const HomeSection = ({ activeTab, onTabChange }: HomeSectionProps) => {
             <h1 className="text-3xl font-bold text-foreground">UNIQUEBEING</h1>
           </div>
         </div>
-      </div>
-
-      {/* Navigation */}
-      <div className="flex justify-center mb-8">
-        <Navigation activeTab={activeTab} onTabChange={onTabChange} />
       </div>
 
       {/* Wallet Balances */}

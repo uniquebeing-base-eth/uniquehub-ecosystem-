@@ -11,6 +11,8 @@ const tabs = [
   { id: "earning", label: "Earning" },
   { id: "marketplace", label: "Marketplace" },
   { id: "courses", label: "Courses" },
+  { id: "profile", label: "Profile" },
+  { id: "tutor", label: "Tutor" },
 ];
 
 export const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
