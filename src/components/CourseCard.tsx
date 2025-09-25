@@ -15,13 +15,7 @@ export const CourseCard = ({ title, icon, buttonText = "START", onAction }: Cour
           {icon}
         </div>
       </div>
-      <h3 className="text-lg font-semibold text-foreground mb-4 text-center">{title}</h3>
-      <Button 
-        className="w-full bg-primary hover:bg-primary-glow text-primary-foreground font-semibold"
-        onClick={onAction}
-      >
-        {buttonText}
-      </Button>
+      <h3 className="text-lg font-semibold text-foreground text-center">{title}</h3>
     </div>
   );
 };
