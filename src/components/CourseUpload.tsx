@@ -118,8 +118,10 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
               <option value="defi">DeFi</option>
               <option value="nfts">NFTs</option>
               <option value="trading">Trading</option>
-              <option value="development">Development</option>
-              <option value="dao">DAO</option>
+              <option value="development">Tech & Development</option>
+              <option value="art">Art & Design</option>
+              <option value="embroidery">Embroidery & Crafts</option>
+              <option value="non-tech">Non-Tech</option>
             </select>
           </div>
         </div>
