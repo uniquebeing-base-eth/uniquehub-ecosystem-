@@ -72,32 +72,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signInWithFarcaster = async (farcasterData: any) => {
     try {
-      // Use a proper email format that Supabase will accept
-      const email = `farcaster.${farcasterData.fid}@uniquehub.app`;
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: farcasterData.signature,
+      // Avoid email/password entirely. Create an anonymous Supabase session,
+      // then attach Farcaster metadata and ensure a profile exists.
+      let { data: userData } = await supabase.auth.getUser();
+
+      if (!userData.user) {
+        const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
+        if (anonError) throw anonError;
+        userData = { user: anonData.user } as any;
+      }
+
+      const { data: updated, error: updateError } = await supabase.auth.updateUser({
+        data: {
+          display_name: farcasterData.displayName,
+          farcaster_username: farcasterData.username,
+          farcaster_fid: String(farcasterData.fid),
+          wallet_address: farcasterData.custodyAddress,
+        },
       });
+      if (updateError) throw updateError;
 
-      if (error && error.message.includes('Invalid login credentials')) {
-        // User doesn't exist, create account
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password: farcasterData.signature,
-          options: {
-            data: {
-              display_name: farcasterData.displayName,
-              farcaster_username: farcasterData.username,
-              farcaster_fid: farcasterData.fid,
-              wallet_address: farcasterData.custodyAddress,
-            }
-          }
-        });
-
-        if (signUpError) throw signUpError;
-      } else if (error) {
-        throw error;
+      // Ensure there's a profile row for this user
+      if (updated.user) {
+        await createOrUpdateProfile(updated.user);
       }
     } catch (error) {
       console.error('Farcaster sign in error:', error);
