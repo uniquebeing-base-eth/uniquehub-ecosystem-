@@ -17,10 +17,10 @@
     --popover: 220 35% 18%;
     --popover-foreground: 0 0% 98%;
 
-    /* Primary cyan/turquoise theme - more vibrant */
-    --primary: 174 100% 60%;
-    --primary-foreground: 220 41% 13%;
-    --primary-glow: 174 100% 75%;
+    /* Primary royal blue theme */
+    --primary: 225 73% 57%;
+    --primary-foreground: 0 0% 98%;
+    --primary-glow: 225 73% 67%;
 
     /* Secondary blue tones */
     --secondary: 220 35% 25%;
@@ -29,31 +29,31 @@
     --muted: 220 25% 20%;
     --muted-foreground: 220 10% 60%;
 
-    --accent: 174 100% 60%;
-    --accent-foreground: 220 41% 13%;
+    --accent: 225 73% 57%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 220 25% 25%;
     --input: 220 25% 25%;
-    --ring: 174 100% 60%;
+    --ring: 225 73% 57%;
 
     --radius: 0.75rem;
 
     /* Web3 specific colors */
     --crypto-usdc: 219 69% 96%;
     --crypto-eth: 224 64% 66%;
-    --success: 142 76% 50%;
+    --success: 225 73% 57%;
     --warning: 38 92% 50%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(174 100% 60%), hsl(174 100% 75%));
+    --gradient-primary: linear-gradient(135deg, hsl(225 73% 57%), hsl(225 73% 67%));
     --gradient-card: linear-gradient(135deg, hsl(220 35% 18%), hsl(220 35% 22%));
-    --gradient-glow: linear-gradient(135deg, hsl(174 100% 60% / 0.2), hsl(174 100% 75% / 0.1));
+    --gradient-glow: linear-gradient(135deg, hsl(225 73% 57% / 0.2), hsl(225 73% 67% / 0.1));
 
     /* Shadows */
-    --shadow-glow: 0 0 30px hsl(174 100% 60% / 0.4);
+    --shadow-glow: 0 0 30px hsl(225 73% 57% / 0.4);
     --shadow-card: 0 4px 20px hsl(220 41% 8% / 0.4);
 
     /* Animations */
@@ -106,5 +106,14 @@
 
   body {
     @apply bg-background text-foreground;
+    background-image: url('/src/assets/anime-background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+
+  .content-overlay {
+    background: rgba(34, 41, 71, 0.85);
+    backdrop-filter: blur(8px);
   }
 }

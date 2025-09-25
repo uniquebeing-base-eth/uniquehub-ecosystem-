@@ -21,7 +21,7 @@ export const EarningCard = ({ title, description, icon, buttonText = "START", on
         </div>
       </div>
       <Button 
-        className="w-full bg-success hover:bg-success/90 text-background font-bold py-3"
+        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3"
         onClick={onAction}
       >
         {buttonText}

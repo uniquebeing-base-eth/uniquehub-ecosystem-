@@ -59,7 +59,7 @@ const Dashboard = () => {
     if (showAuthModal) {
       return (
         <div className="flex justify-center items-center min-h-[60vh]">
-          <div className="max-w-md">
+          <div className="max-w-md bg-card/90 backdrop-blur-sm rounded-xl p-6 border border-border">
             <FarcasterAuth />
             <div className="text-center mt-4">
               <button
@@ -93,8 +93,8 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="flex-1 container mx-auto px-6 py-8">
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-1 container mx-auto px-6 py-8 content-overlay">
         {/* Header */}
         <div className="flex items-center justify-center mb-8">
           <h1 className="text-2xl font-bold text-primary">UniqueHub</h1>

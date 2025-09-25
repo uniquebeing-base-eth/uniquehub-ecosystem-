@@ -22,16 +22,18 @@ export const WalletConnector = () => {
 
   if (showAuth && !user) {
     return (
-      <div className="bg-card border-t border-border p-6">
+      <div className="bg-card/90 backdrop-blur-sm border-t border-border p-6">
         <div className="container mx-auto px-6">
-          <FarcasterAuth />
-          <div className="text-center mt-4">
-            <button
-              onClick={() => setShowAuth(false)}
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              Cancel
-            </button>
+          <div className="max-w-md mx-auto">
+            <FarcasterAuth />
+            <div className="text-center mt-4">
+              <button
+                onClick={() => setShowAuth(false)}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -39,7 +41,7 @@ export const WalletConnector = () => {
   }
 
   return (
-    <div className="bg-card border-t border-border p-4">
+    <div className="bg-card/90 backdrop-blur-sm border-t border-border p-4">
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -75,7 +77,7 @@ export const WalletConnector = () => {
           ) : (
             <Button
               onClick={handleConnect}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+              className="text-sm font-medium"
             >
               Connect
             </Button>
