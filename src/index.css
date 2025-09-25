@@ -113,8 +113,8 @@
   }
 
   .content-overlay {
-    background: rgba(34, 41, 71, 0.85);
-    backdrop-filter: blur(8px);
+    background: rgba(34, 41, 71, 0.65);
+    backdrop-filter: blur(4px);
   }
 
   /* Anime Background Classes */
