@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { HomeSection } from "@/components/sections/HomeSection";
 import { MarketplaceSection } from "@/components/sections/MarketplaceSection";

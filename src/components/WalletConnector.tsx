@@ -2,7 +2,7 @@ import { Wallet, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { FarcasterAuth } from "./FarcasterAuth";
-import { useState } from "react";
+import React, { useState } from "react";
 
 export const WalletConnector = () => {
   const { user, signOut } = useAuth();
