@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { HomeSection } from "@/components/sections/HomeSection";
 import { MarketplaceSection } from "@/components/sections/MarketplaceSection";
@@ -14,6 +14,22 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("home");
   const { user, loading } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Initialize Farcaster SDK when component mounts
+  useEffect(() => {
+    const initializeFarcaster = async () => {
+      try {
+        const { sdk } = await import('@farcaster/miniapp-sdk');
+        // Call ready to hide splash screen
+        await sdk.actions.ready();
+      } catch (error) {
+        // SDK not available or not in Farcaster context, continue normally
+        console.log('Farcaster SDK not available');
+      }
+    };
+
+    initializeFarcaster();
+  }, []);
 
   const handleTabChange = (tab: string) => {
     // Check if tab requires authentication
