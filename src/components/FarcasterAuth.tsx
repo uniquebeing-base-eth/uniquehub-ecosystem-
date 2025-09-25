@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Wallet, Loader2 } from 'lucide-react';
+import { Wallet, Loader2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export const FarcasterAuth = () => {
   const [isConnecting, setIsConnecting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const { signInWithFarcaster } = useAuth();
 
   const connectFarcaster = async () => {
     setIsConnecting(true);
+    setErrorMsg(null);
     try {
       // Simulate Farcaster connection - in real app this would use @farcaster/auth-kit
       const mockFarcasterData = {
@@ -21,8 +23,14 @@ export const FarcasterAuth = () => {
       };
 
       await signInWithFarcaster(mockFarcasterData);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to connect Farcaster:', error);
+      const msg = String(error?.message || error);
+      if (msg.toLowerCase().includes('anonymous')) {
+        setErrorMsg('Anonymous sign-ins are disabled in Supabase. Please enable them in Auth settings, then try again.');
+      } else {
+        setErrorMsg('Connection failed. Please try again.');
+      }
     } finally {
       setIsConnecting(false);
     }
@@ -40,6 +48,12 @@ export const FarcasterAuth = () => {
             Sign in with your Farcaster account to access UniqueHub
           </p>
         </div>
+        {errorMsg && (
+          <div className="text-sm text-destructive flex items-center justify-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
         <Button
           onClick={connectFarcaster}
           disabled={isConnecting}

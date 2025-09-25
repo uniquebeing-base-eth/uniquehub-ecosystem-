@@ -7,13 +7,13 @@ import { EarningSection } from "@/components/sections/EarningSection";
 import { ProfileSection } from "@/components/sections/ProfileSection";
 import { TutorSection } from "@/components/sections/TutorSection";
 import { WalletConnector } from "@/components/WalletConnector";
-import { FarcasterAuth } from "@/components/FarcasterAuth";
+
 import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("home");
   const { user, loading } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  
 
   // Initialize Farcaster SDK when component mounts
   useEffect(() => {
@@ -32,16 +32,7 @@ const Dashboard = () => {
   }, []);
 
   const handleTabChange = (tab: string) => {
-    // Check if tab requires authentication
-    const protectedTabs = ['profile', 'tutor'];
-    
-    if (protectedTabs.includes(tab) && !user) {
-      setShowAuthModal(true);
-      return;
-    }
-    
     setActiveTab(tab);
-    setShowAuthModal(false);
   };
 
   if (loading) {
@@ -56,23 +47,6 @@ const Dashboard = () => {
   }
 
   const renderContent = () => {
-    if (showAuthModal) {
-      return (
-        <div className="flex justify-center items-center min-h-[60vh]">
-          <div className="max-w-md bg-card/90 backdrop-blur-sm rounded-xl p-6 border border-border">
-            <FarcasterAuth />
-            <div className="text-center mt-4">
-              <button
-                onClick={() => setShowAuthModal(false)}
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
 
     switch (activeTab) {
       case "home":
