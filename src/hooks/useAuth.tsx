@@ -72,15 +72,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signInWithFarcaster = async (farcasterData: any) => {
     try {
+      // Use a proper email format that Supabase will accept
+      const email = `farcaster.${farcasterData.fid}@uniquehub.app`;
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: `${farcasterData.fid}@farcaster.local`,
+        email,
         password: farcasterData.signature,
       });
 
       if (error && error.message.includes('Invalid login credentials')) {
         // User doesn't exist, create account
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: `${farcasterData.fid}@farcaster.local`,
+          email,
           password: farcasterData.signature,
           options: {
             data: {
