@@ -9,14 +9,13 @@ import { BookOpen, Rocket, DollarSign, Hexagon } from "lucide-react";
 interface HomeSectionProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  onMenuClick: () => void;
 }
 
-export const HomeSection = ({ activeTab, onTabChange, onMenuClick }: HomeSectionProps) => {
+export const HomeSection = ({ activeTab, onTabChange }: HomeSectionProps) => {
   return (
     <div className="space-y-8">
       {/* User Profile Section */}
-      <UserProfile username="UNIQUEBEING" onMenuClick={onMenuClick} />
+      <UserProfile username="UNIQUEBEING" />
 
       {/* Navigation */}
       <div className="flex gap-4">
