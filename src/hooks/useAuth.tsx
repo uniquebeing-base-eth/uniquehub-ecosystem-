@@ -64,6 +64,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           farcaster_fid: user.user_metadata.farcaster_fid,
           wallet_address: user.user_metadata.wallet_address,
         });
+      } else {
+        // Update existing profile with new data
+        await supabase.from('profiles').update({
+          display_name: user.user_metadata.display_name || existingProfile.display_name,
+          farcaster_username: user.user_metadata.farcaster_username || existingProfile.farcaster_username,
+          farcaster_fid: user.user_metadata.farcaster_fid || existingProfile.farcaster_fid,
+          wallet_address: user.user_metadata.wallet_address || existingProfile.wallet_address,
+        }).eq('user_id', user.id);
       }
     } catch (error) {
       console.error('Error creating profile:', error);
@@ -72,16 +80,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signInWithFarcaster = async (farcasterData: any) => {
     try {
-      // Avoid email/password entirely. Create an anonymous Supabase session,
-      // then attach Farcaster metadata and ensure a profile exists.
-      let { data: userData } = await supabase.auth.getUser();
+      // Create an anonymous session
+      const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
+      if (authError) throw authError;
 
-      if (!userData.user) {
-        const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
-        if (anonError) throw anonError;
-        userData = { user: anonData.user } as any;
-      }
-
+      // Update user metadata with Farcaster data
       const { data: updated, error: updateError } = await supabase.auth.updateUser({
         data: {
           display_name: farcasterData.displayName,
