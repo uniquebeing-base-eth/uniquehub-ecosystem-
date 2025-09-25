@@ -1,6 +1,18 @@
-import { Wallet } from "lucide-react";
+import { Wallet, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 export const WalletConnector = () => {
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
   return (
     <div className="bg-card border-t border-border p-4">
       <div className="container mx-auto px-6">
@@ -10,13 +22,32 @@ export const WalletConnector = () => {
               <Wallet className="w-4 h-4 text-primary-foreground" />
             </div>
             <div className="text-sm">
-              <div className="font-medium text-foreground">Wallet</div>
-              <div className="text-muted-foreground">Connect to get started</div>
+              {user ? (
+                <>
+                  <div className="font-medium text-foreground">Connected</div>
+                  <div className="text-muted-foreground">
+                    {user.user_metadata?.farcaster_username || 'Farcaster User'}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="font-medium text-foreground">Wallet</div>
+                  <div className="text-muted-foreground">Connect with Farcaster</div>
+                </>
+              )}
             </div>
           </div>
-          <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
-            Connect
-          </button>
+          {user ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSignOut}
+              className="text-sm"
+            >
+              <LogOut className="w-3 h-3 mr-1" />
+              Sign Out
+            </Button>
+          ) : null}
         </div>
       </div>
     </div>

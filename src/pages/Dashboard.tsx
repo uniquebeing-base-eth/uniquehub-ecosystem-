@@ -7,9 +7,44 @@ import { EarningSection } from "@/components/sections/EarningSection";
 import { ProfileSection } from "@/components/sections/ProfileSection";
 import { TutorSection } from "@/components/sections/TutorSection";
 import { WalletConnector } from "@/components/WalletConnector";
+import { FarcasterAuth } from "@/components/FarcasterAuth";
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("home");
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-6 py-8">
+          {/* Header */}
+          <div className="flex items-center justify-center mb-8">
+            <h1 className="text-2xl font-bold text-primary">UniqueHub</h1>
+          </div>
+
+          {/* Auth Form */}
+          <div className="flex justify-center items-center min-h-[60vh]">
+            <FarcasterAuth />
+          </div>
+        </div>
+        
+        {/* Wallet Connector at bottom */}
+        <WalletConnector />
+      </div>
+    );
+  }
 
   const renderContent = () => {
     switch (activeTab) {
