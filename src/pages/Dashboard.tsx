@@ -32,16 +32,6 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="flex-1 container mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-center mb-8">
-          <h1 className="text-2xl font-bold text-foreground">UniqueHub</h1>
-        </div>
-
-        {/* Navigation */}
-        {activeTab !== "home" && (
-          <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
-        )}
-
         {/* Content */}
         {renderContent()}
       </div>

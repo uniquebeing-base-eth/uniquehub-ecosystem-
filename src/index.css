@@ -17,10 +17,10 @@
     --popover: 220 35% 18%;
     --popover-foreground: 0 0% 98%;
 
-    /* Primary cyan/turquoise theme */
-    --primary: 174 72% 56%;
+    /* Primary cyan/turquoise theme - more vibrant */
+    --primary: 174 100% 60%;
     --primary-foreground: 220 41% 13%;
-    --primary-glow: 174 100% 70%;
+    --primary-glow: 174 100% 75%;
 
     /* Secondary blue tones */
     --secondary: 220 35% 25%;
@@ -29,7 +29,7 @@
     --muted: 220 25% 20%;
     --muted-foreground: 220 10% 60%;
 
-    --accent: 174 72% 56%;
+    --accent: 174 100% 60%;
     --accent-foreground: 220 41% 13%;
 
     --destructive: 0 84% 60%;
@@ -37,23 +37,23 @@
 
     --border: 220 25% 25%;
     --input: 220 25% 25%;
-    --ring: 174 72% 56%;
+    --ring: 174 100% 60%;
 
     --radius: 0.75rem;
 
     /* Web3 specific colors */
     --crypto-usdc: 219 69% 96%;
     --crypto-eth: 224 64% 66%;
-    --success: 142 76% 36%;
+    --success: 142 76% 50%;
     --warning: 38 92% 50%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(174 72% 56%), hsl(174 100% 70%));
+    --gradient-primary: linear-gradient(135deg, hsl(174 100% 60%), hsl(174 100% 75%));
     --gradient-card: linear-gradient(135deg, hsl(220 35% 18%), hsl(220 35% 22%));
-    --gradient-glow: linear-gradient(135deg, hsl(174 72% 56% / 0.2), hsl(174 100% 70% / 0.1));
+    --gradient-glow: linear-gradient(135deg, hsl(174 100% 60% / 0.2), hsl(174 100% 75% / 0.1));
 
     /* Shadows */
-    --shadow-glow: 0 0 30px hsl(174 72% 56% / 0.3);
+    --shadow-glow: 0 0 30px hsl(174 100% 60% / 0.4);
     --shadow-card: 0 4px 20px hsl(220 41% 8% / 0.4);
 
     /* Animations */

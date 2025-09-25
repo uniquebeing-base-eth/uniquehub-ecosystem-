@@ -15,6 +15,11 @@ interface HomeSectionProps {
 export const HomeSection = ({ activeTab, onTabChange }: HomeSectionProps) => {
   return (
     <div className="space-y-8">
+      {/* UniqueHub Header */}
+      <div className="flex items-center justify-center mb-8">
+        <h1 className="text-2xl font-bold text-foreground">UniqueHub</h1>
+      </div>
+
       {/* User Profile Section with Penguin */}
       <div className="flex items-center justify-center mb-8">
         <div className="flex items-center gap-6">
