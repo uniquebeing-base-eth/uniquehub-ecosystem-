@@ -106,7 +106,7 @@
 
   body {
     @apply bg-background text-foreground;
-    background-image: url('/src/assets/anime-background.jpg');
+    background-image: url('/src/assets/anime-bg-main.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -115,5 +115,18 @@
   .content-overlay {
     background: rgba(34, 41, 71, 0.85);
     backdrop-filter: blur(8px);
+  }
+
+  /* Anime Background Classes */
+  .anime-bg-learn {
+    background-image: url('/src/assets/anime-bg-learn.jpg');
+    background-size: cover;
+    background-position: center;
+  }
+
+  .anime-bg-trade {
+    background-image: url('/src/assets/anime-bg-trade.jpg');
+    background-size: cover;
+    background-position: center;
   }
 }

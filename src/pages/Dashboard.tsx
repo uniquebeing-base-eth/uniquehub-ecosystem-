@@ -93,7 +93,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col anime-bg-main">
       <div className="flex-1 container mx-auto px-6 py-8 content-overlay">
         {/* Header */}
         <div className="flex items-center justify-center mb-8">
