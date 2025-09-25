@@ -1,0 +1,27 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "UniqueHub",
+    "iconUrl": "https://lovable.dev/opengraph-image-p98pqg.png",
+    "homeUrl": "https://uniquehub.lovableproject.com",
+    "imageUrl": "https://lovable.dev/opengraph-image-p98pqg.png",
+    "buttonTitle": "🎓 Launch UniqueHub",
+    "splashImageUrl": "https://lovable.dev/opengraph-image-p98pqg.png",
+    "splashBackgroundColor": "#1a1a1a",
+    "description": "Web3-powered super app combining learning, earning, and digital asset trading with courses and marketplace for NFTs",
+    "subtitle": "Web3 Learning & Trading Platform",
+    "primaryCategory": "education",
+    "tags": [
+      "web3",
+      "learning",
+      "courses",
+      "nft",
+      "marketplace",
+      "education",
+      "trading"
+    ],
+    "ogTitle": "UniqueHub - Web3 Learning & Trading Platform",
+    "ogDescription": "Web3-powered super app combining learning, earning, and digital asset trading",
+    "ogImageUrl": "https://lovable.dev/opengraph-image-p98pqg.png"
+  }
+}

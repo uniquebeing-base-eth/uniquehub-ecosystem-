@@ -137,11 +137,19 @@ export const MarketplaceSection = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-foreground">Marketplace</h1>
-        {user && (
+        {user ? (
           <Button onClick={() => setShowUploadForm(true)} className="bg-primary hover:bg-primary/90">
             <Plus className="w-4 h-4 mr-2" />
             List Item
           </Button>
+        ) : (
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground mb-2">Connect with Farcaster to list items</p>
+            <Button variant="outline" size="sm" disabled>
+              <Plus className="w-4 h-4 mr-2" />
+              List Item
+            </Button>
+          </div>
         )}
       </div>
 
