@@ -30,6 +30,12 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
     e.preventDefault();
     if (!user) return;
 
+    // Validate price is set for paid courses
+    if (formData.price_usdc && parseFloat(formData.price_usdc) <= 0) {
+      toast.error('Please set a valid price for your course');
+      return;
+    }
+
     setLoading(true);
     try {
       let thumbnail_url = null;
@@ -79,7 +85,7 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
 
       if (error) throw error;
 
-      toast.success('Course uploaded successfully!');
+      toast.success('Course uploaded successfully! Buyers can pay with USDC or ETH on Base L2.');
       onSuccess?.();
     } catch (error) {
       console.error('Error uploading course:', error);

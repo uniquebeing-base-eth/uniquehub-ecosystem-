@@ -58,6 +58,56 @@ export type Database = {
           },
         ]
       }
+      course_payments: {
+        Row: {
+          amount: number
+          buyer_user_id: string
+          chain: string
+          completed_at: string | null
+          course_id: string
+          created_at: string
+          currency: string
+          id: string
+          seller_user_id: string
+          status: string
+          transaction_hash: string | null
+        }
+        Insert: {
+          amount: number
+          buyer_user_id: string
+          chain?: string
+          completed_at?: string | null
+          course_id: string
+          created_at?: string
+          currency: string
+          id?: string
+          seller_user_id: string
+          status?: string
+          transaction_hash?: string | null
+        }
+        Update: {
+          amount?: number
+          buyer_user_id?: string
+          chain?: string
+          completed_at?: string | null
+          course_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          seller_user_id?: string
+          status?: string
+          transaction_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_payments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           category: string | null
@@ -175,6 +225,66 @@ export type Database = {
           price_usdc?: number
           status?: string | null
           title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nft_listings: {
+        Row: {
+          buyer_user_id: string | null
+          chain: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          metadata: Json | null
+          name: string | null
+          price_amount: number
+          price_currency: string
+          sold_at: string | null
+          status: string
+          token_address: string
+          token_id: string
+          token_standard: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          buyer_user_id?: string | null
+          chain?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          name?: string | null
+          price_amount: number
+          price_currency: string
+          sold_at?: string | null
+          status?: string
+          token_address: string
+          token_id: string
+          token_standard: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          buyer_user_id?: string | null
+          chain?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          name?: string | null
+          price_amount?: number
+          price_currency?: string
+          sold_at?: string | null
+          status?: string
+          token_address?: string
+          token_id?: string
+          token_standard?: string
           updated_at?: string
           user_id?: string
         }

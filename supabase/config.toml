@@ -1,1 +1,16 @@
 project_id = "ucqcrhfcflrepsdlcvpq"
+
+[functions.fetch-user-nfts]
+verify_jwt = true
+
+[functions.create-course-payment-frame]
+verify_jwt = true
+
+[functions.create-nft-purchase-frame]
+verify_jwt = true
+
+[functions.verify-course-payment]
+verify_jwt = false
+
+[functions.verify-nft-purchase]
+verify_jwt = false

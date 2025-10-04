@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { BookOpen, DollarSign, Filter, Search, Plus } from "lucide-react";
 import { CourseCard } from "@/components/CourseCard";
 import { CourseUpload } from "@/components/CourseUpload";
+import { CoursePurchase } from "@/components/CoursePurchase";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const CoursesSection = () => {
   const { user } = useAuth();
@@ -17,6 +19,8 @@ export const CoursesSection = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [priceFilter, setPriceFilter] = useState("all");
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
 
   const categories = [
     { value: "all", label: "All Categories" },
@@ -74,6 +78,17 @@ export const CoursesSection = () => {
     }
 
     setFilteredCourses(filtered);
+  };
+
+  const handleCourseClick = (course: any) => {
+    setSelectedCourse(course);
+    setShowPurchaseModal(true);
+  };
+
+  const handlePurchaseComplete = () => {
+    setShowPurchaseModal(false);
+    toast.success('Course access granted! You can now view the course content.');
+    fetchCourses(); // Refresh the courses list
   };
 
   const handleUploadSuccess = () => {
@@ -169,15 +184,19 @@ export const CoursesSection = () => {
         </div>
       </Card>
 
-      {/* Course Grid */}
+      {/* Courses Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCourses.map((course) => (
-          <Card key={course.id} className="p-4 hover:shadow-lg transition-shadow">
+        {filteredCourses.map((course: any) => (
+          <Card 
+            key={course.id} 
+            className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => handleCourseClick(course)}
+          >
             {course.thumbnail_url && (
               <img 
                 src={course.thumbnail_url} 
                 alt={course.title}
-                className="w-full h-40 object-cover rounded-lg mb-4"
+                className="w-full h-48 object-cover rounded-lg mb-4"
               />
             )}
             <h3 className="text-lg font-semibold text-foreground mb-2">{course.title}</h3>
@@ -185,23 +204,52 @@ export const CoursesSection = () => {
               {course.description}
             </p>
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-1">
-                <DollarSign className="w-4 h-4 text-primary" />
-                <span className="font-medium">
+              <div className="flex flex-col">
+                <span className="font-bold text-xl text-primary">
                   {course.price_usdc === 0 ? 'Free' : `${course.price_usdc} USDC`}
                 </span>
+                {course.price_usdc > 0 && (
+                  <span className="text-xs text-muted-foreground">or equivalent in ETH</span>
+                )}
               </div>
               <Badge variant="secondary" className="text-xs">
                 {categories.find(c => c.value === course.category)?.label || course.category}
               </Badge>
             </div>
-            <Button className="w-full" variant="outline">
-              <BookOpen className="w-4 h-4 mr-2" />
-              Enroll Now
-            </Button>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <BookOpen className="w-4 h-4" />
+              <span>{course.enrollment_count || 0} enrolled</span>
+            </div>
           </Card>
         ))}
       </div>
+
+      {/* Purchase Modal */}
+      {showPurchaseModal && selectedCourse && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="max-w-md w-full">
+            <Card className="p-6 space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-foreground">{selectedCourse.title}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{selectedCourse.description}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPurchaseModal(false)}
+                >
+                  ✕
+                </Button>
+              </div>
+              <CoursePurchase 
+                course={selectedCourse}
+                onPurchaseComplete={handlePurchaseComplete}
+              />
+            </Card>
+          </div>
+        </div>
+      )}
 
       {filteredCourses.length === 0 && (
         <Card className="p-12 text-center">

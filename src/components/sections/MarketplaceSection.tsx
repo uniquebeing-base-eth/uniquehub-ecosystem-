@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, DollarSign, Filter, Search, Plus, Upload } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { NFTMarketplace } from "@/components/NFTMarketplace";
 
 export const MarketplaceSection = () => {
   const { user } = useAuth();
@@ -134,9 +135,24 @@ export const MarketplaceSection = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Neynar-powered NFT Marketplace for Base L2 */}
+      <NFTMarketplace />
+
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-border"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-4 bg-background text-muted-foreground">Legacy Marketplace</span>
+        </div>
+      </div>
+
+      {/* Keep existing general marketplace below */}
+      <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground">Marketplace</h1>
+        <h2 className="text-2xl font-bold text-foreground">General Items</h2>
         {user ? (
           <Button onClick={() => setShowUploadForm(true)} className="bg-primary hover:bg-primary/90">
             <Plus className="w-4 h-4 mr-2" />
@@ -330,6 +346,7 @@ export const MarketplaceSection = () => {
           )}
         </Card>
       )}
+      </div>
     </div>
   );
 };
