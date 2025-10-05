@@ -79,18 +79,25 @@ export const ProfileSection = () => {
       <Card className="p-6">
         <div className="flex items-center gap-6">
           <img 
-            src={penguinAvatar} 
+            src={profile?.avatar_url || penguinAvatar} 
             alt="Profile Avatar" 
             className="w-20 h-20 rounded-full object-cover border-2 border-primary/20"
           />
-          <div>
+          <div className="flex-1">
             <h2 className="text-2xl font-bold text-foreground">
               {profile?.display_name || 'Farcaster User'}
             </h2>
             {profile?.farcaster_username && (
               <p className="text-primary">@{profile.farcaster_username}</p>
             )}
-            <p className="text-muted-foreground">Member since 2024</p>
+            {profile?.bio && (
+              <p className="text-muted-foreground mt-2">{profile.bio}</p>
+            )}
+            {profile?.wallet_address && (
+              <p className="text-xs text-muted-foreground mt-2">
+                {profile.wallet_address.slice(0, 6)}...{profile.wallet_address.slice(-4)}
+              </p>
+            )}
             <div className="flex items-center gap-2 mt-2">
               <Star className="w-4 h-4 text-primary fill-current" />
               <span className="text-sm font-medium">Level 1 Creator</span>

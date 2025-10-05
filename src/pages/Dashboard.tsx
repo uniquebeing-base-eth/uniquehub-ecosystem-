@@ -20,16 +20,21 @@ const Dashboard = () => {
     const initializeFarcaster = async () => {
       try {
         const { sdk } = await import('@farcaster/miniapp-sdk');
-        // Call ready to hide splash screen
-        await sdk.actions.ready();
+        // Wait a bit for auth to complete before calling ready
+        setTimeout(() => {
+          sdk.actions.ready();
+        }, 500);
       } catch (error) {
         // SDK not available or not in Farcaster context, continue normally
         console.log('Farcaster SDK not available');
       }
     };
 
-    initializeFarcaster();
-  }, []);
+    // Only initialize once user is loaded
+    if (!loading) {
+      initializeFarcaster();
+    }
+  }, [loading]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
