@@ -3,6 +3,12 @@ project_id = "ucqcrhfcflrepsdlcvpq"
 [functions.fetch-user-nfts]
 verify_jwt = true
 
+[functions.sync-farcaster-profile]
+verify_jwt = false
+
+[functions.share-to-farcaster]
+verify_jwt = true
+
 [functions.create-course-payment-frame]
 verify_jwt = true
 

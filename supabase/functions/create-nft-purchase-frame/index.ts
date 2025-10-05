@@ -81,7 +81,7 @@ serve(async (req) => {
     // by a smart contract or escrow service (like Reservoir or Zora)
     const frameMetadata = {
       version: 'vNext',
-      imageUrl: listing.image_url || 'https://uniquehubb.vercel.app/opengraph-image.png',
+      imageUrl: listing.image_url || 'https://uniqueehub.vercel.app/opengraph-image.png',
       button: {
         title: `Buy NFT for ${price} ${currency}`,
         action: {
