@@ -8,7 +8,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export const HomeSection = () => {
+interface HomeSectionProps {
+  onNavigate?: (tab: string) => void;
+}
+
+export const HomeSection = ({ onNavigate }: HomeSectionProps) => {
   const [trendingCourses, setTrendingCourses] = useState<any[]>([]);
   const [latestNFTs, setLatestNFTs] = useState<any[]>([]);
   const [topCreators, setTopCreators] = useState<any[]>([]);
@@ -80,6 +84,7 @@ export const HomeSection = () => {
             description="Complete courses and tasks to earn crypto rewards"
             icon={<BookOpen className="w-8 h-8" />}
             buttonText="START LEARNING"
+            onAction={() => onNavigate?.('courses')}
           />
           
           <EarningCard
@@ -87,6 +92,7 @@ export const HomeSection = () => {
             description="Buy and sell NFTs and digital collectibles"
             icon={<Coins className="w-8 h-8" />}
             buttonText="EXPLORE MARKETPLACE"
+            onAction={() => onNavigate?.('marketplace')}
           />
           
           <EarningCard
@@ -94,6 +100,7 @@ export const HomeSection = () => {
             description="Create courses and earn from teaching others"
             icon={<GraduationCap className="w-8 h-8" />}
             buttonText="START TEACHING"
+            onAction={() => onNavigate?.('tutor')}
           />
         </div>
 

@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.verify-nft-purchase]
 verify_jwt = false
+
+[functions.process-checkin]
+verify_jwt = true
+
+[functions.process-transaction-with-fees]
+verify_jwt = true

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HomeSection } from "@/components/sections/HomeSection";
 import { MarketplaceSection } from "@/components/sections/MarketplaceSection";
 import { CoursesSection } from "@/components/sections/CoursesSection";
 import { EarningSection } from "@/components/sections/EarningSection";
 import { ProfileSection } from "@/components/sections/ProfileSection";
 import { TutorSection } from "@/components/sections/TutorSection";
-import { WalletConnector } from "@/components/WalletConnector";
 
 import { useAuth } from "@/hooks/useAuth";
 
@@ -55,7 +55,7 @@ const Dashboard = () => {
 
     switch (activeTab) {
       case "home":
-        return <HomeSection />;
+        return <HomeSection onNavigate={handleTabChange} />;
       case "marketplace":
         return <MarketplaceSection />;
       case "courses":
@@ -74,9 +74,26 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen flex flex-col anime-bg-main">
       <div className="flex-1 container mx-auto px-6 py-8 content-overlay">
-        {/* Header */}
-        <div className="flex items-center justify-center mb-8">
-          <h1 className="text-2xl font-bold text-primary">UniqueHub</h1>
+        {/* Header with Logo and Profile */}
+        <div className="flex items-center justify-between mb-8 px-4">
+          <div className="flex items-center gap-3">
+            <img 
+              src={new URL('../assets/uniquehub-logo.png', import.meta.url).href} 
+              alt="UniqueHub" 
+              className="w-10 h-10"
+            />
+            <h1 className="text-2xl font-bold text-primary">UniqueHub</h1>
+          </div>
+          {user && (
+            <div className="flex items-center gap-2">
+              <Avatar className="w-10 h-10 ring-2 ring-primary/20">
+                <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.display_name || 'User'} />
+                <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">
+                  {(user.user_metadata?.display_name || 'U').slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          )}
         </div>
 
         {/* Navigation - Always visible */}
@@ -87,9 +104,6 @@ const Dashboard = () => {
         {/* Content */}
         {renderContent()}
       </div>
-      
-      {/* Wallet Connector at bottom */}
-      <WalletConnector />
     </div>
   );
 };

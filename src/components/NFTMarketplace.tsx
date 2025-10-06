@@ -23,6 +23,7 @@ export const NFTMarketplace = () => {
   const [listPrice, setListPrice] = useState('');
   const [listCurrency, setListCurrency] = useState('USDC');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedForPurchase, setSelectedForPurchase] = useState<any>(null);
 
   useEffect(() => {
     fetchListings();
@@ -110,6 +111,8 @@ export const NFTMarketplace = () => {
       return;
     }
 
+    setSelectedForPurchase(listing);
+
     try {
       const { data, error } = await supabase.functions.invoke('create-nft-purchase-frame', {
         body: { listingId: listing.id },
@@ -118,13 +121,39 @@ export const NFTMarketplace = () => {
       if (error) throw error;
 
       if (data?.success) {
-        toast.success('Transaction frame created! Complete the purchase in your wallet.');
+        toast.success('Transaction frame created! Simulating purchase...');
         // In a real implementation, this would open the Farcaster transaction frame
         console.log('Transaction frame:', data.frameMetadata);
+        
+        // Simulate transaction and award points
+        setTimeout(async () => {
+          toast.success('NFT purchase completed!');
+          
+          // Award UP points for purchase
+          try {
+            const { data: pointsData } = await supabase.functions.invoke('process-transaction-with-fees', {
+              body: {
+                transactionType: 'buy',
+                amountUsd: parseFloat(listing.price_amount?.toString() || '0'),
+                transactionHash: data.listingId, // Using listing ID as simulated tx hash
+              },
+            });
+
+            if (pointsData?.success) {
+              toast.success(`🎉 ${pointsData.message}`, { duration: 5000 });
+            }
+          } catch (error) {
+            console.error('Error awarding points:', error);
+          }
+
+          setSelectedForPurchase(null);
+          fetchListings();
+        }, 2000);
       }
     } catch (error: any) {
       console.error('Error creating purchase frame:', error);
       toast.error('Failed to create purchase transaction');
+      setSelectedForPurchase(null);
     }
   };
 
@@ -271,9 +300,9 @@ export const NFTMarketplace = () => {
                 <Button
                   onClick={() => handleBuyNFT(listing)}
                   className="w-full"
-                  disabled={!user || listing.user_id === user?.id}
+                  disabled={!user || listing.user_id === user?.id || selectedForPurchase?.id === listing.id}
                 >
-                  {!user ? 'Sign In' : listing.user_id === user?.id ? 'Your NFT' : 'Buy Now'}
+                  {!user ? 'Sign In' : listing.user_id === user?.id ? 'Your NFT' : selectedForPurchase?.id === listing.id ? 'Processing...' : 'Buy Now'}
                 </Button>
               </div>
             </Card>

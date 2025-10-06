@@ -46,8 +46,26 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
         // For now, we'll simulate the payment verification
         
         // Simulate transaction completion (in production, this happens via frame callback)
-        setTimeout(() => {
+        setTimeout(async () => {
           toast.info('Simulating payment completion...');
+          
+          // Award UP points for purchase
+          try {
+            const { data: pointsData } = await supabase.functions.invoke('process-transaction-with-fees', {
+              body: {
+                transactionType: 'buy',
+                amountUsd: priceInUSDC,
+                transactionHash: data.paymentId, // Using payment ID as simulated tx hash
+              },
+            });
+
+            if (pointsData?.success) {
+              toast.success(`🎉 ${pointsData.message}`, { duration: 5000 });
+            }
+          } catch (error) {
+            console.error('Error awarding points:', error);
+          }
+          
           onPurchaseComplete?.();
         }, 2000);
       }

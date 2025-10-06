@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_config: {
+        Row: {
+          config_key: string
+          config_value: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          config_key: string
+          config_value: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          config_key?: string
+          config_value?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chapters: {
         Row: {
           chapter_number: number
@@ -290,6 +314,36 @@ export type Database = {
         }
         Relationships: []
       }
+      point_events: {
+        Row: {
+          created_at: string
+          event_type: Database["public"]["Enums"]["point_event_type"]
+          id: string
+          points_earned: number
+          transaction_amount: number | null
+          transaction_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: Database["public"]["Enums"]["point_event_type"]
+          id?: string
+          points_earned: number
+          transaction_amount?: number | null
+          transaction_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: Database["public"]["Enums"]["point_event_type"]
+          id?: string
+          points_earned?: number
+          transaction_amount?: number | null
+          transaction_hash?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -412,15 +466,75 @@ export type Database = {
           },
         ]
       }
+      user_points: {
+        Row: {
+          created_at: string
+          daily_streak: number
+          id: string
+          last_daily_checkin: string | null
+          last_monthly_checkin: string | null
+          last_weekly_checkin: string | null
+          monthly_streak: number
+          total_points: number
+          updated_at: string
+          user_id: string
+          weekly_streak: number
+        }
+        Insert: {
+          created_at?: string
+          daily_streak?: number
+          id?: string
+          last_daily_checkin?: string | null
+          last_monthly_checkin?: string | null
+          last_weekly_checkin?: string | null
+          monthly_streak?: number
+          total_points?: number
+          updated_at?: string
+          user_id: string
+          weekly_streak?: number
+        }
+        Update: {
+          created_at?: string
+          daily_streak?: number
+          id?: string
+          last_daily_checkin?: string | null
+          last_monthly_checkin?: string | null
+          last_weekly_checkin?: string | null
+          monthly_streak?: number
+          total_points?: number
+          updated_at?: string
+          user_id?: string
+          weekly_streak?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      leaderboard: {
+        Row: {
+          avatar_url: string | null
+          daily_streak: number | null
+          display_name: string | null
+          farcaster_username: string | null
+          monthly_streak: number | null
+          rank: number | null
+          total_points: number | null
+          user_id: string | null
+          weekly_streak: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      point_event_type:
+        | "daily_checkin"
+        | "weekly_checkin"
+        | "monthly_checkin"
+        | "buy_volume"
+        | "trade_volume"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -547,6 +661,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      point_event_type: [
+        "daily_checkin",
+        "weekly_checkin",
+        "monthly_checkin",
+        "buy_volume",
+        "trade_volume",
+      ],
+    },
   },
 } as const
