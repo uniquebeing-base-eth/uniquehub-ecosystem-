@@ -7,6 +7,8 @@ import { CoursesSection } from "@/components/sections/CoursesSection";
 import { EarningSection } from "@/components/sections/EarningSection";
 import { ProfileSection } from "@/components/sections/ProfileSection";
 import { TutorSection } from "@/components/sections/TutorSection";
+import logoImage from "@/assets/uniquehub-logo.png";
+import cubeImage from "@/assets/uniquehub-cube.png";
 
 import { useAuth } from "@/hooks/useAuth";
 
@@ -73,36 +75,39 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen flex flex-col anime-bg-main">
-      <div className="flex-1 container mx-auto px-6 py-8 content-overlay">
+      <div className="flex-1 container mx-auto px-4 sm:px-6 py-4 sm:py-8 content-overlay">
         {/* Header with Logo and Profile */}
-        <div className="flex items-center justify-between mb-8 px-4">
-          <div className="flex items-center gap-3">
+        <header className="flex items-center justify-between mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 sm:gap-3">
             <img 
-              src={new URL('../assets/uniquehub-logo.png', import.meta.url).href} 
+              src={activeTab === 'home' ? cubeImage : logoImage} 
               alt="UniqueHub" 
-              className="w-10 h-10"
+              className="w-10 h-10 object-contain"
             />
-            <h1 className="text-2xl font-bold text-primary">UniqueHub</h1>
+            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+              UniqueHub
+            </h1>
           </div>
           {user && (
-            <div className="flex items-center gap-2">
-              <Avatar className="w-10 h-10 ring-2 ring-primary/20">
-                <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.display_name || 'User'} />
-                <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">
-                  {(user.user_metadata?.display_name || 'U').slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            </div>
+            <Avatar 
+              className="w-10 h-10 ring-2 ring-primary/20 cursor-pointer hover:scale-105 transition-transform"
+              onClick={() => handleTabChange('profile')}
+            >
+              <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.display_name || 'User'} />
+              <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">
+                {(user.user_metadata?.display_name || 'U').slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
           )}
-        </div>
+        </header>
 
-        {/* Navigation - Always visible */}
-        <div className="flex justify-center mb-8">
-          <Navigation activeTab={activeTab} onTabChange={handleTabChange} />
-        </div>
+        {/* Navigation */}
+        <Navigation activeTab={activeTab} onTabChange={handleTabChange} />
 
         {/* Content */}
-        {renderContent()}
+        <main className="pb-4">
+          {renderContent()}
+        </main>
       </div>
     </div>
   );

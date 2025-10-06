@@ -17,13 +17,13 @@ const tabs = [
 
 export const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   return (
-    <nav className="flex gap-0.5 bg-secondary rounded-lg p-1 mb-8 w-full max-w-lg mx-auto">
+    <nav className="flex gap-0.5 bg-secondary rounded-lg p-1 mb-6 w-full max-w-4xl mx-auto overflow-x-auto">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
           className={cn(
-            "flex-1 px-2 py-2 rounded-md text-xs font-medium transition-all duration-200 min-w-0",
+            "flex-1 px-3 py-2.5 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 min-w-0 whitespace-nowrap",
             activeTab === tab.id
               ? "bg-primary text-primary-foreground shadow-glow"
               : "text-muted-foreground hover:text-foreground hover:bg-card-hover"

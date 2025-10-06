@@ -16,26 +16,39 @@ export const ShareToFarcaster = ({ text, embeds, className }: ShareToFarcasterPr
   const handleShare = async () => {
     setIsSharing(true);
     try {
-      // In a real implementation, you'd get the signer UUID from the user's auth state
-      // For now, we'll show a toast indicating the feature
-      toast.info('Farcaster sharing will be available after connecting your Farcaster account with proper signer permissions.');
+      // Get signer UUID from Farcaster SDK context
+      const { sdk } = await import('@farcaster/miniapp-sdk');
+      const context = await sdk.context;
       
-      // Example of how this would work with a real signer:
-      // const { data, error } = await supabase.functions.invoke('share-to-farcaster', {
-      //   body: {
-      //     signerUuid: userSignerUuid,
-      //     text,
-      //     embeds: embeds || [],
-      //   }
-      // });
-      // 
-      // if (error) throw error;
-      // if (data?.success) {
-      //   toast.success('Shared to Farcaster!');
-      // }
+      // Check if we have a signer UUID from the context
+      let signerUuid = null;
+      if (context && typeof context === 'object' && 'client' in context) {
+        const client = (context as any).client;
+        if (client && typeof client === 'object' && 'signerUuid' in client) {
+          signerUuid = client.signerUuid;
+        }
+      }
+      
+      if (!signerUuid) {
+        toast.error('Farcaster signer not available. Please open in Farcaster app.');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('share-to-farcaster', {
+        body: {
+          signerUuid,
+          text,
+          embeds: embeds || [],
+        }
+      });
+      
+      if (error) throw error;
+      if (data?.success) {
+        toast.success('Shared to Farcaster!');
+      }
     } catch (error) {
       console.error('Error sharing to Farcaster:', error);
-      toast.error('Failed to share to Farcaster');
+      toast.error('Failed to share to Farcaster. Make sure you have posting permissions.');
     } finally {
       setIsSharing(false);
     }

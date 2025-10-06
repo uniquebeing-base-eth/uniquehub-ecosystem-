@@ -135,7 +135,7 @@ export const MarketplaceSection = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8 px-4">
       {/* Neynar-powered NFT Marketplace for Base L2 */}
       <NFTMarketplace />
 

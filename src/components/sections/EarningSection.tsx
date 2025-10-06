@@ -83,106 +83,106 @@ export const EarningSection = () => {
   const canClaimMonthly = dailyProgress >= 30;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-foreground">Earn UP Points</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Earn UP Points</h1>
       
       {/* User Stats Card */}
-      <Card className="p-6 bg-gradient-card">
+      <Card className="p-4 sm:p-6 bg-gradient-card">
         <div className="flex items-center gap-3 mb-4">
-          <Trophy className="w-8 h-8 text-primary" />
+          <Trophy className="w-6 sm:w-8 h-6 sm:h-8 text-primary" />
           <div>
-            <h2 className="text-2xl font-bold text-foreground">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground">
               {userPoints?.total_points?.toLocaleString() || 0} UP
             </h2>
-            <p className="text-sm text-muted-foreground">Your Total Points</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Your Total Points</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="text-center p-3 bg-background/50 rounded-lg">
-            <p className="text-2xl font-bold text-primary">{userPoints?.daily_streak || 0}</p>
-            <p className="text-xs text-muted-foreground">Day Streak</p>
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
+          <div className="text-center p-2 sm:p-3 bg-background/50 rounded-lg">
+            <p className="text-lg sm:text-2xl font-bold text-primary">{userPoints?.daily_streak || 0}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Day Streak</p>
           </div>
-          <div className="text-center p-3 bg-background/50 rounded-lg">
-            <p className="text-2xl font-bold text-primary">{userPoints?.weekly_streak || 0}</p>
-            <p className="text-xs text-muted-foreground">Week Streak</p>
+          <div className="text-center p-2 sm:p-3 bg-background/50 rounded-lg">
+            <p className="text-lg sm:text-2xl font-bold text-primary">{userPoints?.weekly_streak || 0}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Week Streak</p>
           </div>
-          <div className="text-center p-3 bg-background/50 rounded-lg">
-            <p className="text-2xl font-bold text-primary">{userPoints?.monthly_streak || 0}</p>
-            <p className="text-xs text-muted-foreground">Month Streak</p>
+          <div className="text-center p-2 sm:p-3 bg-background/50 rounded-lg">
+            <p className="text-lg sm:text-2xl font-bold text-primary">{userPoints?.monthly_streak || 0}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Month Streak</p>
           </div>
         </div>
 
         {/* Daily Check-in Quest */}
-        <div className="space-y-3 mt-6">
-          <div className="bg-background/50 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-primary" />
+        <div className="space-y-2 sm:space-y-3 mt-4 sm:mt-6">
+          <div className="bg-background/50 rounded-lg p-3 sm:p-4">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-primary flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-foreground">Daily Check-in</h3>
-                  <p className="text-xs text-muted-foreground">Check in every day</p>
+                  <h3 className="text-sm sm:text-base font-semibold text-foreground">Daily Check-in</h3>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Check in every day</p>
                 </div>
               </div>
-              <span className="text-sm font-bold text-primary">+10 UP</span>
+              <span className="text-xs sm:text-sm font-bold text-primary whitespace-nowrap">+10 UP</span>
             </div>
-            <Progress value={100} className="h-2 mb-3" />
+            <Progress value={100} className="h-1.5 sm:h-2 mb-2 sm:mb-3" />
             <Button
               onClick={() => handleClaim('daily')}
               disabled={claimingDaily || !user}
-              className="w-full bg-primary hover:opacity-90 text-primary-foreground font-semibold"
+              className="w-full bg-primary hover:opacity-90 text-primary-foreground font-semibold text-sm sm:text-base h-9 sm:h-10"
             >
               {claimingDaily ? 'Claiming...' : 'Claim'}
             </Button>
           </div>
 
           {/* Weekly Check-in Quest */}
-          <div className="bg-background/50 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <Trophy className="w-5 h-5 text-primary" />
+          <div className="bg-background/50 rounded-lg p-3 sm:p-4">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Trophy className="w-4 sm:w-5 h-4 sm:h-5 text-primary flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-foreground">Weekly Streak</h3>
-                  <p className="text-xs text-muted-foreground">Check in 7 days in a row</p>
+                  <h3 className="text-sm sm:text-base font-semibold text-foreground">Weekly Streak</h3>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Check in 7 days in a row</p>
                 </div>
               </div>
-              <span className="text-sm font-bold text-primary">+100 UP</span>
+              <span className="text-xs sm:text-sm font-bold text-primary whitespace-nowrap">+100 UP</span>
             </div>
-            <div className="flex items-center gap-2 mb-3">
-              <Progress value={weeklyProgress} className="h-2 flex-1" />
-              <span className="text-xs font-medium text-muted-foreground">{Math.floor(weeklyProgress)}%</span>
+            <div className="flex items-center gap-2 mb-2 sm:mb-3">
+              <Progress value={weeklyProgress} className="h-1.5 sm:h-2 flex-1" />
+              <span className="text-[10px] sm:text-xs font-medium text-muted-foreground whitespace-nowrap">{Math.floor(weeklyProgress)}%</span>
             </div>
             <Button
               onClick={() => handleClaim('weekly')}
               disabled={claimingWeekly || !user || !canClaimWeekly}
               variant={canClaimWeekly ? "default" : "outline"}
-              className="w-full font-semibold"
+              className="w-full font-semibold text-sm sm:text-base h-9 sm:h-10"
             >
               {claimingWeekly ? 'Claiming...' : canClaimWeekly ? 'Claim' : `${dailyProgress}/7 days`}
             </Button>
           </div>
 
           {/* Monthly Check-in Quest */}
-          <div className="bg-background/50 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <Target className="w-5 h-5 text-primary" />
+          <div className="bg-background/50 rounded-lg p-3 sm:p-4">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Target className="w-4 sm:w-5 h-4 sm:h-5 text-primary flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-foreground">Monthly Streak</h3>
-                  <p className="text-xs text-muted-foreground">Check in 30 days in a row</p>
+                  <h3 className="text-sm sm:text-base font-semibold text-foreground">Monthly Streak</h3>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Check in 30 days in a row</p>
                 </div>
               </div>
-              <span className="text-sm font-bold text-primary">+500 UP</span>
+              <span className="text-xs sm:text-sm font-bold text-primary whitespace-nowrap">+500 UP</span>
             </div>
-            <div className="flex items-center gap-2 mb-3">
-              <Progress value={monthlyProgress} className="h-2 flex-1" />
-              <span className="text-xs font-medium text-muted-foreground">{Math.floor(monthlyProgress)}%</span>
+            <div className="flex items-center gap-2 mb-2 sm:mb-3">
+              <Progress value={monthlyProgress} className="h-1.5 sm:h-2 flex-1" />
+              <span className="text-[10px] sm:text-xs font-medium text-muted-foreground whitespace-nowrap">{Math.floor(monthlyProgress)}%</span>
             </div>
             <Button
               onClick={() => handleClaim('monthly')}
               disabled={claimingMonthly || !user || !canClaimMonthly}
               variant={canClaimMonthly ? "default" : "outline"}
-              className="w-full font-semibold"
+              className="w-full font-semibold text-sm sm:text-base h-9 sm:h-10"
             >
               {claimingMonthly ? 'Claiming...' : canClaimMonthly ? 'Claim' : `${dailyProgress}/30 days`}
             </Button>
@@ -191,10 +191,10 @@ export const EarningSection = () => {
       </Card>
 
       {/* How to Earn Points */}
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Zap className="w-6 h-6 text-primary" />
-          <h3 className="text-xl font-bold text-foreground">How to Earn UP</h3>
+          <Zap className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+          <h3 className="text-lg sm:text-xl font-bold text-foreground">How to Earn UP</h3>
         </div>
         
         <div className="space-y-3">

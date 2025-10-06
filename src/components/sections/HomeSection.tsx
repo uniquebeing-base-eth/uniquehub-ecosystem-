@@ -65,20 +65,20 @@ export const HomeSection = ({ onNavigate }: HomeSectionProps) => {
   }, []);
 
   return (
-    <div className="space-y-8">
-      <div className="text-center space-y-4 mb-12">
-        <h1 className="text-4xl font-bold text-primary mb-4">
+    <div className="space-y-6 sm:space-y-8">
+      <div className="text-center space-y-3 sm:space-y-4 mb-8 sm:mb-12">
+        <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-2 sm:mb-4">
           Learn. Earn. Trade.
         </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
           Your Web3 super app for learning, earning crypto, and trading digital assets
         </p>
       </div>
 
-      <div className="grid gap-6">
-        <h2 className="text-2xl font-bold text-foreground">Start Your Journey</h2>
+      <div className="grid gap-4 sm:gap-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-foreground">Start Your Journey</h2>
         
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:gap-4">
           <EarningCard
             title="Learn & Earn"
             description="Complete courses and tasks to earn crypto rewards"
@@ -105,13 +105,13 @@ export const HomeSection = ({ onNavigate }: HomeSectionProps) => {
         </div>
 
         {/* Trending Courses Section */}
-        <div className="mt-8">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-6 h-6 text-primary" />
-            <h3 className="text-xl font-semibold text-foreground">Trending Courses</h3>
+        <div className="mt-4 sm:mt-8">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <TrendingUp className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+            <h3 className="text-lg sm:text-xl font-semibold text-foreground">Trending Courses</h3>
           </div>
           {loading ? (
-            <div className="grid gap-4">
+            <div className="grid gap-3 sm:gap-4">
               {[1, 2, 3].map((i) => (
                 <Card key={i} className="p-4">
                   <Skeleton className="h-24 w-full" />
@@ -132,13 +132,14 @@ export const HomeSection = ({ onNavigate }: HomeSectionProps) => {
         </div>
 
         {/* Latest NFTs Section */}
-        <div className="mt-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Star className="w-6 h-6 text-primary" />
-            <h3 className="text-xl font-semibold text-foreground">Latest NFTs</h3>
+        {/* Latest NFTs Section */}
+        <div className="mt-4 sm:mt-8">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <Star className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+            <h3 className="text-lg sm:text-xl font-semibold text-foreground">Latest NFTs</h3>
           </div>
           {loading ? (
-            <div className="grid gap-4">
+            <div className="grid gap-3 sm:gap-4">
               {[1, 2, 3].map((i) => (
                 <Card key={i} className="p-4">
                   <Skeleton className="h-24 w-full" />
@@ -146,7 +147,7 @@ export const HomeSection = ({ onNavigate }: HomeSectionProps) => {
               ))}
             </div>
           ) : latestNFTs.length > 0 ? (
-            <div className="grid gap-4">
+            <div className="grid gap-3 sm:gap-4">
               {latestNFTs.map((nft) => (
                 <LatestNFTCard key={nft.id} nft={nft} />
               ))}
@@ -160,10 +161,10 @@ export const HomeSection = ({ onNavigate }: HomeSectionProps) => {
 
         {/* Top Creators Section */}
         {topCreators.length > 0 && (
-          <div className="mt-8">
-            <div className="flex items-center gap-2 mb-4">
-              <Trophy className="w-6 h-6 text-primary" />
-              <h3 className="text-xl font-semibold text-foreground">Top Creators</h3>
+          <div className="mt-4 sm:mt-8">
+            <div className="flex items-center gap-2 mb-3 sm:mb-4">
+              <Trophy className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+              <h3 className="text-lg sm:text-xl font-semibold text-foreground">Top Creators</h3>
             </div>
             <Card className="p-4">
               <div className="space-y-3">
@@ -187,24 +188,24 @@ export const HomeSection = ({ onNavigate }: HomeSectionProps) => {
           </div>
         )}
 
-        <div className="bg-gradient-card rounded-xl p-6 border border-border mt-8">
-          <h3 className="text-xl font-semibold text-foreground mb-4">Why UniqueHub?</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-3">
-              <Trophy className="w-6 h-6 text-primary" />
-              <span className="text-sm text-muted-foreground">Earn Rewards</span>
+        <div className="bg-gradient-card rounded-xl p-4 sm:p-6 border border-border mt-4 sm:mt-8">
+          <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-3 sm:mb-4">Why UniqueHub?</h3>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Trophy className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+              <span className="text-xs sm:text-sm text-muted-foreground">Earn Rewards</span>
             </div>
-            <div className="flex items-center gap-3">
-              <Users className="w-6 h-6 text-primary" />
-              <span className="text-sm text-muted-foreground">Join Community</span>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Users className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+              <span className="text-xs sm:text-sm text-muted-foreground">Join Community</span>
             </div>
-            <div className="flex items-center gap-3">
-              <BookOpen className="w-6 h-6 text-primary" />
-              <span className="text-sm text-muted-foreground">Learn Web3</span>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <BookOpen className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+              <span className="text-xs sm:text-sm text-muted-foreground">Learn Web3</span>
             </div>
-            <div className="flex items-center gap-3">
-              <DollarSign className="w-6 h-6 text-primary" />
-              <span className="text-sm text-muted-foreground">Make Money</span>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <DollarSign className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+              <span className="text-xs sm:text-sm text-muted-foreground">Make Money</span>
             </div>
           </div>
         </div>
