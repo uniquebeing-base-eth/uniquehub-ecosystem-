@@ -9,7 +9,7 @@ const corsHeaders = {
 /**
  * Processes transactions with fees and awards UP points for purchases/trades
  * Calculates gas fee ($0.01) and app fee ($0.02) in ETH using Chainlink price oracle
- * Awards points: 1 UP per $1 spent, max 1000 UP per transaction
+ * Awards points: 10 UP per $1 spent, max 1000 UP per transaction
  */
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -53,8 +53,8 @@ serve(async (req) => {
     const appFeeUsd = parseFloat(config?.find(c => c.config_key === 'app_fee_usd')?.config_value || '0.02');
     const maxPoints = parseInt(config?.find(c => c.config_key === 'max_volume_points_per_transaction')?.config_value || '1000');
 
-    // Calculate points: 1 UP per $1, capped at maxPoints
-    const pointsEarned = Math.min(Math.floor(amountUsd), maxPoints);
+    // Calculate points: 10 UP per $1, capped at maxPoints
+    const pointsEarned = Math.min(Math.floor(amountUsd * 10), maxPoints);
 
     // Get or create user points record
     let { data: userPoints } = await supabase

@@ -3,22 +3,19 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, DollarSign, Filter, Search, Plus } from "lucide-react";
-import { CourseCard } from "@/components/CourseCard";
-import { CourseUpload } from "@/components/CourseUpload";
+import { BookOpen, Search, TrendingUp } from "lucide-react";
 import { CoursePurchase } from "@/components/CoursePurchase";
-import { useAuth } from "@/hooks/useAuth";
+import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const CoursesSection = () => {
-  const { user } = useAuth();
   const [courses, setCourses] = useState<any[]>([]);
+  const [trendingCourses, setTrendingCourses] = useState<any[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [priceFilter, setPriceFilter] = useState("all");
-  const [showUploadForm, setShowUploadForm] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
 
@@ -51,6 +48,17 @@ export const CoursesSection = () => {
     
     if (!error && data) {
       setCourses(data);
+      
+      // Calculate trending courses based on rating and enrollment
+      const trending = [...data]
+        .sort((a, b) => {
+          const scoreA = (a.rating || 0) * 0.5 + (a.enrollment_count || 0) * 0.5;
+          const scoreB = (b.rating || 0) * 0.5 + (b.enrollment_count || 0) * 0.5;
+          return scoreB - scoreA;
+        })
+        .slice(0, 3);
+      
+      setTrendingCourses(trending);
     }
   };
 
@@ -88,140 +96,157 @@ export const CoursesSection = () => {
   const handlePurchaseComplete = () => {
     setShowPurchaseModal(false);
     toast.success('Course access granted! You can now view the course content.');
-    fetchCourses(); // Refresh the courses list
-  };
-
-  const handleUploadSuccess = () => {
-    setShowUploadForm(false);
     fetchCourses();
   };
 
-  if (!user && showUploadForm) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-foreground">Courses</h1>
-        <Card className="p-12 text-center">
-          <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-2">Connect Your Wallet</h3>
-          <p className="text-muted-foreground">Please connect your Farcaster wallet to upload courses</p>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground">Courses</h1>
-        {user ? (
-          <Button onClick={() => setShowUploadForm(true)} className="bg-primary hover:bg-primary/90">
-            <Plus className="w-4 h-4 mr-2" />
-            Upload Course
-          </Button>
-        ) : (
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-2">Connect with Farcaster to upload courses</p>
-            <Button variant="outline" size="sm" disabled>
-              <Plus className="w-4 h-4 mr-2" />
-              Upload Course
-            </Button>
-          </div>
-        )}
-      </div>
+      <h1 className="text-3xl font-bold text-foreground">Explore Courses</h1>
 
-      {/* Upload Form */}
-      {showUploadForm && (
-        <CourseUpload 
-          onSuccess={handleUploadSuccess}
-          onCancel={() => setShowUploadForm(false)}
-        />
-      )}
-
-      {/* Filters */}
-      <Card className="p-6">
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-foreground">Filters</span>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search courses..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-
-            {/* Category Filter */}
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full p-2 rounded-md border border-input bg-background text-foreground z-10"
-            >
-              {categories.map((category) => (
-                <option key={category.value} value={category.value}>
-                  {category.label}
-                </option>
-              ))}
-            </select>
-
-            {/* Price Filter */}
-            <select
-              value={priceFilter}
-              onChange={(e) => setPriceFilter(e.target.value)}
-              className="w-full p-2 rounded-md border border-input bg-background text-foreground z-10"
-            >
-              <option value="all">All Prices</option>
-              <option value="free">Free</option>
-              <option value="paid">Paid</option>
-            </select>
-          </div>
+      {/* Search Bar */}
+      <Card className="p-4">
+        <div className="relative">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search courses..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
         </div>
       </Card>
 
-      {/* Courses Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCourses.map((course: any) => (
-          <Card 
-            key={course.id} 
-            className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={() => handleCourseClick(course)}
+      {/* Filters */}
+      <Card className="p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Category Filter */}
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="w-full p-2 rounded-md border border-input bg-background text-foreground"
           >
-            {course.thumbnail_url && (
-              <img 
-                src={course.thumbnail_url} 
-                alt={course.title}
-                className="w-full h-48 object-cover rounded-lg mb-4"
-              />
-            )}
-            <h3 className="text-lg font-semibold text-foreground mb-2">{course.title}</h3>
-            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-              {course.description}
-            </p>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex flex-col">
-                <span className="font-bold text-xl text-primary">
-                  {course.price_usdc === 0 ? 'Free' : `${course.price_usdc} USDC`}
-                </span>
-                {course.price_usdc > 0 && (
-                  <span className="text-xs text-muted-foreground">or equivalent in ETH</span>
-                )}
+            {categories.map((category) => (
+              <option key={category.value} value={category.value}>
+                {category.label}
+              </option>
+            ))}
+          </select>
+
+          {/* Price Filter */}
+          <select
+            value={priceFilter}
+            onChange={(e) => setPriceFilter(e.target.value)}
+            className="w-full p-2 rounded-md border border-input bg-background text-foreground"
+          >
+            <option value="all">All Prices</option>
+            <option value="free">Free</option>
+            <option value="paid">Paid</option>
+          </select>
+        </div>
+      </Card>
+
+      {/* Trending Courses */}
+      {trendingCourses.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            <h2 className="text-2xl font-bold text-foreground">Trending Courses</h2>
+          </div>
+          <div className="space-y-4">
+            {trendingCourses.map((course: any) => (
+              <Card 
+                key={course.id} 
+                className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => handleCourseClick(course)}
+              >
+                <div className="flex gap-4">
+                  {course.thumbnail_url ? (
+                    <img 
+                      src={course.thumbnail_url} 
+                      alt={course.title}
+                      className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <BookOpen className="w-8 h-8 text-primary" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-foreground mb-1">{course.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                      {course.description}
+                    </p>
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="font-bold text-lg text-primary">
+                        {course.price_usdc === 0 ? 'Free' : `$${course.price_usdc} USDC`}
+                      </span>
+                      <Badge variant="secondary" className="text-xs">
+                        {categories.find(c => c.value === course.category)?.label || course.category}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+                      <span className="flex items-center gap-1">
+                        <BookOpen className="w-4 h-4" />
+                        {course.enrollment_count || 0} enrolled
+                      </span>
+                    </div>
+                  </div>
+                  <ShareToFarcaster
+                    text={`Check out "${course.title}" on UniqueHub! ${course.price_usdc === 0 ? 'Free' : `$${course.price_usdc} USDC`}`}
+                    embeds={[`https://uniqueehub.vercel.app/courses/${course.id}`]}
+                  />
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* All Courses Grid */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-foreground">All Courses</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCourses.map((course: any) => (
+            <Card 
+              key={course.id} 
+              className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => handleCourseClick(course)}
+            >
+              {course.thumbnail_url ? (
+                <img 
+                  src={course.thumbnail_url} 
+                  alt={course.title}
+                  className="w-full h-48 object-cover rounded-lg mb-4"
+                />
+              ) : (
+                <div className="w-full h-48 bg-primary/10 rounded-lg mb-4 flex items-center justify-center">
+                  <BookOpen className="w-12 h-12 text-primary" />
+                </div>
+              )}
+              <h3 className="text-lg font-semibold text-foreground mb-2">{course.title}</h3>
+              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                {course.description}
+              </p>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex flex-col">
+                  <span className="font-bold text-xl text-primary">
+                    {course.price_usdc === 0 ? 'Free' : `$${course.price_usdc} USDC`}
+                  </span>
+                  {course.price_usdc > 0 && (
+                    <span className="text-xs text-muted-foreground">or equivalent in ETH</span>
+                  )}
+                </div>
+                <Badge variant="secondary" className="text-xs">
+                  {categories.find(c => c.value === course.category)?.label || course.category}
+                </Badge>
               </div>
-              <Badge variant="secondary" className="text-xs">
-                {categories.find(c => c.value === course.category)?.label || course.category}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <BookOpen className="w-4 h-4" />
-              <span>{course.enrollment_count || 0} enrolled</span>
-            </div>
-          </Card>
-        ))}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <BookOpen className="w-4 h-4" />
+                <span>{course.enrollment_count || 0} enrolled</span>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
 
       {/* Purchase Modal */}
@@ -255,18 +280,12 @@ export const CoursesSection = () => {
         <Card className="p-12 text-center">
           <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">No courses found</h3>
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted-foreground">
             {courses.length === 0 
-              ? "No courses available yet. Be the first to upload a course!"
+              ? "No courses available yet. Check back soon!"
               : "Try adjusting your filters to find courses."
             }
           </p>
-          {user && courses.length === 0 && (
-            <Button onClick={() => setShowUploadForm(true)} className="bg-primary hover:bg-primary/90">
-              <Plus className="w-4 h-4 mr-2" />
-              Upload First Course
-            </Button>
-          )}
         </Card>
       )}
     </div>
