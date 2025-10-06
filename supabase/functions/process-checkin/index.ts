@@ -70,16 +70,17 @@ serve(async (req) => {
     const lastDaily = userPoints.last_daily_checkin ? new Date(userPoints.last_daily_checkin) : null;
     const daysSinceDaily = lastDaily ? Math.floor((now.getTime() - lastDaily.getTime()) / (1000 * 60 * 60 * 24)) : 999;
     
+    let canClaimDaily = false;
     if (daysSinceDaily >= 1) {
       const dailyPoints = 10;
       totalPointsAwarded += dailyPoints;
       updates.last_daily_checkin = now.toISOString();
       
-      // Update streak
+      // Update streak - only increment if exactly 1 day passed (consecutive)
       if (daysSinceDaily === 1) {
         updates.daily_streak = (userPoints.daily_streak || 0) + 1;
       } else {
-        updates.daily_streak = 1; // Reset streak if missed a day
+        updates.daily_streak = 1; // Reset streak if missed days
       }
 
       pointEvents.push({
@@ -87,18 +88,21 @@ serve(async (req) => {
         event_type: 'daily_checkin',
         points_earned: dailyPoints,
       });
+      canClaimDaily = true;
     }
 
-    // Check weekly check-in (once per 7 days)
+    // Check weekly check-in - requires 7 consecutive daily check-ins
+    const currentDailyStreak = updates.daily_streak !== undefined ? updates.daily_streak : (userPoints.daily_streak || 0);
     const lastWeekly = userPoints.last_weekly_checkin ? new Date(userPoints.last_weekly_checkin) : null;
     const daysSinceWeekly = lastWeekly ? Math.floor((now.getTime() - lastWeekly.getTime()) / (1000 * 60 * 60 * 24)) : 999;
     
-    if (daysSinceWeekly >= 7) {
+    let canClaimWeekly = false;
+    if (currentDailyStreak >= 7 && daysSinceWeekly >= 7) {
       const weeklyPoints = 100;
       totalPointsAwarded += weeklyPoints;
       updates.last_weekly_checkin = now.toISOString();
       
-      // Update streak
+      // Update weekly streak
       if (daysSinceWeekly >= 7 && daysSinceWeekly < 14) {
         updates.weekly_streak = (userPoints.weekly_streak || 0) + 1;
       } else {
@@ -110,20 +114,22 @@ serve(async (req) => {
         event_type: 'weekly_checkin',
         points_earned: weeklyPoints,
       });
+      canClaimWeekly = true;
     }
 
-    // Check monthly check-in
+    // Check monthly check-in - requires 30 consecutive daily check-ins
     const lastMonthly = userPoints.last_monthly_checkin ? new Date(userPoints.last_monthly_checkin) : null;
     const monthsSinceMonthly = lastMonthly 
       ? (now.getFullYear() - lastMonthly.getFullYear()) * 12 + (now.getMonth() - lastMonthly.getMonth())
       : 999;
     
-    if (monthsSinceMonthly >= 1) {
+    let canClaimMonthly = false;
+    if (currentDailyStreak >= 30 && monthsSinceMonthly >= 1) {
       const monthlyPoints = 500;
       totalPointsAwarded += monthlyPoints;
       updates.last_monthly_checkin = now.toISOString();
       
-      // Update streak
+      // Update monthly streak
       if (monthsSinceMonthly === 1) {
         updates.monthly_streak = (userPoints.monthly_streak || 0) + 1;
       } else {
@@ -135,6 +141,7 @@ serve(async (req) => {
         event_type: 'monthly_checkin',
         points_earned: monthlyPoints,
       });
+      canClaimMonthly = true;
     }
 
     if (totalPointsAwarded === 0) {
@@ -143,6 +150,16 @@ serve(async (req) => {
           success: true,
           message: 'No new check-ins available yet',
           userPoints,
+          canClaim: {
+            daily: false,
+            weekly: currentDailyStreak >= 7,
+            monthly: currentDailyStreak >= 30,
+          },
+          progress: {
+            daily: 0,
+            weekly: Math.min((currentDailyStreak / 7) * 100, 100),
+            monthly: Math.min((currentDailyStreak / 30) * 100, 100),
+          }
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -176,6 +193,8 @@ serve(async (req) => {
 
     console.log(`Awarded ${totalPointsAwarded} UP to user ${user.id}`);
 
+    const finalDailyStreak = updates.daily_streak || userPoints.daily_streak || 0;
+    
     return new Response(
       JSON.stringify({ 
         success: true,
@@ -183,11 +202,21 @@ serve(async (req) => {
         pointsAwarded: totalPointsAwarded,
         totalPoints: updates.total_points,
         streaks: {
-          daily: updates.daily_streak || userPoints.daily_streak || 0,
+          daily: finalDailyStreak,
           weekly: updates.weekly_streak || userPoints.weekly_streak || 0,
           monthly: updates.monthly_streak || userPoints.monthly_streak || 0,
         },
         checkIns: pointEvents.map(e => e.event_type),
+        canClaim: {
+          daily: canClaimDaily,
+          weekly: canClaimWeekly,
+          monthly: canClaimMonthly,
+        },
+        progress: {
+          daily: canClaimDaily ? 100 : 0,
+          weekly: Math.min((finalDailyStreak / 7) * 100, 100),
+          monthly: Math.min((finalDailyStreak / 30) * 100, 100),
+        }
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

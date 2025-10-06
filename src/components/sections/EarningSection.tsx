@@ -1,15 +1,20 @@
-import { CheckInButton } from "@/components/CheckInButton";
 import { Leaderboard } from "@/components/Leaderboard";
 import { Card } from "@/components/ui/card";
-import { Trophy, Zap, Target } from "lucide-react";
+import { Trophy, Zap, Target, Calendar } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { toast } from "sonner";
 
 export const EarningSection = () => {
   const { user } = useAuth();
   const [userPoints, setUserPoints] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [claimingDaily, setClaimingDaily] = useState(false);
+  const [claimingWeekly, setClaimingWeekly] = useState(false);
+  const [claimingMonthly, setClaimingMonthly] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -38,6 +43,44 @@ export const EarningSection = () => {
       setLoading(false);
     }
   };
+
+  const handleClaim = async (type: 'daily' | 'weekly' | 'monthly') => {
+    if (!user) {
+      toast.error('Please sign in to claim rewards');
+      return;
+    }
+
+    const setLoadingState = type === 'daily' ? setClaimingDaily : type === 'weekly' ? setClaimingWeekly : setClaimingMonthly;
+    setLoadingState(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('process-checkin', {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast.success(data.message, { duration: 5000 });
+        await fetchUserPoints();
+      } else {
+        toast.info(data.message);
+      }
+    } catch (error) {
+      console.error('Claim error:', error);
+      toast.error('Failed to claim reward');
+    } finally {
+      setLoadingState(false);
+    }
+  };
+
+  const dailyProgress = userPoints?.daily_streak || 0;
+  const weeklyProgress = Math.min((dailyProgress / 7) * 100, 100);
+  const monthlyProgress = Math.min((dailyProgress / 30) * 100, 100);
+  const canClaimWeekly = dailyProgress >= 7;
+  const canClaimMonthly = dailyProgress >= 30;
 
   return (
     <div className="space-y-6">
@@ -70,7 +113,81 @@ export const EarningSection = () => {
           </div>
         </div>
 
-        <CheckInButton />
+        {/* Daily Check-in Quest */}
+        <div className="space-y-3 mt-6">
+          <div className="bg-background/50 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <Calendar className="w-5 h-5 text-primary" />
+                <div>
+                  <h3 className="font-semibold text-foreground">Daily Check-in</h3>
+                  <p className="text-xs text-muted-foreground">Check in every day</p>
+                </div>
+              </div>
+              <span className="text-sm font-bold text-primary">+10 UP</span>
+            </div>
+            <Progress value={100} className="h-2 mb-3" />
+            <Button
+              onClick={() => handleClaim('daily')}
+              disabled={claimingDaily || !user}
+              className="w-full bg-primary hover:opacity-90 text-primary-foreground font-semibold"
+            >
+              {claimingDaily ? 'Claiming...' : 'Claim'}
+            </Button>
+          </div>
+
+          {/* Weekly Check-in Quest */}
+          <div className="bg-background/50 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <Trophy className="w-5 h-5 text-primary" />
+                <div>
+                  <h3 className="font-semibold text-foreground">Weekly Streak</h3>
+                  <p className="text-xs text-muted-foreground">Check in 7 days in a row</p>
+                </div>
+              </div>
+              <span className="text-sm font-bold text-primary">+100 UP</span>
+            </div>
+            <div className="flex items-center gap-2 mb-3">
+              <Progress value={weeklyProgress} className="h-2 flex-1" />
+              <span className="text-xs font-medium text-muted-foreground">{Math.floor(weeklyProgress)}%</span>
+            </div>
+            <Button
+              onClick={() => handleClaim('weekly')}
+              disabled={claimingWeekly || !user || !canClaimWeekly}
+              variant={canClaimWeekly ? "default" : "outline"}
+              className="w-full font-semibold"
+            >
+              {claimingWeekly ? 'Claiming...' : canClaimWeekly ? 'Claim' : `${dailyProgress}/7 days`}
+            </Button>
+          </div>
+
+          {/* Monthly Check-in Quest */}
+          <div className="bg-background/50 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <Target className="w-5 h-5 text-primary" />
+                <div>
+                  <h3 className="font-semibold text-foreground">Monthly Streak</h3>
+                  <p className="text-xs text-muted-foreground">Check in 30 days in a row</p>
+                </div>
+              </div>
+              <span className="text-sm font-bold text-primary">+500 UP</span>
+            </div>
+            <div className="flex items-center gap-2 mb-3">
+              <Progress value={monthlyProgress} className="h-2 flex-1" />
+              <span className="text-xs font-medium text-muted-foreground">{Math.floor(monthlyProgress)}%</span>
+            </div>
+            <Button
+              onClick={() => handleClaim('monthly')}
+              disabled={claimingMonthly || !user || !canClaimMonthly}
+              variant={canClaimMonthly ? "default" : "outline"}
+              className="w-full font-semibold"
+            >
+              {claimingMonthly ? 'Claiming...' : canClaimMonthly ? 'Claim' : `${dailyProgress}/30 days`}
+            </Button>
+          </div>
+        </div>
       </Card>
 
       {/* How to Earn Points */}
@@ -85,23 +202,23 @@ export const EarningSection = () => {
             <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
             <div className="flex-1">
               <p className="font-semibold text-foreground">Daily Check-in: 10 UP</p>
-              <p className="text-sm text-muted-foreground">Check in once every 24 hours</p>
+              <p className="text-sm text-muted-foreground">Check in daily to earn and build streaks</p>
             </div>
           </div>
 
           <div className="flex items-start gap-3 p-3 bg-gradient-card rounded-lg">
             <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
             <div className="flex-1">
-              <p className="font-semibold text-foreground">Weekly Check-in: 100 UP</p>
-              <p className="text-sm text-muted-foreground">Check in once every 7 days</p>
+              <p className="font-semibold text-foreground">Weekly Streak: 100 UP</p>
+              <p className="text-sm text-muted-foreground">Unlocks after 7 consecutive daily check-ins</p>
             </div>
           </div>
 
           <div className="flex items-start gap-3 p-3 bg-gradient-card rounded-lg">
             <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
             <div className="flex-1">
-              <p className="font-semibold text-foreground">Monthly Check-in: 500 UP</p>
-              <p className="text-sm text-muted-foreground">Check in once each calendar month</p>
+              <p className="font-semibold text-foreground">Monthly Streak: 500 UP</p>
+              <p className="text-sm text-muted-foreground">Unlocks after 30 consecutive daily check-ins</p>
             </div>
           </div>
 
