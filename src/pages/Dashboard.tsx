@@ -8,7 +8,6 @@ import { EarningSection } from "@/components/sections/EarningSection";
 import { ProfileSection } from "@/components/sections/ProfileSection";
 import { TutorSection } from "@/components/sections/TutorSection";
 import logoImage from "@/assets/uniquehub-logo.png";
-import cubeImage from "@/assets/uniquehub-cube.png";
 
 import { useAuth } from "@/hooks/useAuth";
 
@@ -78,13 +77,13 @@ const Dashboard = () => {
       <div className="flex-1 container mx-auto px-4 sm:px-6 py-4 sm:py-8 content-overlay">
         {/* Header with Logo and Profile */}
         <header className="flex items-center justify-between mb-4 sm:mb-6">
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2">
             <img 
-              src={activeTab === 'home' ? cubeImage : logoImage} 
+              src={logoImage} 
               alt="UniqueHub" 
-              className="w-10 h-10 object-contain"
+              className="h-8 sm:h-9 object-contain"
             />
-            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+            <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
               UniqueHub
             </h1>
           </div>

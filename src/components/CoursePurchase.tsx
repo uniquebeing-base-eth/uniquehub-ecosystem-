@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { DollarSign, Zap } from 'lucide-react';
+import { DollarSign, Zap, BookOpen } from 'lucide-react';
 
 /**
  * Course Purchase Component
@@ -79,78 +77,126 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
 
   const priceInUSDC = parseFloat(course.price_usdc) || 0;
 
+  const isFree = priceInUSDC === 0;
+
+  const handleEnroll = async () => {
+    if (!user) {
+      toast.error('Please sign in with Farcaster to enroll');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Create enrollment for free course
+      const { error } = await supabase
+        .from('enrollments')
+        .insert({
+          user_id: user.id,
+          course_id: course.id,
+        });
+
+      if (error) throw error;
+
+      toast.success('Successfully enrolled! You can now access the course.');
+      onPurchaseComplete?.();
+    } catch (error: any) {
+      console.error('Error enrolling:', error);
+      toast.error(error.message || 'Failed to enroll in course');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <Card className="p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold text-foreground">Purchase Course</h3>
-        <Badge variant="secondary">Base L2</Badge>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-          <div className="flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-success" />
-            <span className="font-semibold text-foreground">Price:</span>
+    <div className="space-y-4">
+      {isFree ? (
+        <>
+          <div className="flex items-center justify-center p-6 bg-success/10 rounded-lg border border-success/20">
+            <div className="text-center">
+              <p className="text-lg font-bold text-success mb-1">Free Course</p>
+              <p className="text-sm text-muted-foreground">Enroll now to get instant access</p>
+            </div>
           </div>
-          <span className="text-2xl font-bold text-primary">
-            {priceInUSDC} USDC
-          </span>
-        </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Payment Currency</label>
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant={selectedCurrency === 'USDC' ? 'default' : 'outline'}
-              onClick={() => setSelectedCurrency('USDC')}
-              className="w-full"
-            >
-              USDC
-            </Button>
-            <Button
-              variant={selectedCurrency === 'ETH' ? 'default' : 'outline'}
-              onClick={() => setSelectedCurrency('ETH')}
-              className="w-full"
-            >
-              ETH
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Pay with {selectedCurrency} on Base L2 for instant access
-          </p>
-        </div>
+          <Button
+            onClick={handleEnroll}
+            disabled={loading || !user}
+            className="w-full gap-2"
+            size="lg"
+          >
+            <BookOpen className="w-4 h-4" />
+            {loading ? 'Enrolling...' : 'Enroll Now'}
+          </Button>
 
-        <Button
-          onClick={handlePurchase}
-          disabled={loading || !user}
-          className="w-full gap-2"
-          size="lg"
-        >
-          <Zap className="w-4 h-4" />
-          {loading ? 'Creating Transaction...' : `Buy with ${selectedCurrency}`}
-        </Button>
+          {!user && (
+            <p className="text-sm text-muted-foreground text-center">
+              Sign in with Farcaster to enroll in this course
+            </p>
+          )}
+        </>
+      ) : (
+        <>
+          <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+            <div className="flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-success" />
+              <span className="font-semibold text-foreground">Price:</span>
+            </div>
+            <span className="text-xl sm:text-2xl font-bold text-primary">
+              ${priceInUSDC}
+            </span>
+          </div>
 
-        {!user && (
-          <p className="text-sm text-muted-foreground text-center">
-            Sign in with Farcaster to purchase this course
-          </p>
-        )}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Payment Currency</label>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant={selectedCurrency === 'USDC' ? 'default' : 'outline'}
+                onClick={() => setSelectedCurrency('USDC')}
+                className="w-full"
+              >
+                USDC
+              </Button>
+              <Button
+                variant={selectedCurrency === 'ETH' ? 'default' : 'outline'}
+                onClick={() => setSelectedCurrency('ETH')}
+                className="w-full"
+              >
+                ETH
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pay with {selectedCurrency} on Base L2 for instant access
+            </p>
+          </div>
 
-        <div className="pt-4 border-t space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Network</span>
-            <span className="font-medium text-foreground">Base L2</span>
+          <Button
+            onClick={handlePurchase}
+            disabled={loading || !user}
+            className="w-full gap-2"
+            size="lg"
+          >
+            <Zap className="w-4 h-4" />
+            {loading ? 'Creating Transaction...' : `Buy with ${selectedCurrency}`}
+          </Button>
+
+          {!user && (
+            <p className="text-sm text-muted-foreground text-center">
+              Sign in with Farcaster to purchase this course
+            </p>
+          )}
+
+          <div className="pt-3 border-t space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Network</span>
+              <span className="font-medium text-foreground">Base L2</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Access</span>
+              <span className="font-medium text-success">Instant</span>
+            </div>
           </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Transaction Type</span>
-            <span className="font-medium text-foreground">Instant Transfer</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Access</span>
-            <span className="font-medium text-success">Unlocked Immediately</span>
-          </div>
-        </div>
-      </div>
-    </Card>
+        </>
+      )}
+    </div>
   );
 };

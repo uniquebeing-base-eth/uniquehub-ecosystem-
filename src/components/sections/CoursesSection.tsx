@@ -100,30 +100,30 @@ export const CoursesSection = () => {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Explore Courses</h1>
+    <div className="space-y-4 sm:space-y-6 pb-6">
+      <h1 className="text-xl sm:text-2xl font-bold text-foreground px-1">Explore Courses</h1>
 
       {/* Search Bar */}
-      <Card className="p-4">
+      <div className="px-1">
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search courses..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-11"
           />
         </div>
-      </Card>
+      </div>
 
       {/* Filters */}
-      <Card className="p-3 sm:p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      <div className="px-1">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
           {/* Category Filter */}
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full p-2 rounded-md border border-input bg-background text-foreground"
+            className="w-full p-2.5 rounded-md border border-input bg-background text-foreground text-sm"
           >
             {categories.map((category) => (
               <option key={category.value} value={category.value}>
@@ -136,65 +136,59 @@ export const CoursesSection = () => {
           <select
             value={priceFilter}
             onChange={(e) => setPriceFilter(e.target.value)}
-            className="w-full p-2 rounded-md border border-input bg-background text-foreground"
+            className="w-full p-2.5 rounded-md border border-input bg-background text-foreground text-sm"
           >
             <option value="all">All Prices</option>
             <option value="free">Free</option>
             <option value="paid">Paid</option>
           </select>
         </div>
-      </Card>
+      </div>
 
       {/* Trending Courses */}
       {trendingCourses.length > 0 && (
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-3 px-1">
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground">Trending Courses</h2>
+            <TrendingUp className="w-4 h-4 text-primary" />
+            <h2 className="text-lg sm:text-xl font-bold text-foreground">Trending Courses</h2>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {trendingCourses.map((course: any) => (
               <Card 
                 key={course.id} 
-                className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer border border-border/50"
                 onClick={() => handleCourseClick(course)}
               >
-                <div className="flex gap-4">
+                <div className="flex gap-3 p-3">
                   {course.thumbnail_url ? (
                     <img 
                       src={course.thumbnail_url} 
                       alt={course.title}
-                      className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                      className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded flex-shrink-0"
                     />
                   ) : (
-                    <div className="w-24 h-24 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <BookOpen className="w-8 h-8 text-primary" />
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-primary/10 rounded flex items-center justify-center flex-shrink-0">
+                      <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-foreground mb-1">{course.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                    <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1 line-clamp-2">{course.title}</h3>
+                    <p className="text-xs text-muted-foreground mb-2 line-clamp-1">
                       {course.description}
                     </p>
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <span className="font-bold text-lg text-primary">
-                        {course.price_usdc === 0 ? 'Free' : `$${course.price_usdc} USDC`}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                      <BookOpen className="w-3 h-3" />
+                      <span>{course.enrollment_count || 0} enrolled</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold text-sm sm:text-base text-primary">
+                        {course.price_usdc === 0 ? 'Free' : `$${course.price_usdc}`}
                       </span>
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs px-2 py-0.5">
                         {categories.find(c => c.value === course.category)?.label || course.category}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
-                      <span className="flex items-center gap-1">
-                        <BookOpen className="w-4 h-4" />
-                        {course.enrollment_count || 0} enrolled
-                      </span>
-                    </div>
                   </div>
-                  <ShareToFarcaster
-                    text={`Check out "${course.title}" on UniqueHub! ${course.price_usdc === 0 ? 'Free' : `$${course.price_usdc} USDC`}`}
-                    embeds={[`https://uniqueehub.vercel.app/courses/${course.id}`]}
-                  />
                 </div>
               </Card>
             ))}
@@ -203,46 +197,43 @@ export const CoursesSection = () => {
       )}
 
       {/* All Courses Grid */}
-      <div className="space-y-3 sm:space-y-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-foreground">All Courses</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="space-y-3 px-1">
+        <h2 className="text-lg sm:text-xl font-bold text-foreground">All Courses</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {filteredCourses.map((course: any) => (
             <Card 
               key={course.id} 
-              className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
+              className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border border-border/50 hover:border-primary/30"
               onClick={() => handleCourseClick(course)}
             >
               {course.thumbnail_url ? (
                 <img 
                   src={course.thumbnail_url} 
                   alt={course.title}
-                  className="w-full h-48 object-cover rounded-lg mb-4"
+                  className="w-full h-32 sm:h-40 object-cover"
                 />
               ) : (
-                <div className="w-full h-48 bg-primary/10 rounded-lg mb-4 flex items-center justify-center">
-                  <BookOpen className="w-12 h-12 text-primary" />
+                <div className="w-full h-32 sm:h-40 bg-primary/10 flex items-center justify-center">
+                  <BookOpen className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
                 </div>
               )}
-              <h3 className="text-lg font-semibold text-foreground mb-2">{course.title}</h3>
-              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                {course.description}
-              </p>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex flex-col">
-                  <span className="font-bold text-xl text-primary">
-                    {course.price_usdc === 0 ? 'Free' : `$${course.price_usdc} USDC`}
-                  </span>
-                  {course.price_usdc > 0 && (
-                    <span className="text-xs text-muted-foreground">or equivalent in ETH</span>
-                  )}
+              <div className="p-3">
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1 line-clamp-2 min-h-[2.5rem]">{course.title}</h3>
+                <p className="text-xs text-muted-foreground mb-2 line-clamp-2 min-h-[2rem]">
+                  {course.description}
+                </p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                  <BookOpen className="w-3 h-3" />
+                  <span>{course.enrollment_count || 0} enrolled</span>
                 </div>
-                <Badge variant="secondary" className="text-xs">
-                  {categories.find(c => c.value === course.category)?.label || course.category}
-                </Badge>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <BookOpen className="w-4 h-4" />
-                <span>{course.enrollment_count || 0} enrolled</span>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="font-bold text-sm sm:text-base text-primary">
+                    {course.price_usdc === 0 ? 'Free' : `$${course.price_usdc}`}
+                  </span>
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                    {categories.find(c => c.value === course.category)?.label || course.category}
+                  </Badge>
+                </div>
               </div>
             </Card>
           ))}
@@ -251,18 +242,19 @@ export const CoursesSection = () => {
 
       {/* Purchase Modal */}
       {showPurchaseModal && selectedCourse && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="max-w-md w-full">
-            <Card className="p-6 space-y-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-foreground">{selectedCourse.title}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">{selectedCourse.description}</p>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50" onClick={() => setShowPurchaseModal(false)}>
+          <div className="w-full sm:max-w-lg sm:mx-4" onClick={(e) => e.stopPropagation()}>
+            <Card className="rounded-t-2xl sm:rounded-2xl p-4 sm:p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <h3 className="text-lg sm:text-xl font-bold text-foreground">{selectedCourse.title}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">{selectedCourse.description}</p>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowPurchaseModal(false)}
+                  className="flex-shrink-0"
                 >
                   ✕
                 </Button>
