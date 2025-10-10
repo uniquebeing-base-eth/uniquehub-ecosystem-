@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { Wallet, Plus, Search } from 'lucide-react';
+import { Wallet, Plus, Search, Loader2 } from 'lucide-react';
 
 /**
  * NFT Marketplace Component
@@ -18,19 +19,22 @@ export const NFTMarketplace = () => {
   const [userNFTs, setUserNFTs] = useState<any[]>([]);
   const [listings, setListings] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showListForm, setShowListForm] = useState(false);
+  const [showListDialog, setShowListDialog] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState<any>(null);
   const [listPrice, setListPrice] = useState('');
-  const [listCurrency, setListCurrency] = useState('USDC');
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [selectedForPurchase, setSelectedForPurchase] = useState<any>(null);
 
   useEffect(() => {
     fetchListings();
-    if (user?.user_metadata?.farcaster_fid) {
+  }, []);
+
+  useEffect(() => {
+    if (showListDialog && user?.user_metadata?.farcaster_fid && userNFTs.length === 0) {
       fetchUserNFTs();
     }
-  }, [user]);
+  }, [showListDialog, user]);
 
   const fetchUserNFTs = async () => {
     if (!user?.user_metadata?.farcaster_fid) return;
@@ -76,6 +80,11 @@ export const NFTMarketplace = () => {
       return;
     }
 
+    if (parseFloat(listPrice) <= 0) {
+      toast.error('Price must be greater than 0');
+      return;
+    }
+
     try {
       const { error } = await supabase.from('nft_listings').insert({
         user_id: user!.id,
@@ -84,7 +93,7 @@ export const NFTMarketplace = () => {
         token_standard: selectedNFT.tokenStandard,
         chain: 'base',
         price_amount: parseFloat(listPrice),
-        price_currency: listCurrency,
+        price_currency: 'USDC',
         name: selectedNFT.name,
         description: selectedNFT.description,
         image_url: selectedNFT.imageUrl,
@@ -95,9 +104,10 @@ export const NFTMarketplace = () => {
       if (error) throw error;
 
       toast.success('NFT listed successfully!');
-      setShowListForm(false);
+      setShowListDialog(false);
       setSelectedNFT(null);
       setListPrice('');
+      setUserNFTs([]);
       fetchListings();
     } catch (error: any) {
       console.error('Error listing NFT:', error);
@@ -157,170 +167,224 @@ export const NFTMarketplace = () => {
     }
   };
 
-  const filteredListings = listings.filter(listing =>
-    listing.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    listing.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredListings = listings.filter(listing => {
+    const matchesSearch = listing.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      listing.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (categoryFilter === 'all') return matchesSearch;
+    if (categoryFilter === 'collectibles') {
+      return matchesSearch && (listing.name?.toLowerCase().includes('collectible') || 
+                               listing.description?.toLowerCase().includes('collectible'));
+    }
+    return matchesSearch;
+  });
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-foreground">NFT Marketplace</h2>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">NFT Marketplace</h2>
         {user && (
-          <Button onClick={() => setShowListForm(!showListForm)} className="gap-2">
+          <Button 
+            onClick={() => setShowListDialog(true)} 
+            className="gap-2 w-full sm:w-auto"
+            size="lg"
+          >
             <Plus className="w-4 h-4" />
             List NFT
           </Button>
         )}
       </div>
 
-      {/* User's NFTs Section */}
-      {user && showListForm && (
-        <Card className="p-6">
-          <h3 className="text-xl font-bold text-foreground mb-4">Your NFTs on Base</h3>
-          
+      {/* Search and Filter Bar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search NFTs..."
+            className="pl-10"
+          />
+        </div>
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="w-full sm:w-48 p-2 rounded-md border border-input bg-background text-foreground"
+        >
+          <option value="all">All NFTs</option>
+          <option value="collectibles">Collectibles</option>
+        </select>
+      </div>
+
+      {/* NFT Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        {filteredListings.map((listing) => (
+          <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            {listing.image_url && (
+              <img
+                src={listing.image_url}
+                alt={listing.name}
+                className="w-full h-32 sm:h-48 object-cover"
+              />
+            )}
+            <div className="p-3 sm:p-4 space-y-2">
+              <h3 className="font-bold text-sm sm:text-base text-foreground truncate">{listing.name}</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
+                {listing.description}
+              </p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-base sm:text-lg font-bold text-primary">
+                    {listing.price_amount} {listing.price_currency}
+                  </p>
+                  <Badge variant="secondary" className="text-xs">{listing.chain}</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground truncate">
+                  by @{listing.profiles?.farcaster_username || 'Unknown'}
+                </p>
+                <Button
+                  onClick={() => handleBuyNFT(listing)}
+                  className="w-full"
+                  size="sm"
+                  disabled={!user || listing.user_id === user?.id || selectedForPurchase?.id === listing.id}
+                >
+                  {!user ? 'Sign In' : listing.user_id === user?.id ? 'Your NFT' : selectedForPurchase?.id === listing.id ? 'Processing...' : 'Buy Now'}
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {/* Empty State */}
+      {filteredListings.length === 0 && (
+        <Card className="p-8 sm:p-12">
+          <div className="text-center">
+            <Wallet className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">No NFTs Listed</h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-4">
+              {searchTerm ? 'No NFTs match your search.' : 'Be the first to list an NFT for sale!'}
+            </p>
+            {user && !searchTerm && (
+              <Button onClick={() => setShowListDialog(true)} className="gap-2">
+                <Plus className="w-4 h-4" />
+                List NFT
+              </Button>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* List NFT Dialog */}
+      <Dialog open={showListDialog} onOpenChange={setShowListDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>List Your NFT</DialogTitle>
+          </DialogHeader>
+
           {loading ? (
-            <p className="text-muted-foreground">Loading your NFTs...</p>
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+              <p className="text-muted-foreground">Detecting NFTs in your wallet...</p>
+            </div>
           ) : userNFTs.length === 0 ? (
-            <div className="text-center py-8">
-              <Wallet className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground mb-4">No NFTs found on Base L2</p>
+            <div className="text-center py-12">
+              <Wallet className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">No NFTs Found</h3>
+              <p className="text-muted-foreground mb-4">
+                No NFTs or Farcaster collectibles found in your wallet on Base L2
+              </p>
               <Button onClick={fetchUserNFTs} variant="outline">
-                Refresh NFTs
+                <Search className="w-4 h-4 mr-2" />
+                Refresh Wallet
               </Button>
             </div>
-          ) : (
+          ) : !selectedNFT ? (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+              <p className="text-sm text-muted-foreground">
+                Select an NFT from your wallet to list for sale
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-[50vh] overflow-y-auto pr-2">
                 {userNFTs.map((nft, index) => (
                   <Card
                     key={index}
-                    className={`p-4 cursor-pointer transition-all ${
-                      selectedNFT?.tokenId === nft.tokenId ? 'border-primary' : ''
-                    }`}
+                    className="p-3 cursor-pointer hover:border-primary transition-all"
                     onClick={() => setSelectedNFT(nft)}
                   >
                     {nft.imageUrl && (
                       <img
                         src={nft.imageUrl}
                         alt={nft.name}
-                        className="w-full h-32 object-cover rounded-lg mb-2"
+                        className="w-full h-24 sm:h-32 object-cover rounded-lg mb-2"
                       />
                     )}
-                    <h4 className="font-semibold text-foreground truncate">{nft.name}</h4>
+                    <h4 className="font-semibold text-sm text-foreground truncate">{nft.name}</h4>
                     <p className="text-xs text-muted-foreground truncate">
-                      Token #{nft.tokenId}
+                      #{nft.tokenId}
                     </p>
                   </Card>
                 ))}
               </div>
-
-              {selectedNFT && (
-                <div className="border-t pt-4 space-y-4">
-                  <h4 className="font-semibold text-foreground">List {selectedNFT.name} for Sale</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Price</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={listPrice}
-                        onChange={(e) => setListPrice(e.target.value)}
-                        placeholder="0.00"
-                      />
-                    </div>
-                    <div>
-                      <Label>Currency</Label>
-                      <select
-                        value={listCurrency}
-                        onChange={(e) => setListCurrency(e.target.value)}
-                        className="w-full p-2 rounded-md border border-input bg-background text-foreground"
-                      >
-                        <option value="USDC">USDC</option>
-                        <option value="ETH">ETH</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button onClick={handleListNFT}>List NFT</Button>
-                    <Button variant="outline" onClick={() => {
-                      setSelectedNFT(null);
-                      setShowListForm(false);
-                    }}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
             </div>
-          )}
-        </Card>
-      )}
-
-      {/* Marketplace Listings */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search NFTs..."
-              className="pl-10"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredListings.map((listing) => (
-            <Card key={listing.id} className="overflow-hidden">
-              {listing.image_url && (
-                <img
-                  src={listing.image_url}
-                  alt={listing.name}
-                  className="w-full h-48 object-cover"
-                />
-              )}
-              <div className="p-4 space-y-3">
-                <h3 className="font-bold text-foreground truncate">{listing.name}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {listing.description}
-                </p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-lg font-bold text-primary">
-                      {listing.price_amount} {listing.price_currency}
+          ) : (
+            <div className="space-y-6">
+              <div className="flex items-start gap-4 p-4 bg-muted rounded-lg">
+                {selectedNFT.imageUrl && (
+                  <img
+                    src={selectedNFT.imageUrl}
+                    alt={selectedNFT.name}
+                    className="w-24 h-24 object-cover rounded-lg"
+                  />
+                )}
+                <div className="flex-1">
+                  <h4 className="font-bold text-foreground">{selectedNFT.name}</h4>
+                  <p className="text-sm text-muted-foreground">Token #{selectedNFT.tokenId}</p>
+                  {selectedNFT.description && (
+                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                      {selectedNFT.description}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      by @{listing.profiles?.farcaster_username || 'Unknown'}
-                    </p>
-                  </div>
-                  <Badge variant="secondary">{listing.chain}</Badge>
+                  )}
                 </div>
-                <Button
-                  onClick={() => handleBuyNFT(listing)}
-                  className="w-full"
-                  disabled={!user || listing.user_id === user?.id || selectedForPurchase?.id === listing.id}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="price" className="text-base font-semibold">
+                  Set Price (USDC)
+                </Label>
+                <Input
+                  id="price"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={listPrice}
+                  onChange={(e) => setListPrice(e.target.value)}
+                  placeholder="Enter price in USDC"
+                  className="text-lg"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Set your listing price in USDC on Base L2
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <Button onClick={handleListNFT} className="flex-1" size="lg">
+                  List NFT for Sale
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setSelectedNFT(null);
+                    setListPrice('');
+                  }}
+                  size="lg"
                 >
-                  {!user ? 'Sign In' : listing.user_id === user?.id ? 'Your NFT' : selectedForPurchase?.id === listing.id ? 'Processing...' : 'Buy Now'}
+                  Back
                 </Button>
               </div>
-            </Card>
-          ))}
-        </div>
-
-        {filteredListings.length === 0 && (
-          <Card className="p-12">
-            <div className="text-center">
-              <Wallet className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">No NFTs Listed</h3>
-              <p className="text-muted-foreground">
-                Be the first to list an NFT for sale!
-              </p>
             </div>
-          </Card>
-        )}
-      </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
