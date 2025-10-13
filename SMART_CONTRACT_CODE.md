@@ -17,23 +17,27 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title UniqueHubCore
- * @dev Main contract for UniqueHub mini app with fee management and point tracking
+ * @dev Main contract for UniqueHub with USDC payments and point tracking
+ * Fee Structure:
+ * - Upload fee: 0.2 USDC (for courses and NFTs)
+ * - Free content: $0.001 ETH gas only
+ * - All fees go to treasury (Base takes 1% network fee automatically)
  */
 contract UniqueHubCore is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     
-    // Chainlink ETH/USD Price Feed on Base
-    AggregatorV3Interface public priceFeed;
+    // USDC token on Base Mainnet
+    IERC20 public usdcToken;
     
-    // Treasury wallet
+    // Treasury wallet (receives all fees)
     address payable public treasuryWallet;
     
-    // Fee structure (in USD with 2 decimals, e.g., 1 = $0.01)
-    uint256 public constant GAS_FEE_USD = 1; // $0.01
-    uint256 public constant APP_FEE_USD = 2; // $0.02
+    // Fee structure
+    uint256 public constant UPLOAD_FEE_USDC = 200000; // 0.2 USDC (6 decimals)
+    uint256 public constant FREE_CONTENT_GAS = 0.001 ether; // Gas for free courses
     
     // Point tracking
     struct UserPoints {
@@ -49,12 +53,18 @@ contract UniqueHubCore is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
     mapping(address => UserPoints) public userPoints;
     
     // Events
-    event PaymentProcessed(
+    event UploadFeeProcessed(
         address indexed user,
-        uint256 amount,
-        uint256 gasFee,
-        uint256 appFee,
-        string transactionType
+        string contentType,
+        uint256 usdcAmount,
+        uint256 pointsAwarded
+    );
+    
+    event FreeContentAccessed(
+        address indexed user,
+        string contentId,
+        uint256 gasFeePaid,
+        uint256 pointsAwarded
     );
     
     event PointsAwarded(
@@ -74,88 +84,84 @@ contract UniqueHubCore is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
     
     /**
      * @dev Initialize the contract
-     * @param _priceFeed Chainlink ETH/USD price feed address on Base
+     * @param _usdcToken USDC token address on Base (0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913)
      * @param _treasuryWallet Treasury wallet address
      */
     function initialize(
-        address _priceFeed,
+        address _usdcToken,
         address payable _treasuryWallet
     ) public initializer {
         __Ownable_init();
         __ReentrancyGuard_init();
         
-        priceFeed = AggregatorV3Interface(_priceFeed);
+        usdcToken = IERC20(_usdcToken);
         treasuryWallet = _treasuryWallet;
     }
     
     /**
-     * @dev Get latest ETH price in USD (with 8 decimals)
+     * @dev Process upload fee (0.2 USDC) for listing courses or NFTs
+     * @param contentType "course" or "nft"
+     * @return success Whether upload fee was processed
      */
-    function getLatestPrice() public view returns (int) {
-        (
-            /* uint80 roundID */,
-            int price,
-            /*uint startedAt*/,
-            /*uint timeStamp*/,
-            /*uint80 answeredInRound*/
-        ) = priceFeed.latestRoundData();
-        return price;
+    function processUploadFee(string memory contentType) external nonReentrant returns (bool) {
+        // Transfer 0.2 USDC from user to treasury
+        require(
+            usdcToken.transferFrom(msg.sender, treasuryWallet, UPLOAD_FEE_USDC),
+            "USDC transfer failed"
+        );
+        
+        // Award 10 UP points for content upload
+        userPoints[msg.sender].totalPoints += 10;
+        
+        emit UploadFeeProcessed(msg.sender, contentType, UPLOAD_FEE_USDC, 10);
+        emit PointsAwarded(msg.sender, 10, string(abi.encodePacked("upload_", contentType)));
+        
+        return true;
     }
     
     /**
-     * @dev Calculate fees in ETH based on current ETH/USD price
-     * @return gasFeeETH Gas fee in wei
-     * @return appFeeETH App fee in wei
+     * @dev Access free content (pays minimal gas fee only)
+     * @param contentId ID of the free course/content
      */
-    function calculateFeesInETH() public view returns (uint256 gasFeeETH, uint256 appFeeETH) {
-        int ethPriceUSD = getLatestPrice(); // Price with 8 decimals
-        require(ethPriceUSD > 0, "Invalid ETH price");
+    function accessFreeContent(string memory contentId) external payable nonReentrant {
+        require(msg.value >= FREE_CONTENT_GAS, "Insufficient gas fee");
         
-        // Convert fees from USD cents to ETH wei
-        // gasFeeUSD and appFeeUSD are in cents (e.g., 1 = $0.01)
-        // ethPriceUSD has 8 decimals (e.g., 250000000000 = $2500)
+        // Send gas fee to treasury (Base automatically takes 1% network fee)
+        (bool success, ) = treasuryWallet.call{value: FREE_CONTENT_GAS}("");
+        require(success, "Gas transfer failed");
         
-        gasFeeETH = (GAS_FEE_USD * 1e18 * 1e8) / (uint256(ethPriceUSD) * 100);
-        appFeeETH = (APP_FEE_USD * 1e18 * 1e8) / (uint256(ethPriceUSD) * 100);
+        // Award 5 UP points for accessing free content
+        userPoints[msg.sender].totalPoints += 5;
+        
+        // Refund excess payment
+        if (msg.value > FREE_CONTENT_GAS) {
+            (bool refundSuccess, ) = msg.sender.call{value: msg.value - FREE_CONTENT_GAS}("");
+            require(refundSuccess, "Refund failed");
+        }
+        
+        emit FreeContentAccessed(msg.sender, contentId, FREE_CONTENT_GAS, 5);
+        emit PointsAwarded(msg.sender, 5, "free_content");
     }
     
     /**
-     * @dev Process a transaction with fees
-     * @param transactionType Type of transaction ("buy", "sell", "list")
-     * @param amountUSD Transaction amount in USD (with 2 decimals)
+     * @dev Process paid content purchase (USDC payment + points)
+     * @param amountUSD Transaction amount in USD cents (e.g., 1000 = $10.00)
+     * @param transactionType "course_purchase" or "nft_purchase"
      */
-    function processTransaction(
-        string memory transactionType,
-        uint256 amountUSD
-    ) external payable nonReentrant {
-        (uint256 gasFeeETH, uint256 appFeeETH) = calculateFeesInETH();
-        uint256 totalFee = gasFeeETH + appFeeETH;
+    function processPurchase(
+        uint256 amountUSD,
+        string memory transactionType
+    ) external nonReentrant returns (bool) {
+        // Award points based on purchase amount (1 UP per $10, max 1000 UP)
+        uint256 points = amountUSD / 1000; // amountUSD is in cents
+        if (points > 1000) points = 1000;
         
-        require(msg.value >= totalFee, "Insufficient fee payment");
-        
-        // Send fees to treasury
-        (bool success, ) = treasuryWallet.call{value: totalFee}("");
-        require(success, "Fee transfer failed");
-        
-        // Award points for buy/sell volume (1 UP per $1, max 1000 UP)
-        if (
-            keccak256(bytes(transactionType)) == keccak256(bytes("buy")) ||
-            keccak256(bytes(transactionType)) == keccak256(bytes("sell"))
-        ) {
-            uint256 points = amountUSD / 100; // Convert cents to dollars
-            if (points > 1000) points = 1000;
-            
+        if (points > 0) {
             userPoints[msg.sender].totalPoints += points;
             emit PointsAwarded(msg.sender, points, transactionType);
         }
         
-        // Refund excess payment
-        if (msg.value > totalFee) {
-            (bool refundSuccess, ) = msg.sender.call{value: msg.value - totalFee}("");
-            require(refundSuccess, "Refund failed");
-        }
-        
-        emit PaymentProcessed(msg.sender, msg.value, gasFeeETH, appFeeETH, transactionType);
+        return true;
     }
     
     /**
@@ -239,11 +245,11 @@ contract UniqueHubCore is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
     }
     
     /**
-     * @dev Update price feed (only owner)
+     * @dev Update USDC token address (only owner)
      */
-    function updatePriceFeed(address _newPriceFeed) external onlyOwner {
-        require(_newPriceFeed != address(0), "Invalid address");
-        priceFeed = AggregatorV3Interface(_newPriceFeed);
+    function updateUSDCToken(address _newUSDC) external onlyOwner {
+        require(_newUSDC != address(0), "Invalid address");
+        usdcToken = IERC20(_newUSDC);
     }
 }
 ```
@@ -298,13 +304,14 @@ contract UniqueHubNFTMarketplace is ReentrancyGuard {
     }
     
     /**
-     * @dev List an NFT for sale (ERC-721)
+     * @dev List an NFT for sale (ERC-721) - requires 0.2 USDC upload fee
+     * User must approve this contract to spend 0.2 USDC first
      */
     function listNFT721(
         address nftContract,
         uint256 tokenId,
-        uint256 priceInUSD
-    ) external payable nonReentrant {
+        uint256 priceInUSDC
+    ) external nonReentrant {
         IERC721 nft = IERC721(nftContract);
         require(nft.ownerOf(tokenId) == msg.sender, "Not the owner");
         require(
@@ -313,8 +320,8 @@ contract UniqueHubNFTMarketplace is ReentrancyGuard {
             "Marketplace not approved"
         );
         
-        // Process listing fee
-        coreContract.processTransaction{value: msg.value}("list", priceInUSD);
+        // Process 0.2 USDC upload fee
+        require(coreContract.processUploadFee("nft"), "Upload fee failed");
         
         bytes32 listingId = keccak256(abi.encodePacked(nftContract, tokenId, msg.sender, block.timestamp));
         
@@ -322,23 +329,25 @@ contract UniqueHubNFTMarketplace is ReentrancyGuard {
             seller: msg.sender,
             nftContract: nftContract,
             tokenId: tokenId,
-            price: priceInUSD,
+            price: priceInUSDC,
             isERC721: true,
             active: true
         });
         
-        emit NFTListed(listingId, msg.sender, nftContract, tokenId, priceInUSD);
+        emit NFTListed(listingId, msg.sender, nftContract, tokenId, priceInUSDC);
     }
     
     /**
-     * @dev Purchase an NFT
+     * @dev Purchase an NFT (USDC payment handled separately)
+     * This only triggers point tracking in core contract
      */
-    function purchaseNFT(bytes32 listingId) external payable nonReentrant {
+    function purchaseNFT(bytes32 listingId, uint256 amountUSD) external nonReentrant {
         Listing storage listing = listings[listingId];
         require(listing.active, "Listing not active");
+        require(amountUSD == listing.price, "Incorrect price");
         
-        // Process purchase fee and award points
-        coreContract.processTransaction{value: msg.value}("buy", listing.price);
+        // Award points for purchase
+        require(coreContract.processPurchase(amountUSD, "nft_purchase"), "Points tracking failed");
         
         // Transfer NFT
         if (listing.isERC721) {
@@ -365,29 +374,39 @@ contract UniqueHubNFTMarketplace is ReentrancyGuard {
 const { ethers, upgrades } = require("hardhat");
 
 async function main() {
-  // Base Mainnet Chainlink ETH/USD Price Feed
-  const PRICE_FEED_ADDRESS = "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70";
+  // Base Mainnet USDC Token Address
+  const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
   
-  // Your treasury wallet
+  // Your treasury wallet (multisig recommended)
   const TREASURY_WALLET = "YOUR_TREASURY_WALLET_ADDRESS";
+  
+  console.log("Deploying to Base Mainnet...");
+  console.log("USDC:", USDC_ADDRESS);
+  console.log("Treasury:", TREASURY_WALLET);
   
   // Deploy UniqueHubCore
   const UniqueHubCore = await ethers.getContractFactory("UniqueHubCore");
   const core = await upgrades.deployProxy(
     UniqueHubCore,
-    [PRICE_FEED_ADDRESS, TREASURY_WALLET],
+    [USDC_ADDRESS, TREASURY_WALLET],
     { initializer: 'initialize' }
   );
   await core.deployed();
   
-  console.log("UniqueHubCore deployed to:", core.address);
+  console.log("✅ UniqueHubCore deployed to:", core.address);
   
   // Deploy UniqueHubNFTMarketplace
   const Marketplace = await ethers.getContractFactory("UniqueHubNFTMarketplace");
   const marketplace = await Marketplace.deploy(core.address);
   await marketplace.deployed();
   
-  console.log("Marketplace deployed to:", marketplace.address);
+  console.log("✅ Marketplace deployed to:", marketplace.address);
+  
+  console.log("\n📝 Next steps:");
+  console.log("1. Verify contracts on BaseScan");
+  console.log("2. Update app_config table with contract addresses");
+  console.log("3. Test upload fee (0.2 USDC)");
+  console.log("4. Test free content access (0.001 ETH)");
 }
 
 main();
@@ -399,8 +418,11 @@ main();
 {
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.0",
-    "@openzeppelin/contracts-upgradeable": "^5.0.0",
-    "@chainlink/contracts": "^0.8.0"
+    "@openzeppelin/contracts-upgradeable": "^5.0.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "hardhat": "^2.17.0"
   }
 }
 ```
@@ -428,11 +450,11 @@ const publicClient = createPublicClient({
 
 ## Important Resources
 
-- **Base Mainnet Chainlink Price Feed**: `0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70`
-- **Base Testnet Price Feed**: `0x4aDC67696bA383F43DD60A9e78F2C97Fbbfc7cb1`
+- **Base Mainnet USDC**: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
+- **Base Testnet USDC (Sepolia)**: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
 - **OpenZeppelin Docs**: https://docs.openzeppelin.com/contracts/
-- **Chainlink Docs**: https://docs.chain.link/
 - **Base Developer Docs**: https://docs.base.org/
+- **USDC on Base**: https://www.circle.com/en/usdc-on-base
 
 ## Security Considerations
 

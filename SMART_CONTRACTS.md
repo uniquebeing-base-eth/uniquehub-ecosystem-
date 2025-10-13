@@ -3,10 +3,11 @@
 ## Overview
 
 UniqueHub requires smart contracts deployed on Base L2 for handling:
-1. **Transaction fees** ($0.01 gas + $0.02 app fee)
-2. **NFT transfers** (ERC-721 and ERC-1155)
-3. **Course access** (onchain verification)
-4. **Payment splitting** (to treasury wallet)
+1. **Upload fees** (0.2 USDC for courses/NFTs)
+2. **Transaction fees** (gas goes to treasury, 1% to Base network)
+3. **NFT transfers** (ERC-721 and ERC-1155)
+4. **Course access** (free courses: $0.001 ETH gas only)
+5. **Payment processing** (USDC payments to treasury)
 
 ## Current Status
 
@@ -28,15 +29,16 @@ UniqueHub requires smart contracts deployed on Base L2 for handling:
 
 ```solidity
 // Key features needed:
-// - Calculate gas fee ($0.01 in ETH using Chainlink oracle)
-// - Calculate app fee ($0.02 in ETH using Chainlink oracle)
-// - Split payments between seller and treasury
+// - Charge 0.2 USDC upload fee for courses and NFTs
+// - Process free courses with $0.001 ETH gas fee only
+// - Send all fees to treasury wallet (Base takes 1% automatically)
+// - Track UP points for all transactions
 // - Emit events for point tracking
 ```
 
 **Required integrations:**
-- Chainlink Price Feed for ETH/USD on Base: https://docs.chain.link/data-feeds/price-feeds/addresses?network=base
-- OpenZeppelin PaymentSplitter: https://docs.openzeppelin.com/contracts/4.x/api/utils#PaymentSplitter
+- Base USDC contract: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
+- OpenZeppelin ERC20: https://docs.openzeppelin.com/contracts/4.x/api/token/erc20
 
 ### 2. NFT Marketplace Contract
 
