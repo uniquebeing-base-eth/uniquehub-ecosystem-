@@ -31,100 +31,56 @@
   }
 }
 
-/* UniqueHub Web3 Design System */
 @layer base {
   :root {
-    /* Web3 Dark Theme */
-    --background: 220 41% 13%;
-    --foreground: 0 0% 98%;
-
-    /* Cards with gradient background */
-    --card: 220 35% 18%;
-    --card-foreground: 0 0% 98%;
-    --card-hover: 220 35% 22%;
-
-    --popover: 220 35% 18%;
-    --popover-foreground: 0 0% 98%;
-
-    /* Primary royal blue theme */
-    --primary: 225 73% 57%;
-    --primary-foreground: 0 0% 98%;
-    --primary-glow: 225 73% 67%;
-
-    /* Secondary blue tones */
-    --secondary: 220 35% 25%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 220 25% 20%;
-    --muted-foreground: 220 10% 60%;
-
-    --accent: 225 73% 57%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 220 25% 25%;
-    --input: 220 25% 25%;
-    --ring: 225 73% 57%;
-
-    --radius: 0.75rem;
-
-    /* Web3 specific colors */
-    --crypto-usdc: 219 69% 96%;
-    --crypto-eth: 224 64% 66%;
-    --success: 225 73% 57%;
-    --warning: 38 92% 50%;
-
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(225 73% 57%), hsl(225 73% 67%));
-    --gradient-card: linear-gradient(135deg, hsl(220 35% 18%), hsl(220 35% 22%));
-    --gradient-glow: linear-gradient(135deg, hsl(225 73% 57% / 0.2), hsl(225 73% 67% / 0.1));
-
-    /* Shadows */
-    --shadow-glow: 0 0 30px hsl(225 73% 57% / 0.4);
-    --shadow-card: 0 4px 20px hsl(220 41% 8% / 0.4);
-
-    /* Animations */
+    --background: 220 25% 10%;
+    --foreground: 210 20% 98%;
+    
+    --card: 220 20% 14%;
+    --card-hover: 220 20% 18%;
+    --card-foreground: 210 20% 98%;
+    
+    --popover: 220 20% 14%;
+    --popover-foreground: 210 20% 98%;
+    
+    --primary: 217 91% 60%;
+    --primary-glow: 212 100% 70%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 220 20% 18%;
+    --secondary-foreground: 210 20% 98%;
+    
+    --muted: 220 20% 25%;
+    --muted-foreground: 220 10% 65%;
+    
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 220 20% 25%;
+    --input: 220 20% 20%;
+    --ring: 217 91% 60%;
+    
+    --radius: 1rem;
+    
+    --usdc-color: 147 90% 45%;
+    --eth-color: 217 91% 60%;
+    
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(212 100% 70%));
+    --gradient-card: linear-gradient(135deg, hsl(220 20% 16%), hsl(220 20% 14%));
+    
+    --shadow-elegant: 0 10px 30px -10px hsl(217 91% 60% / 0.3);
+    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.5);
+    
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    --chart-1: 217 91% 60%;
+    --chart-2: 212 100% 70%;
+    --chart-3: 200 90% 65%;
+    --chart-4: 225 85% 65%;
+    --chart-5: 210 80% 60%;
   }
 }
 
@@ -135,27 +91,9 @@
 
   body {
     @apply bg-background text-foreground;
-    background-image: url('/src/assets/anime-bg-main.jpg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
   }
 
-  .content-overlay {
-    background: rgba(34, 41, 71, 0.65);
-    backdrop-filter: blur(4px);
-  }
-
-  /* Anime Background Classes */
-  .anime-bg-learn {
-    background-image: url('/src/assets/anime-bg-learn.jpg');
-    background-size: cover;
-    background-position: center;
-  }
-
-  .anime-bg-trade {
-    background-image: url('/src/assets/anime-bg-trade.jpg');
-    background-size: cover;
-    background-position: center;
+  .anime-bg-main {
+    background: linear-gradient(180deg, hsl(220 25% 10%) 0%, hsl(220 30% 15%) 100%);
   }
 }

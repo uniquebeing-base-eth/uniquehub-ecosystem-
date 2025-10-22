@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Navigation } from "@/components/Navigation";
+import { BottomNavigation } from "@/components/BottomNavigation";
+import { HamburgerMenu } from "@/components/HamburgerMenu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HomeSection } from "@/components/sections/HomeSection";
 import { MarketplaceSection } from "@/components/sections/MarketplaceSection";
 import { CoursesSection } from "@/components/sections/CoursesSection";
-import { EarningSection } from "@/components/sections/EarningSection";
 import { ProfileSection } from "@/components/sections/ProfileSection";
 import { TutorSection } from "@/components/sections/TutorSection";
+import { UploadSection } from "@/components/sections/UploadSection";
+import { WalletSection } from "@/components/sections/WalletSection";
 import logoImage from "@/assets/uniquehub-logo.png";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -53,7 +55,6 @@ const Dashboard = () => {
   }
 
   const renderContent = () => {
-
     switch (activeTab) {
       case "home":
         return <HomeSection onNavigate={handleTabChange} />;
@@ -61,12 +62,32 @@ const Dashboard = () => {
         return <MarketplaceSection />;
       case "courses":
         return <CoursesSection />;
-      case "earning":
-        return <EarningSection />;
+      case "upload":
+        return <UploadSection />;
       case "profile":
         return <ProfileSection />;
       case "tutor":
         return <TutorSection />;
+      case "wallet":
+        return <WalletSection />;
+      case "about":
+        return (
+          <div className="space-y-4 pb-24">
+            <h2 className="text-2xl font-bold">About UniqueHub</h2>
+            <p className="text-muted-foreground">
+              UniqueHub is your super app for learning, earning, and trading in the Web3 space.
+            </p>
+          </div>
+        );
+      case "contact":
+        return (
+          <div className="space-y-4 pb-24">
+            <h2 className="text-2xl font-bold">Contact Us</h2>
+            <p className="text-muted-foreground">
+              Get in touch with us for support and inquiries.
+            </p>
+          </div>
+        );
       default:
         return null;
     }
@@ -74,39 +95,33 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen flex flex-col anime-bg-main">
-      <div className="flex-1 container mx-auto px-4 sm:px-6 py-4 sm:py-8 content-overlay">
-        {/* Header with Logo and Profile */}
-        <header className="flex items-center justify-between mb-4 sm:mb-6">
-          <div className="flex items-center gap-2">
-            <img 
-              src={logoImage} 
-              alt="UniqueHub" 
-              className="h-8 sm:h-9 object-contain"
-            />
-            <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-              UniqueHub
-            </h1>
+      <div className="flex-1 mx-auto max-w-2xl w-full">
+        {/* Header */}
+        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img 
+                src={logoImage} 
+                alt="UniqueHub" 
+                className="h-10 w-10 object-contain"
+              />
+              <div>
+                <h1 className="text-sm font-bold text-primary">
+                  Hi {user?.user_metadata?.display_name || 'Uniquebeing'}
+                </h1>
+              </div>
+            </div>
+            <HamburgerMenu onNavigate={handleTabChange} />
           </div>
-          {user && (
-            <Avatar 
-              className="w-10 h-10 ring-2 ring-primary/20 cursor-pointer hover:scale-105 transition-transform"
-              onClick={() => handleTabChange('profile')}
-            >
-              <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.display_name || 'User'} />
-              <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">
-                {(user.user_metadata?.display_name || 'U').slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-          )}
         </header>
 
-        {/* Navigation */}
-        <Navigation activeTab={activeTab} onTabChange={handleTabChange} />
-
         {/* Content */}
-        <main className="pb-4">
+        <main className="px-4 py-6">
           {renderContent()}
         </main>
+
+        {/* Bottom Navigation */}
+        <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
       </div>
     </div>
   );

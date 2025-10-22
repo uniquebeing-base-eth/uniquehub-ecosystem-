@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { EarningCard } from "@/components/EarningCard";
-import { TutorInfo } from "@/components/TutorInfo";
 import { TrendingCourseCard } from "@/components/TrendingCourseCard";
 import { LatestNFTCard } from "@/components/LatestNFTCard";
-import { BookOpen, DollarSign, Users, Trophy, GraduationCap, Coins, TrendingUp, Star } from "lucide-react";
+import { BookOpen, TrendingUp, Star } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 interface HomeSectionProps {
   onNavigate?: (tab: string) => void;
@@ -65,152 +64,117 @@ export const HomeSection = ({ onNavigate }: HomeSectionProps) => {
   }, []);
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <div className="text-center space-y-3 sm:space-y-4 mb-8 sm:mb-12">
-        <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-2 sm:mb-4">
-          Learn. Earn. Trade.
+    <div className="space-y-6 pb-24">
+      {/* Hero Section */}
+      <div className="bg-gradient-primary rounded-3xl p-6 text-white space-y-4">
+        <h1 className="text-xl font-bold">
+          Welcome to UniqueHub your super app for learning, earning and trading.
         </h1>
-        <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
-          Your Web3 super app for learning, earning crypto, and trading digital assets
-        </p>
+        <Button 
+          variant="secondary" 
+          className="bg-card text-foreground hover:bg-card-hover font-semibold rounded-full px-6"
+        >
+          Get started
+        </Button>
       </div>
 
-      <div className="grid gap-4 sm:gap-6">
-        <h2 className="text-xl sm:text-2xl font-bold text-foreground">Start Your Journey</h2>
-        
-        <div className="grid gap-3 sm:gap-4">
-          <EarningCard
-            title="Learn & Earn"
-            description="Complete courses and tasks to earn crypto rewards"
-            icon={<BookOpen className="w-8 h-8" />}
-            buttonText="START LEARNING"
-            onAction={() => onNavigate?.('courses')}
-          />
-          
-          <EarningCard
-            title="Trade Assets"
-            description="Buy and sell NFTs and digital collectibles"
-            icon={<Coins className="w-8 h-8" />}
-            buttonText="EXPLORE MARKETPLACE"
-            onAction={() => onNavigate?.('marketplace')}
-          />
-          
-          <EarningCard
-            title="Become a Tutor"
-            description="Create courses and earn from teaching others"
-            icon={<GraduationCap className="w-8 h-8" />}
-            buttonText="START TEACHING"
-            onAction={() => onNavigate?.('tutor')}
-          />
-        </div>
-
-        {/* Trending Courses Section */}
-        <div className="mt-4 sm:mt-8">
-          <div className="flex items-center gap-2 mb-3 sm:mb-4">
-            <TrendingUp className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
-            <h3 className="text-lg sm:text-xl font-semibold text-foreground">Trending Courses</h3>
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card 
+          className="p-6 cursor-pointer hover:border-primary transition-all group bg-gradient-card"
+          onClick={() => onNavigate?.('marketplace')}
+        >
+          <div className="space-y-3">
+            <div className="text-2xl">🎨</div>
+            <h3 className="font-bold text-white">Discover NFTs</h3>
           </div>
-          {loading ? (
-            <div className="grid gap-3 sm:gap-4">
-              {[1, 2, 3].map((i) => (
-                <Card key={i} className="p-4">
-                  <Skeleton className="h-24 w-full" />
-                </Card>
-              ))}
-            </div>
-          ) : trendingCourses.length > 0 ? (
-            <div className="grid gap-4">
-              {trendingCourses.map((course) => (
-                <TrendingCourseCard key={course.id} course={course} />
-              ))}
-            </div>
-          ) : (
-            <Card className="p-6 text-center">
-              <p className="text-muted-foreground">No trending courses yet. Be the first to create one!</p>
-            </Card>
-          )}
-        </div>
-
-        {/* Latest NFTs Section */}
-        {/* Latest NFTs Section */}
-        <div className="mt-4 sm:mt-8">
-          <div className="flex items-center gap-2 mb-3 sm:mb-4">
-            <Star className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
-            <h3 className="text-lg sm:text-xl font-semibold text-foreground">Latest NFTs</h3>
+        </Card>
+        <Card 
+          className="p-6 cursor-pointer hover:border-primary transition-all group bg-gradient-card"
+          onClick={() => onNavigate?.('courses')}
+        >
+          <div className="space-y-3">
+            <div className="text-2xl">💰</div>
+            <h3 className="font-bold text-white">Start earning</h3>
           </div>
-          {loading ? (
-            <div className="grid gap-3 sm:gap-4">
-              {[1, 2, 3].map((i) => (
-                <Card key={i} className="p-4">
-                  <Skeleton className="h-24 w-full" />
-                </Card>
-              ))}
-            </div>
-          ) : latestNFTs.length > 0 ? (
-            <div className="grid gap-3 sm:gap-4">
-              {latestNFTs.map((nft) => (
-                <LatestNFTCard key={nft.id} nft={nft} />
-              ))}
-            </div>
-          ) : (
-            <Card className="p-6 text-center">
-              <p className="text-muted-foreground">No NFTs listed yet. List yours to get started!</p>
-            </Card>
-          )}
-        </div>
+        </Card>
+      </div>
 
-        {/* Top Creators Section */}
-        {topCreators.length > 0 && (
-          <div className="mt-4 sm:mt-8">
-            <div className="flex items-center gap-2 mb-3 sm:mb-4">
-              <Trophy className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
-              <h3 className="text-lg sm:text-xl font-semibold text-foreground">Top Creators</h3>
-            </div>
-            <Card className="p-4">
-              <div className="space-y-3">
-                {topCreators.map((creator, index) => (
-                  <div key={creator.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-foreground">
-                        {creator.display_name || creator.farcaster_username || 'Creator'}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {creator.courses?.[0]?.count || 0} courses
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+      {/* Featured Course Card */}
+      <Card className="p-6 bg-gradient-primary text-white rounded-3xl">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-2xl font-bold mb-2">Learn Web3.0</h3>
+            <Button 
+              variant="secondary"
+              className="bg-card text-foreground hover:bg-card-hover rounded-full px-6 mt-2"
+              onClick={() => onNavigate?.('courses')}
+            >
+              Start Now
+            </Button>
           </div>
+          <div className="text-6xl opacity-80">🔗</div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="w-2 h-2 bg-white rounded-full"></div>
+          <div className="w-2 h-2 bg-white/50 rounded-full"></div>
+          <div className="w-2 h-2 bg-white/50 rounded-full"></div>
+          <div className="w-2 h-2 bg-white/50 rounded-full"></div>
+        </div>
+      </Card>
+
+      {/* Trending Courses Section */}
+      <div className="mt-6">
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-semibold">Trending Courses</h3>
+        </div>
+        {loading ? (
+          <div className="grid gap-3">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="p-4">
+                <Skeleton className="h-24 w-full" />
+              </Card>
+            ))}
+          </div>
+        ) : trendingCourses.length > 0 ? (
+          <div className="grid gap-4">
+            {trendingCourses.map((course) => (
+              <TrendingCourseCard key={course.id} course={course} />
+            ))}
+          </div>
+        ) : (
+          <Card className="p-6 text-center">
+            <p className="text-muted-foreground">No trending courses yet. Be the first to create one!</p>
+          </Card>
         )}
+      </div>
 
-        <div className="bg-gradient-card rounded-xl p-4 sm:p-6 border border-border mt-4 sm:mt-8">
-          <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-3 sm:mb-4">Why UniqueHub?</h3>
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Trophy className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
-              <span className="text-xs sm:text-sm text-muted-foreground">Earn Rewards</span>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Users className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
-              <span className="text-xs sm:text-sm text-muted-foreground">Join Community</span>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <BookOpen className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
-              <span className="text-xs sm:text-sm text-muted-foreground">Learn Web3</span>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <DollarSign className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
-              <span className="text-xs sm:text-sm text-muted-foreground">Make Money</span>
-            </div>
-          </div>
+      {/* Latest NFTs Section */}
+      <div className="mt-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Star className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-semibold">Latest NFTs</h3>
         </div>
-
-        <TutorInfo />
+        {loading ? (
+          <div className="grid gap-3">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="p-4">
+                <Skeleton className="h-24 w-full" />
+              </Card>
+            ))}
+          </div>
+        ) : latestNFTs.length > 0 ? (
+          <div className="grid gap-3">
+            {latestNFTs.map((nft) => (
+              <LatestNFTCard key={nft.id} nft={nft} />
+            ))}
+          </div>
+        ) : (
+          <Card className="p-6 text-center">
+            <p className="text-muted-foreground">No NFTs listed yet. List yours to get started!</p>
+          </Card>
+        )}
       </div>
     </div>
   );
