@@ -180,71 +180,42 @@ export const NFTMarketplace = () => {
   });
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">NFT Marketplace</h2>
-        {user && (
-          <Button 
-            onClick={() => setShowListDialog(true)} 
-            className="gap-2 w-full sm:w-auto"
-            size="lg"
-          >
-            <Plus className="w-4 h-4" />
-            List NFT
-          </Button>
-        )}
-      </div>
-
-      {/* Search and Filter Bar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search NFTs..."
-            className="pl-10"
-          />
-        </div>
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="w-full sm:w-48 p-2 rounded-md border border-input bg-background text-foreground"
-        >
-          <option value="all">All NFTs</option>
-          <option value="collectibles">Collectibles</option>
-        </select>
-      </div>
-
-      {/* NFT Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className="space-y-6">
+      {/* NFT Grid - Mobile First */}
+      <div className="grid grid-cols-2 gap-3">
         {filteredListings.map((listing) => (
-          <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-            {listing.image_url && (
+          <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border-border bg-card rounded-2xl hover:scale-105">
+            {listing.image_url ? (
               <img
                 src={listing.image_url}
                 alt={listing.name}
-                className="w-full h-32 sm:h-48 object-cover"
+                className="w-full h-48 object-cover"
               />
+            ) : (
+              <div className="w-full h-48 bg-gradient-primary flex items-center justify-center">
+                <Wallet className="w-12 h-12 text-white" />
+              </div>
             )}
-            <div className="p-3 sm:p-4 space-y-2">
-              <h3 className="font-bold text-sm sm:text-base text-foreground truncate">{listing.name}</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
-                {listing.description}
+            <div className="p-3 space-y-2">
+              <Badge variant="secondary" className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary border-0 w-fit">
+                {listing.chain?.toUpperCase() || 'BASE'}
+              </Badge>
+              <h3 className="font-bold text-sm text-foreground line-clamp-2 min-h-[2.5rem]">{listing.name}</h3>
+              <p className="text-xs text-muted-foreground line-clamp-2 min-h-[2rem]">
+                {listing.description || 'No description'}
               </p>
-              <div className="space-y-2">
+              <div className="pt-2 border-t border-border space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-base sm:text-lg font-bold text-primary">
+                  <span className="font-bold text-base text-primary">
                     {listing.price_amount} {listing.price_currency}
-                  </p>
-                  <Badge variant="secondary" className="text-xs">{listing.chain}</Badge>
+                  </span>
                 </div>
                 <p className="text-xs text-muted-foreground truncate">
                   by @{listing.profiles?.farcaster_username || 'Unknown'}
                 </p>
                 <Button
                   onClick={() => handleBuyNFT(listing)}
-                  className="w-full"
+                  className="w-full bg-gradient-primary text-white hover:opacity-90 rounded-full"
                   size="sm"
                   disabled={!user || listing.user_id === user?.id || selectedForPurchase?.id === listing.id}
                 >
@@ -258,20 +229,18 @@ export const NFTMarketplace = () => {
 
       {/* Empty State */}
       {filteredListings.length === 0 && (
-        <Card className="p-8 sm:p-12">
-          <div className="text-center">
-            <Wallet className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">No NFTs Listed</h3>
-            <p className="text-sm sm:text-base text-muted-foreground mb-4">
-              {searchTerm ? 'No NFTs match your search.' : 'Be the first to list an NFT for sale!'}
-            </p>
-            {user && !searchTerm && (
-              <Button onClick={() => setShowListDialog(true)} className="gap-2">
-                <Plus className="w-4 h-4" />
-                List NFT
-              </Button>
-            )}
-          </div>
+        <Card className="p-12 text-center rounded-3xl bg-card/50 border-border">
+          <Wallet className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-foreground mb-2">No NFTs Listed</h3>
+          <p className="text-muted-foreground mb-6">
+            {searchTerm ? 'No NFTs match your search.' : 'Be the first to list an NFT for sale!'}
+          </p>
+          {user && !searchTerm && (
+            <Button onClick={() => setShowListDialog(true)} className="bg-gradient-primary text-white hover:opacity-90 rounded-full px-8">
+              <Plus className="w-4 h-4 mr-2" />
+              List NFT
+            </Button>
+          )}
         </Card>
       )}
 

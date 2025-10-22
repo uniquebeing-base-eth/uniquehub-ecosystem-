@@ -97,3 +97,59 @@
     background: linear-gradient(180deg, hsl(220 25% 10%) 0%, hsl(220 30% 15%) 100%);
   }
 }
+
+/* Additional mobile-first optimizations */
+@media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+  
+  h1 {
+    font-size: 1.5rem !important;
+    line-height: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.25rem !important;
+    line-height: 1.75rem;
+  }
+  
+  h3 {
+    font-size: 1.125rem !important;
+    line-height: 1.5rem;
+  }
+  
+  /* Optimize card spacing on mobile */
+  .card {
+    border-radius: 1rem;
+  }
+  
+  /* Better mobile input fields */
+  input, select, textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Smooth scrolling and animations */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Remove tap highlight on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Better mobile button interactions */
+button:active {
+  transform: scale(0.98);
+  transition: transform 0.1s;
+}
+
+/* Optimize for safe area on modern phones */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
