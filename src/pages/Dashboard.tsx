@@ -100,11 +100,12 @@ const Dashboard = () => {
         <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img 
-                src={logoImage} 
-                alt="UniqueHub" 
-                className="h-10 w-10 object-contain"
-              />
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={user?.user_metadata?.avatar_url} />
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  {(user?.user_metadata?.display_name || 'U')[0].toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
               <div>
                 <h1 className="text-sm font-bold text-primary">
                   Hi {user?.user_metadata?.display_name || 'Uniquebeing'}
