@@ -10,6 +10,7 @@ import { TutorSection } from "@/components/sections/TutorSection";
 import { UploadSection } from "@/components/sections/UploadSection";
 import { WalletSection } from "@/components/sections/WalletSection";
 import logoImage from "@/assets/uniquehub-logo.png";
+import cubeLogo from "@/assets/uniquehub-cube.png";
 
 import { useAuth } from "@/hooks/useAuth";
 
@@ -57,7 +58,7 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "home":
-        return <HomeSection onNavigate={handleTabChange} />;
+        return <HomeSection onNavigate={handleTabChange} userName={user?.user_metadata?.display_name || user?.user_metadata?.username || 'Uniquebeing'} />;
       case "marketplace":
         return <MarketplaceSection />;
       case "courses":
@@ -97,21 +98,22 @@ const Dashboard = () => {
     <div className="min-h-screen flex flex-col anime-bg-main">
       <div className="flex-1 mx-auto max-w-2xl w-full">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border px-4 py-3">
+        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border px-3 py-2.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10">
+            <div className="flex items-center gap-2">
+              <Avatar className="h-9 w-9">
                 <AvatarImage src={user?.user_metadata?.avatar_url} />
-                <AvatarFallback className="bg-primary text-primary-foreground">
+                <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                   {(user?.user_metadata?.display_name || 'U')[0].toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div>
-                <h1 className="text-sm font-bold text-primary">
-                  Hi {user?.user_metadata?.display_name || 'Uniquebeing'}
-                </h1>
-              </div>
             </div>
+            
+            <div className="flex items-center gap-2">
+              <img src={cubeLogo} alt="UniqueHub" className="h-6 w-6" />
+              <span className="text-base font-bold text-foreground">UniqueHUB</span>
+            </div>
+            
             <HamburgerMenu onNavigate={handleTabChange} />
           </div>
         </header>
