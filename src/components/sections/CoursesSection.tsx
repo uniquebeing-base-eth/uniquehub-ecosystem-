@@ -238,19 +238,19 @@ export const CoursesSection = () => {
 
       {/* Purchase Modal */}
       {showPurchaseModal && selectedCourse && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50" onClick={() => setShowPurchaseModal(false)}>
-          <div className="w-full sm:max-w-lg sm:mx-4" onClick={(e) => e.stopPropagation()}>
-            <Card className="rounded-t-2xl sm:rounded-2xl p-4 sm:p-6 space-y-4 max-h-[85vh] overflow-y-auto">
-              <div className="flex items-start justify-between gap-3">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end justify-center z-50 p-0" onClick={() => setShowPurchaseModal(false)}>
+          <div className="w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+            <Card className="rounded-t-3xl p-4 space-y-3 max-h-[80vh] overflow-y-auto">
+              <div className="flex items-start justify-between gap-2">
                 <div className="flex-1">
-                  <h3 className="text-lg sm:text-xl font-bold text-foreground">{selectedCourse.title}</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">{selectedCourse.description}</p>
+                  <h3 className="text-base font-bold text-foreground">{selectedCourse.title}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{selectedCourse.description}</p>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowPurchaseModal(false)}
-                  className="flex-shrink-0"
+                  className="h-7 w-7 p-0 flex-shrink-0"
                 >
                   ✕
                 </Button>

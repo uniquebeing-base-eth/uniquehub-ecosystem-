@@ -33,34 +33,35 @@
 
 @layer base {
   :root {
-    --background: 220 30% 16%;
+    --background: 220 22% 18%;
     --foreground: 210 20% 98%;
     
-    --card: 220 25% 20%;
-    --card-hover: 220 25% 24%;
+    --card: 220 20% 22%;
+    --card-hover: 220 20% 26%;
     --card-foreground: 210 20% 98%;
     
-    --popover: 220 25% 20%;
+    --popover: 220 20% 22%;
     --popover-foreground: 210 20% 98%;
     
     --primary: 217 91% 60%;
     --primary-glow: 212 100% 70%;
     --primary-foreground: 0 0% 100%;
     
-    --secondary: 220 25% 24%;
+    --secondary: 220 20% 26%;
     --secondary-foreground: 210 20% 98%;
     
-    --muted: 220 20% 32%;
-    --muted-foreground: 220 10% 70%;
+    --muted: 220 16% 36%;
+    --muted-foreground: 220 10% 72%;
     
     --accent: 217 91% 60%;
     --accent-foreground: 0 0% 100%;
     
-    --destructive: 0 62% 50%;
+    --success: 147 90% 45%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
     
-    --border: 220 20% 28%;
-    --input: 220 25% 22%;
+    --border: 220 16% 32%;
+    --input: 220 20% 24%;
     --ring: 217 91% 60%;
     
     --radius: 1rem;
@@ -69,7 +70,7 @@
     --eth-color: 217 91% 60%;
     
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(212 100% 70%));
-    --gradient-card: linear-gradient(135deg, hsl(220 25% 22%), hsl(220 25% 20%));
+    --gradient-card: linear-gradient(135deg, hsl(220 20% 24%), hsl(220 20% 22%));
     
     --shadow-elegant: 0 10px 30px -10px hsl(217 91% 60% / 0.3);
     --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.5);
@@ -81,6 +82,45 @@
     --chart-3: 200 90% 65%;
     --chart-4: 225 85% 65%;
     --chart-5: 210 80% 60%;
+  }
+  
+  .light {
+    --background: 210 25% 95%;
+    --foreground: 224 71% 8%;
+    
+    --card: 0 0% 100%;
+    --card-hover: 210 20% 98%;
+    --card-foreground: 224 71% 8%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71% 8%;
+    
+    --primary: 217 91% 50%;
+    --primary-glow: 212 100% 60%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 210 25% 92%;
+    --secondary-foreground: 224 71% 8%;
+    
+    --muted: 210 20% 90%;
+    --muted-foreground: 220 15% 45%;
+    
+    --accent: 217 91% 50%;
+    --accent-foreground: 0 0% 100%;
+    
+    --success: 147 90% 35%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 220 15% 88%;
+    --input: 220 15% 92%;
+    --ring: 217 91% 50%;
+    
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 50%), hsl(212 100% 60%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(210 20% 98%));
+    
+    --shadow-elegant: 0 10px 30px -10px hsl(217 91% 50% / 0.2);
+    --shadow-glow: 0 0 40px hsl(217 91% 50% / 0.3);
   }
 }
 
@@ -94,7 +134,11 @@
   }
 
   .anime-bg-main {
-    background: linear-gradient(180deg, hsl(220 30% 16%) 0%, hsl(220 30% 18%) 100%);
+    background: linear-gradient(180deg, hsl(220 22% 18%) 0%, hsl(220 22% 20%) 100%);
+  }
+  
+  .light .anime-bg-main {
+    background: linear-gradient(180deg, hsl(210 25% 95%) 0%, hsl(210 25% 92%) 100%);
   }
   
   .scrollbar-hide::-webkit-scrollbar {

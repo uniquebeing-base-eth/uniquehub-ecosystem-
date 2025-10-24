@@ -55,20 +55,20 @@ export const UploadSection = () => {
       </div>
 
       <Dialog open={showCourseUpload} onOpenChange={setShowCourseUpload}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto p-4">
           <DialogHeader>
-            <DialogTitle>Upload Course</DialogTitle>
+            <DialogTitle className="text-base">Upload Course</DialogTitle>
           </DialogHeader>
           <CourseUpload />
         </DialogContent>
       </Dialog>
 
       <Dialog open={showNFTUpload} onOpenChange={setShowNFTUpload}>
-        <DialogContent>
+        <DialogContent className="max-w-lg p-4">
           <DialogHeader>
-            <DialogTitle>List NFT</DialogTitle>
+            <DialogTitle className="text-base">List NFT</DialogTitle>
           </DialogHeader>
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-6 text-sm text-muted-foreground">
             NFT listing coming soon...
           </div>
         </DialogContent>

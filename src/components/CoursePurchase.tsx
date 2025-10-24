@@ -108,13 +108,13 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {isFree ? (
         <>
-          <div className="flex items-center justify-center p-6 bg-success/10 rounded-lg border border-success/20">
+          <div className="flex items-center justify-center p-4 bg-success/10 rounded-lg border border-success/20">
             <div className="text-center">
-              <p className="text-lg font-bold text-success mb-1">Free Course</p>
-              <p className="text-sm text-muted-foreground">Enroll now to get instant access</p>
+              <p className="text-sm font-bold text-success mb-0.5">Free Course</p>
+              <p className="text-xs text-muted-foreground">Enroll now to get instant access</p>
             </div>
           </div>
 
@@ -122,75 +122,75 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
             onClick={handleEnroll}
             disabled={loading || !user}
             className="w-full gap-2"
-            size="lg"
+            size="default"
           >
-            <BookOpen className="w-4 h-4" />
+            <BookOpen className="w-3.5 h-3.5" />
             {loading ? 'Enrolling...' : 'Enroll Now'}
           </Button>
 
           {!user && (
-            <p className="text-sm text-muted-foreground text-center">
-              Sign in with Farcaster to enroll in this course
+            <p className="text-xs text-muted-foreground text-center">
+              Sign in with Farcaster to enroll
             </p>
           )}
         </>
       ) : (
         <>
-          <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-            <div className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-success" />
-              <span className="font-semibold text-foreground">Price:</span>
+          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+            <div className="flex items-center gap-1.5">
+              <DollarSign className="w-4 h-4 text-success" />
+              <span className="text-sm font-semibold text-foreground">Price:</span>
             </div>
-            <span className="text-xl sm:text-2xl font-bold text-primary">
+            <span className="text-lg font-bold text-primary">
               ${priceInUSDC}
             </span>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Payment Currency</label>
-            <div className="grid grid-cols-2 gap-3">
+            <label className="text-xs font-medium text-foreground">Payment Currency</label>
+            <div className="grid grid-cols-2 gap-2">
               <Button
                 variant={selectedCurrency === 'USDC' ? 'default' : 'outline'}
                 onClick={() => setSelectedCurrency('USDC')}
-                className="w-full"
+                className="w-full text-xs h-9"
               >
                 USDC
               </Button>
               <Button
                 variant={selectedCurrency === 'ETH' ? 'default' : 'outline'}
                 onClick={() => setSelectedCurrency('ETH')}
-                className="w-full"
+                className="w-full text-xs h-9"
               >
                 ETH
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Pay with {selectedCurrency} on Base L2 for instant access
+            <p className="text-[10px] text-muted-foreground">
+              Pay with {selectedCurrency} on Base L2
             </p>
           </div>
 
           <Button
             onClick={handlePurchase}
             disabled={loading || !user}
-            className="w-full gap-2"
-            size="lg"
+            className="w-full gap-2 text-sm"
+            size="default"
           >
-            <Zap className="w-4 h-4" />
-            {loading ? 'Creating Transaction...' : `Buy with ${selectedCurrency}`}
+            <Zap className="w-3.5 h-3.5" />
+            {loading ? 'Creating...' : `Buy with ${selectedCurrency}`}
           </Button>
 
           {!user && (
-            <p className="text-sm text-muted-foreground text-center">
-              Sign in with Farcaster to purchase this course
+            <p className="text-xs text-muted-foreground text-center">
+              Sign in with Farcaster to purchase
             </p>
           )}
 
-          <div className="pt-3 border-t space-y-2">
-            <div className="flex items-center justify-between text-sm">
+          <div className="pt-2 border-t space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Network</span>
               <span className="font-medium text-foreground">Base L2</span>
             </div>
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Access</span>
               <span className="font-medium text-success">Instant</span>
             </div>
