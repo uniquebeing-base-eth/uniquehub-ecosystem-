@@ -156,17 +156,19 @@ export const CoursesSection = () => {
                 onClick={() => handleCourseClick(course)}
               >
                 <div className="flex gap-4 p-4">
-                  {course.thumbnail_url ? (
-                    <img 
-                      src={course.thumbnail_url} 
-                      alt={course.title}
-                      className="w-24 h-24 object-cover rounded-xl flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-24 h-24 bg-primary/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <BookOpen className="w-10 h-10 text-primary" />
-                    </div>
-                  )}
+              <div className="w-24 h-24 rounded-xl flex-shrink-0 overflow-hidden bg-primary/10">
+                {course.thumbnail_url ? (
+                  <img 
+                    src={course.thumbnail_url} 
+                    alt={course.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+                    <BookOpen className="w-10 h-10 text-white" />
+                  </div>
+                )}
+              </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-base font-bold text-foreground mb-1 line-clamp-2">{course.title}</h3>
                     <p className="text-xs text-muted-foreground mb-2 line-clamp-1">
@@ -208,17 +210,19 @@ export const CoursesSection = () => {
               className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border-border bg-card rounded-2xl hover:scale-105"
               onClick={() => handleCourseClick(course)}
             >
-              {course.thumbnail_url ? (
-                <img 
-                  src={course.thumbnail_url} 
-                  alt={course.title}
-                  className="w-full h-36 object-cover"
-                />
-              ) : (
-                <div className="w-full h-36 bg-gradient-primary flex items-center justify-center">
-                  <BookOpen className="w-12 h-12 text-white" />
-                </div>
-              )}
+              <div className="w-full h-36 overflow-hidden bg-primary/10">
+                {course.thumbnail_url ? (
+                  <img 
+                    src={course.thumbnail_url} 
+                    alt={course.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+                    <BookOpen className="w-12 h-12 text-white" />
+                  </div>
+                )}
+              </div>
               <div className="p-3 space-y-1.5">
                 <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border-0 w-fit">
                   {categories.find(c => c.value === course.category)?.label || course.category}

@@ -34,7 +34,7 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
         >
           <div className="space-y-2">
             <div className="text-xl">🎨</div>
-            <h3 className="font-semibold text-sm text-white">Discover NFTs</h3>
+            <h3 className="font-semibold text-sm">Discover NFTs</h3>
           </div>
         </Card>
         <Card 
@@ -43,7 +43,7 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
         >
           <div className="space-y-2">
             <div className="text-xl">💰</div>
-            <h3 className="font-semibold text-sm text-white">Start earning</h3>
+            <h3 className="font-semibold text-sm">Start earning</h3>
           </div>
         </Card>
       </div>

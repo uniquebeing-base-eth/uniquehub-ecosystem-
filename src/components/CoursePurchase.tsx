@@ -88,12 +88,17 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
     setLoading(true);
     try {
       // Check if already enrolled
-      const { data: existingEnrollment } = await supabase
+      const { data: existingEnrollment, error: checkError } = await supabase
         .from('enrollments')
         .select('id')
         .eq('user_id', user.id)
         .eq('course_id', course.id)
-        .single();
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking enrollment:', checkError);
+        throw checkError;
+      }
 
       if (existingEnrollment) {
         toast.success('You are already enrolled in this course!');
@@ -102,20 +107,40 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
       }
 
       // Create enrollment for free course
-      const { error } = await supabase
+      const { error: enrollError } = await supabase
         .from('enrollments')
         .insert({
           user_id: user.id,
           course_id: course.id,
         });
 
-      if (error) throw error;
+      if (enrollError) {
+        console.error('Error creating enrollment:', enrollError);
+        throw enrollError;
+      }
+
+      // Get current enrollment count
+      const { data: courseData, error: courseError } = await supabase
+        .from('courses')
+        .select('enrollment_count')
+        .eq('id', course.id)
+        .single();
+
+      if (courseError) {
+        console.error('Error fetching course:', courseError);
+      }
 
       // Update enrollment count
-      await supabase
+      const { error: updateError } = await supabase
         .from('courses')
-        .update({ enrollment_count: (course.enrollment_count || 0) + 1 })
+        .update({ 
+          enrollment_count: (courseData?.enrollment_count || 0) + 1 
+        })
         .eq('id', course.id);
+
+      if (updateError) {
+        console.error('Error updating enrollment count:', updateError);
+      }
 
       toast.success('Successfully enrolled! You can now access the course.');
       onPurchaseComplete?.();
