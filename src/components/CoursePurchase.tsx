@@ -87,6 +87,20 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
 
     setLoading(true);
     try {
+      // Check if already enrolled
+      const { data: existingEnrollment } = await supabase
+        .from('enrollments')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('course_id', course.id)
+        .single();
+
+      if (existingEnrollment) {
+        toast.success('You are already enrolled in this course!');
+        onPurchaseComplete?.();
+        return;
+      }
+
       // Create enrollment for free course
       const { error } = await supabase
         .from('enrollments')
@@ -96,6 +110,12 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
         });
 
       if (error) throw error;
+
+      // Update enrollment count
+      await supabase
+        .from('courses')
+        .update({ enrollment_count: (course.enrollment_count || 0) + 1 })
+        .eq('id', course.id);
 
       toast.success('Successfully enrolled! You can now access the course.');
       onPurchaseComplete?.();

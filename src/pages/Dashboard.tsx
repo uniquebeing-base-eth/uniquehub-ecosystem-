@@ -24,7 +24,11 @@ const Dashboard = () => {
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme);
-    document.documentElement.classList.toggle('dark');
+    if (newTheme === 'light') {
+      document.documentElement.classList.add('light');
+    } else {
+      document.documentElement.classList.remove('light');
+    }
   };
   
 

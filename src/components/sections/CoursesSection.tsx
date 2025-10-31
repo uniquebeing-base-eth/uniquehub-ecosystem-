@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Search, TrendingUp } from "lucide-react";
+import { BookOpen, Search, TrendingUp, Star } from "lucide-react";
 import { CoursePurchase } from "@/components/CoursePurchase";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 import { supabase } from "@/integrations/supabase/client";
@@ -105,22 +105,22 @@ export const CoursesSection = () => {
 
       {/* Search Bar */}
       <div className="relative">
-        <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+        <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search courses..."
+          placeholder="Search..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-12 h-12 rounded-full bg-card border-border"
+          className="pl-9 h-9 text-sm rounded-full bg-card border-border"
         />
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2">
         {/* Category Filter */}
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="w-full p-3 rounded-full border border-border bg-card text-foreground text-sm font-medium"
+          className="w-full px-3 py-2 rounded-full border border-border bg-card text-foreground text-xs font-medium"
         >
           {categories.map((category) => (
             <option key={category.value} value={category.value}>
@@ -133,7 +133,7 @@ export const CoursesSection = () => {
         <select
           value={priceFilter}
           onChange={(e) => setPriceFilter(e.target.value)}
-          className="w-full p-3 rounded-full border border-border bg-card text-foreground text-sm font-medium"
+          className="w-full px-3 py-2 rounded-full border border-border bg-card text-foreground text-xs font-medium"
         >
           <option value="all">All Prices</option>
           <option value="free">Free</option>
@@ -169,18 +169,24 @@ export const CoursesSection = () => {
                   )}
                   <div className="flex-1 min-w-0">
                     <h3 className="text-base font-bold text-foreground mb-1 line-clamp-2">{course.title}</h3>
-                    <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                    <p className="text-xs text-muted-foreground mb-2 line-clamp-1">
                       {course.description}
                     </p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                      <BookOpen className="w-3.5 h-3.5" />
-                      <span>{course.enrollment_count || 0} enrolled</span>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <span>{course.rating?.toFixed(1) || '0.0'}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <BookOpen className="w-3 h-3" />
+                        <span>{course.enrollment_count || 0}</span>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-bold text-base text-primary">
                         {course.price_usdc === 0 ? 'Free' : `$${course.price_usdc}`}
                       </span>
-                      <Badge variant="secondary" className="text-xs px-3 py-1 rounded-full bg-primary/10 text-primary border-0">
+                      <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border-0">
                         {categories.find(c => c.value === course.category)?.label || course.category}
                       </Badge>
                     </div>
@@ -213,20 +219,26 @@ export const CoursesSection = () => {
                   <BookOpen className="w-12 h-12 text-white" />
                 </div>
               )}
-              <div className="p-3 space-y-2">
-                <Badge variant="secondary" className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary border-0 w-fit">
+              <div className="p-3 space-y-1.5">
+                <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border-0 w-fit">
                   {categories.find(c => c.value === course.category)?.label || course.category}
                 </Badge>
                 <h3 className="text-sm font-bold text-foreground line-clamp-2 min-h-[2.5rem]">{course.title}</h3>
-                <p className="text-xs text-muted-foreground line-clamp-2 min-h-[2rem]">
+                <p className="text-[11px] text-muted-foreground line-clamp-1">
                   {course.description}
                 </p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <BookOpen className="w-3.5 h-3.5" />
-                  <span>{course.enrollment_count || 0} enrolled</span>
+                <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                  <div className="flex items-center gap-0.5">
+                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    <span>{course.rating?.toFixed(1) || '0.0'}</span>
+                  </div>
+                  <div className="flex items-center gap-0.5">
+                    <BookOpen className="w-3 h-3" />
+                    <span>{course.enrollment_count || 0}</span>
+                  </div>
                 </div>
-                <div className="pt-2 border-t border-border">
-                  <span className="font-bold text-base text-primary">
+                <div className="pt-1.5 border-t border-border">
+                  <span className="font-bold text-sm text-primary">
                     {course.price_usdc === 0 ? 'Free' : `$${course.price_usdc}`}
                   </span>
                 </div>
