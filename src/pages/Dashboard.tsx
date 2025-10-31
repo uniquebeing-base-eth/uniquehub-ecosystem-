@@ -11,6 +11,7 @@ import { ProfileSection } from "@/components/sections/ProfileSection";
 import { TutorSection } from "@/components/sections/TutorSection";
 import { UploadSection } from "@/components/sections/UploadSection";
 import { WalletSection } from "@/components/sections/WalletSection";
+import { EarnSection } from "@/components/sections/EarnSection";
 import cubeLogo from "@/assets/uniquehub-cube.png";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -79,6 +80,8 @@ const Dashboard = () => {
         return <TutorSection />;
       case "wallet":
         return <WalletSection />;
+      case "earn":
+        return <EarnSection />;
       case "about":
         return (
           <div className="space-y-4 pb-24">
