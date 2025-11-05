@@ -30,7 +30,7 @@ export const UploadSection = () => {
             <div className="flex-1">
               <h3 className="font-semibold text-lg">Upload Course</h3>
               <p className="text-sm text-muted-foreground">
-                Share your knowledge and earn 0.2 USDC per upload
+                Publish your course and reach learners
               </p>
             </div>
           </div>
@@ -59,7 +59,7 @@ export const UploadSection = () => {
           <DialogHeader>
             <DialogTitle className="text-base">Upload Course</DialogTitle>
           </DialogHeader>
-          <CourseUpload />
+          <CourseUpload onSuccess={() => setShowCourseUpload(false)} onCancel={() => setShowCourseUpload(false)} />
         </DialogContent>
       </Dialog>
 

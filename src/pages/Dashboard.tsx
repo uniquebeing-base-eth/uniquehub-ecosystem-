@@ -57,6 +57,16 @@ const Dashboard = () => {
     setActiveTab(tab);
   };
 
+  // Listen for global navigation events (e.g., after successful uploads)
+  useEffect(() => {
+    const handler = ((e: any) => {
+      const detail = (e as CustomEvent)?.detail as { tab?: string } | undefined;
+      if (detail?.tab) setActiveTab(detail.tab);
+    }) as EventListener;
+    window.addEventListener('navigate', handler);
+    return () => window.removeEventListener('navigate', handler);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">

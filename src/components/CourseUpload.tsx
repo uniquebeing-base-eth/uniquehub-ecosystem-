@@ -24,7 +24,15 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
     category: 'web3-basics',
   });
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbPreview, setThumbPreview] = useState<string | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'uploaded'>('idle');
+
+  React.useEffect(() => {
+    return () => {
+      if (thumbPreview) URL.revokeObjectURL(thumbPreview);
+    };
+  }, [thumbPreview]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,9 +45,10 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
     }
 
     setLoading(true);
+    setUploadStatus('uploading');
     try {
-      let thumbnail_url = null;
-      let video_url = null;
+      let thumbnail_url: string | null = null;
+      let video_url: string | null = null;
 
       // Upload thumbnail
       if (thumbnailFile) {
@@ -48,12 +57,12 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
           .from('avatars')
           .upload(thumbnailPath, thumbnailFile);
 
-        if (!thumbnailError) {
-          const { data: thumbnailUrlData } = supabase.storage
-            .from('avatars')
-            .getPublicUrl(thumbnailPath);
-          thumbnail_url = thumbnailUrlData.publicUrl;
-        }
+        if (thumbnailError) throw thumbnailError;
+
+        const { data: thumbnailUrlData } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(thumbnailPath);
+        thumbnail_url = thumbnailUrlData.publicUrl;
       }
 
       // Upload video
@@ -63,12 +72,12 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
           .from('avatars')
           .upload(videoPath, videoFile);
 
-        if (!videoError) {
-          const { data: videoUrlData } = supabase.storage
-            .from('avatars')
-            .getPublicUrl(videoPath);
-          video_url = videoUrlData.publicUrl;
-        }
+        if (videoError) throw videoError;
+
+        const { data: videoUrlData } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(videoPath);
+        video_url = videoUrlData.publicUrl;
       }
 
       // Create course
@@ -85,11 +94,23 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
 
       if (error) throw error;
 
-      toast.success('Course uploaded successfully! Buyers can pay with USDC or ETH on Base L2.');
+      setUploadStatus('uploaded');
+      toast.success('Course uploaded successfully!');
+
+      // Reset form and preview
+      setFormData({ title: '', description: '', price_usdc: '', category: 'web3-basics' });
+      setThumbnailFile(null);
+      if (thumbPreview) URL.revokeObjectURL(thumbPreview);
+      setThumbPreview(null);
+      setVideoFile(null);
+
+      // Close dialog and navigate to Courses
       onSuccess?.();
+      window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'courses' } }));
     } catch (error) {
       console.error('Error uploading course:', error);
       toast.error('Failed to upload course');
+      setUploadStatus('idle');
     } finally {
       setLoading(false);
     }
@@ -163,11 +184,26 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
           <div className="space-y-2">
             <Label>Course Thumbnail</Label>
             <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
-              <Image className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+              {thumbPreview ? (
+                <div className="relative w-full h-32 mb-3 overflow-hidden rounded-md">
+                  <img src={thumbPreview} alt="Thumbnail preview" className="w-full h-full object-cover" loading="lazy" />
+                </div>
+              ) : (
+                <Image className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+              )}
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setThumbnailFile(file);
+                  if (file) {
+                    const url = URL.createObjectURL(file);
+                    setThumbPreview((prev) => { if (prev) URL.revokeObjectURL(prev); return url; });
+                  } else {
+                    setThumbPreview((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
+                  }
+                }}
                 className="hidden"
                 id="thumbnail-upload"
               />
@@ -176,7 +212,7 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
                 <p className="text-xs text-muted-foreground">PNG, JPG up to 2MB</p>
               </label>
               {thumbnailFile && (
-                <p className="text-xs text-primary mt-1">{thumbnailFile.name}</p>
+                <p className="text-xs text-primary mt-1 truncate">{thumbnailFile.name}</p>
               )}
             </div>
           </div>
@@ -203,13 +239,23 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
           </div>
         </div>
 
-        <div className="flex gap-3 pt-4">
+        <div className="flex gap-3 pt-4 items-center">
           <Button type="submit" disabled={loading} className="bg-primary hover:bg-primary/90">
-            {loading ? 'Uploading...' : 'Upload Course'}
+            {loading && (
+              <span className="inline-flex items-center gap-2">
+                <span className="w-3.5 h-3.5 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+                Uploading...
+              </span>
+            )}
+            {!loading && uploadStatus === 'uploaded' && 'Uploaded ✅'}
+            {!loading && uploadStatus !== 'uploaded' && 'Upload Course'}
           </Button>
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
+          {uploadStatus === 'uploaded' && (
+            <span className="text-xs text-success">Saved. Redirecting...</span>
+          )}
         </div>
       </form>
     </Card>

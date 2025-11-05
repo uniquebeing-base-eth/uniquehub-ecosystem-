@@ -272,8 +272,8 @@ export const CoursesSection = () => {
       {/* Purchase Modal */}
       {showPurchaseModal && selectedCourse && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end justify-center z-50 p-0" onClick={() => setShowPurchaseModal(false)}>
-          <div className="w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
-            <Card className="rounded-t-3xl p-4 space-y-3 max-h-[80vh] overflow-y-auto">
+          <div className="w-full max-w-lg mb-14" onClick={(e) => e.stopPropagation()}>
+            <Card className="rounded-t-3xl p-4 space-y-3 max-h-[65vh] overflow-y-auto">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1">
                   <h3 className="text-base font-bold text-foreground">{selectedCourse.title}</h3>
