@@ -88,20 +88,69 @@ const Dashboard = () => {
         return <EarnSection />;
       case "about":
         return (
-          <div className="space-y-4 pb-24">
-            <h2 className="text-2xl font-bold">About UniqueHub</h2>
-            <p className="text-muted-foreground">
-              UniqueHub is your super app for learning, earning, and trading in the Web3 space.
-            </p>
+          <div className="space-y-4 pb-24 animate-fade-in">
+            <h1 className="text-2xl font-bold text-foreground">About UniqueHub</h1>
+            <div className="p-5 bg-card rounded-2xl border border-border space-y-4">
+              <div className="space-y-3">
+                <p className="text-foreground leading-relaxed text-sm">
+                  UniqueHub is a super app for learning, earning, and trading, built to empower people to share knowledge and grow financially. All powered by the Base blockchain.
+                </p>
+                <p className="text-foreground leading-relaxed text-sm">
+                  On UniqueHub, anyone can teach or learn any skill from Web3 and tech to Web2 skills, life hacks, and creative talents. It's a global hub for tutors, learners, creators, and gamers to connect, grow, and earn together.
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="text-base font-bold text-foreground">Our Ecosystem</h3>
+                <div className="space-y-2 text-sm">
+                  <p className="text-foreground">🎓 <span className="font-semibold">Tutors:</span> share skills and earn on-chain.</p>
+                  <p className="text-foreground">💰 <span className="font-semibold">Learners:</span> take courses and get rewarded for progress.</p>
+                  <p className="text-foreground">🛍️ <span className="font-semibold">Creators:</span> list and sell digital products or NFTs.</p>
+                  <p className="text-foreground">🎮 <span className="font-semibold">Players:</span> enjoy games like Unique Runner to earn points and redeem $UNIQ tokens.</p>
+                </div>
+              </div>
+              
+              <div className="pt-3 border-t border-border">
+                <h3 className="text-base font-bold text-foreground mb-2">Our Mission</h3>
+                <p className="text-foreground text-sm leading-relaxed">
+                  To make learning and earning borderless, rewarding, and accessible for everyone. Onboarding tutors, creators, and learners across the world onto Base.
+                </p>
+              </div>
+            </div>
           </div>
         );
       case "contact":
         return (
-          <div className="space-y-4 pb-24">
-            <h2 className="text-2xl font-bold">Contact Us</h2>
-            <p className="text-muted-foreground">
-              Get in touch with us for support and inquiries.
-            </p>
+          <div className="space-y-4 pb-24 animate-fade-in">
+            <h1 className="text-2xl font-bold text-foreground">Contact Us</h1>
+            <div className="p-5 bg-card rounded-2xl border border-border space-y-4">
+              <p className="text-foreground leading-relaxed text-sm">
+                We'd love to hear from you! Whether you're a tutor, learner, or Web3 builder looking to collaborate, reach out to us:
+              </p>
+              <div className="space-y-3 pt-2">
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">📩</span>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Email</p>
+                    <p className="text-sm font-semibold text-foreground">support@uniquehub.xyz</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">🌐</span>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Website</p>
+                    <p className="text-sm font-semibold text-foreground">uniquehub.xyz</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">💬</span>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Farcaster</p>
+                    <p className="text-sm font-semibold text-foreground">@_uniquehub and @uniquebeing404</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         );
       default:
@@ -113,12 +162,12 @@ const Dashboard = () => {
     <div className="min-h-screen flex flex-col anime-bg-main">
       <div className="flex-1 mx-auto max-w-2xl w-full">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border px-3 py-2.5">
+        <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border px-3 py-2.5 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-8 w-8 ring-2 ring-primary/20">
                 <AvatarImage src={user?.user_metadata?.avatar_url} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                <AvatarFallback className="bg-gradient-primary text-white text-xs font-semibold">
                   {(user?.user_metadata?.display_name || 'U')[0].toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -134,7 +183,7 @@ const Dashboard = () => {
                 variant="ghost"
                 size="sm"
                 onClick={toggleTheme}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 hover:scale-110 transition-transform active:scale-95"
               >
                 {theme === 'dark' ? (
                   <Sun className="h-4 w-4" />

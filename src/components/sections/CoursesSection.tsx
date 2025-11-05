@@ -100,17 +100,17 @@ export const CoursesSection = () => {
   };
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className="space-y-4 pb-24 animate-fade-in">
       <h1 className="text-2xl font-bold text-foreground">Explore Courses</h1>
 
       {/* Search Bar */}
       <div className="relative">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+        <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search..."
+          placeholder="Search courses..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9 h-9 text-sm rounded-full bg-card border-border"
+          className="pl-8 h-8 text-xs rounded-full bg-card border-border"
         />
       </div>
 
@@ -120,7 +120,7 @@ export const CoursesSection = () => {
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="w-full px-3 py-2 rounded-full border border-border bg-card text-foreground text-xs font-medium"
+          className="w-full px-2.5 py-1.5 rounded-full border border-border bg-card text-foreground text-[11px] font-medium"
         >
           {categories.map((category) => (
             <option key={category.value} value={category.value}>
@@ -133,7 +133,7 @@ export const CoursesSection = () => {
         <select
           value={priceFilter}
           onChange={(e) => setPriceFilter(e.target.value)}
-          className="w-full px-3 py-2 rounded-full border border-border bg-card text-foreground text-xs font-medium"
+          className="w-full px-2.5 py-1.5 rounded-full border border-border bg-card text-foreground text-[11px] font-medium"
         >
           <option value="all">All Prices</option>
           <option value="free">Free</option>
@@ -143,55 +143,61 @@ export const CoursesSection = () => {
 
       {/* Trending Courses */}
       {trendingCourses.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            <h2 className="text-xl font-bold text-foreground">Trending Courses</h2>
+            <TrendingUp className="w-4 h-4 text-primary" />
+            <h2 className="text-lg font-bold text-foreground">Trending Courses</h2>
           </div>
-          <div className="space-y-3">
-            {trendingCourses.map((course: any) => (
+          <div className="space-y-2.5">
+            {trendingCourses.map((course: any, index: number) => (
               <Card 
                 key={course.id} 
-                className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border-border bg-card rounded-2xl"
+                className="overflow-hidden hover:shadow-glow transition-all duration-300 cursor-pointer border-border bg-card rounded-2xl group hover:scale-[1.02]"
                 onClick={() => handleCourseClick(course)}
+                style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="flex gap-4 p-4">
-              <div className="w-24 h-24 rounded-xl flex-shrink-0 overflow-hidden bg-primary/10">
-                {course.thumbnail_url ? (
-                  <img 
-                    src={course.thumbnail_url} 
-                    alt={course.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
-                    <BookOpen className="w-10 h-10 text-white" />
+                <div className="flex gap-3 p-3">
+                  <div className="w-20 h-20 rounded-xl flex-shrink-0 overflow-hidden bg-primary/10 relative">
+                    {course.thumbnail_url ? (
+                      <>
+                        <img 
+                          src={course.thumbnail_url} 
+                          alt={course.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="text-white text-[10px] font-semibold">View Course</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+                        <BookOpen className="w-8 h-8 text-white" />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-bold text-foreground mb-1 line-clamp-2">{course.title}</h3>
-                    <p className="text-xs text-muted-foreground mb-2 line-clamp-1">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <h3 className="text-sm font-bold text-foreground line-clamp-2 flex-1">{course.title}</h3>
+                      <Badge variant="secondary" className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border-0 flex-shrink-0">
+                        {course.price_usdc === 0 ? 'FREE' : 'PAID'}
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mb-2 line-clamp-1">
                       {course.description}
                     </p>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
+                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-1.5">
                       <div className="flex items-center gap-1">
                         <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                         <span>{course.rating?.toFixed(1) || '0.0'}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <BookOpen className="w-3 h-3" />
-                        <span>{course.enrollment_count || 0}</span>
+                        <span>{course.enrollment_count || 0} students</span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-bold text-base text-primary">
-                        {course.price_usdc === 0 ? 'Free' : `$${course.price_usdc}`}
-                      </span>
-                      <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border-0">
-                        {categories.find(c => c.value === course.category)?.label || course.category}
-                      </Badge>
-                    </div>
+                    <span className="font-bold text-sm text-primary">
+                      {course.price_usdc === 0 ? 'Free' : `$${course.price_usdc}`}
+                    </span>
                   </div>
                 </div>
               </Card>
@@ -201,48 +207,59 @@ export const CoursesSection = () => {
       )}
 
       {/* All Courses Grid */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold text-foreground">All Courses</h2>
-        <div className="grid grid-cols-2 gap-4">
-          {filteredCourses.map((course: any) => (
+      <div className="space-y-3">
+        <h2 className="text-lg font-bold text-foreground">All Courses</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {filteredCourses.map((course: any, index: number) => (
             <Card 
               key={course.id} 
-              className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border-border bg-card rounded-2xl hover:scale-105"
+              className="overflow-hidden hover:shadow-glow transition-all duration-300 cursor-pointer border-border bg-card rounded-2xl hover:scale-105 group animate-fade-in"
               onClick={() => handleCourseClick(course)}
+              style={{ animationDelay: `${index * 50}ms` }}
             >
-              <div className="w-full h-36 overflow-hidden bg-primary/10">
+              <div className="w-full h-32 overflow-hidden bg-primary/10 relative">
                 {course.thumbnail_url ? (
-                  <img 
-                    src={course.thumbnail_url} 
-                    alt={course.title}
-                    className="w-full h-full object-cover"
-                  />
+                  <>
+                    <img 
+                      src={course.thumbnail_url} 
+                      alt={course.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="text-white text-xs font-semibold bg-primary/80 px-3 py-1 rounded-full">View Course</span>
+                    </div>
+                  </>
                 ) : (
                   <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
-                    <BookOpen className="w-12 h-12 text-white" />
+                    <BookOpen className="w-10 h-10 text-white" />
                   </div>
                 )}
               </div>
-              <div className="p-3 space-y-1.5">
-                <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border-0 w-fit">
-                  {categories.find(c => c.value === course.category)?.label || course.category}
-                </Badge>
-                <h3 className="text-sm font-bold text-foreground line-clamp-2 min-h-[2.5rem]">{course.title}</h3>
-                <p className="text-[11px] text-muted-foreground line-clamp-1">
+              <div className="p-2.5 space-y-1.5">
+                <div className="flex items-center justify-between gap-1">
+                  <Badge variant="secondary" className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border-0">
+                    {categories.find(c => c.value === course.category)?.label || course.category}
+                  </Badge>
+                  <Badge variant="secondary" className="text-[9px] px-1.5 py-0.5 rounded-full bg-success/10 text-success border-0">
+                    {course.price_usdc === 0 ? 'FREE' : 'PAID'}
+                  </Badge>
+                </div>
+                <h3 className="text-xs font-bold text-foreground line-clamp-2 min-h-[2.25rem]">{course.title}</h3>
+                <p className="text-[10px] text-muted-foreground line-clamp-1">
                   {course.description}
                 </p>
-                <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                <div className="flex items-center gap-2.5 text-[10px] text-muted-foreground">
                   <div className="flex items-center gap-0.5">
-                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
                     <span>{course.rating?.toFixed(1) || '0.0'}</span>
                   </div>
                   <div className="flex items-center gap-0.5">
-                    <BookOpen className="w-3 h-3" />
+                    <BookOpen className="w-2.5 h-2.5" />
                     <span>{course.enrollment_count || 0}</span>
                   </div>
                 </div>
-                <div className="pt-1.5 border-t border-border">
-                  <span className="font-bold text-sm text-primary">
+                <div className="pt-1 border-t border-border">
+                  <span className="font-bold text-xs text-primary">
                     {course.price_usdc === 0 ? 'Free' : `$${course.price_usdc}`}
                   </span>
                 </div>
