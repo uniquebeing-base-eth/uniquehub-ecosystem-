@@ -5,11 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Search, TrendingUp, Star } from "lucide-react";
 import { CoursePurchase } from "@/components/CoursePurchase";
+import { CourseViewer } from "@/components/CourseViewer";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 export const CoursesSection = () => {
+  const { user } = useAuth();
   const [courses, setCourses] = useState<any[]>([]);
   const [trendingCourses, setTrendingCourses] = useState<any[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
@@ -18,6 +21,8 @@ export const CoursesSection = () => {
   const [priceFilter, setPriceFilter] = useState("all");
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [showCourseViewer, setShowCourseViewer] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(false);
 
   const categories = [
     { value: "all", label: "All Categories" },
@@ -88,14 +93,33 @@ export const CoursesSection = () => {
     setFilteredCourses(filtered);
   };
 
-  const handleCourseClick = (course: any) => {
+  const handleCourseClick = async (course: any) => {
     setSelectedCourse(course);
+    
+    // Check if user is enrolled
+    if (user) {
+      const { data: enrollment } = await supabase
+        .from('enrollments')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('course_id', course.id)
+        .maybeSingle();
+      
+      if (enrollment) {
+        setIsEnrolled(true);
+        setShowCourseViewer(true);
+        return;
+      }
+    }
+    
+    setIsEnrolled(false);
     setShowPurchaseModal(true);
   };
 
   const handlePurchaseComplete = () => {
     setShowPurchaseModal(false);
-    toast.success('Course access granted! You can now view the course content.');
+    setIsEnrolled(true);
+    setShowCourseViewer(true);
     fetchCourses();
   };
 
@@ -270,20 +294,20 @@ export const CoursesSection = () => {
       </div>
 
       {/* Purchase Modal */}
-      {showPurchaseModal && selectedCourse && (
+      {showPurchaseModal && selectedCourse && !isEnrolled && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end justify-center z-50 p-0" onClick={() => setShowPurchaseModal(false)}>
           <div className="w-full max-w-lg mb-14" onClick={(e) => e.stopPropagation()}>
-            <Card className="rounded-t-3xl p-4 space-y-3 max-h-[65vh] overflow-y-auto">
+            <Card className="rounded-t-3xl p-3 space-y-2.5 max-h-[60vh] overflow-y-auto">
               <div className="flex items-start justify-between gap-2">
-                <div className="flex-1">
-                  <h3 className="text-base font-bold text-foreground">{selectedCourse.title}</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{selectedCourse.description}</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-bold text-foreground line-clamp-1">{selectedCourse.title}</h3>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{selectedCourse.description}</p>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowPurchaseModal(false)}
-                  className="h-7 w-7 p-0 flex-shrink-0"
+                  className="h-6 w-6 p-0 flex-shrink-0"
                 >
                   ✕
                 </Button>
@@ -295,6 +319,17 @@ export const CoursesSection = () => {
             </Card>
           </div>
         </div>
+      )}
+
+      {/* Course Viewer */}
+      {showCourseViewer && selectedCourse && (
+        <CourseViewer 
+          course={selectedCourse}
+          onClose={() => {
+            setShowCourseViewer(false);
+            setSelectedCourse(null);
+          }}
+        />
       )}
 
       {filteredCourses.length === 0 && (
