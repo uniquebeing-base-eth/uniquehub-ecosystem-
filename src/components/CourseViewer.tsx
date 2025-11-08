@@ -104,26 +104,44 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
   };
 
   const handleCommentSubmit = async () => {
+    console.log('Comment submit clicked', { user, comment: newComment });
+    
     if (!user) {
+      console.error('User not authenticated');
       toast({ title: "Please sign in to comment", variant: "destructive" });
       return;
     }
-    if (!newComment.trim()) return;
+    
+    if (!newComment.trim()) {
+      console.log('Comment is empty');
+      return;
+    }
 
     setIsSubmitting(true);
-    const { error } = await supabase
+    console.log('Submitting comment to database...');
+    
+    const { data, error } = await supabase
       .from('course_comments')
       .insert({
         course_id: course.id,
         user_id: user.id,
         comment: newComment.trim(),
-      });
+      })
+      .select();
+
+    console.log('Comment submission result:', { data, error });
 
     if (error) {
-      toast({ title: "Failed to post comment", variant: "destructive" });
+      console.error('Comment submission error:', error);
+      toast({ 
+        title: "Failed to post comment", 
+        description: error.message,
+        variant: "destructive" 
+      });
     } else {
+      console.log('Comment posted successfully');
       setNewComment('');
-      fetchComments();
+      await fetchComments();
       toast({ title: "Comment posted!" });
     }
     setIsSubmitting(false);
