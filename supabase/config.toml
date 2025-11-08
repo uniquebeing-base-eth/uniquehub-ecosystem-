@@ -26,3 +26,9 @@ verify_jwt = true
 
 [functions.process-transaction-with-fees]
 verify_jwt = true
+
+[functions.verify-farcaster-follow]
+verify_jwt = true
+
+[functions.complete-task]
+verify_jwt = true

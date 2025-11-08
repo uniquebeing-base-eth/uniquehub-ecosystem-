@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Circle, Coins, Share2, UserPlus, TrendingUp } from "lucide-react";
+import { CheckCircle2, Circle, Coins, BookOpen, Package, Image, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Task {
   id: string;
@@ -11,13 +12,17 @@ interface Task {
   description: string;
   points: number;
   icon: any;
-  completed?: boolean;
+  type: 'follow' | 'app';
+  followUrl?: string;
 }
 
 export const EarnSection = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
+  const [followStatus, setFollowStatus] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState<string | null>(null);
+  const [totalPoints, setTotalPoints] = useState(0);
 
   const tasks: Task[] = [
     {
@@ -26,31 +31,107 @@ export const EarnSection = () => {
       description: "Follow our official account",
       points: 50,
       icon: UserPlus,
+      type: 'follow',
+      followUrl: 'https://farcaster.xyz/uniquehub',
     },
     {
-      id: "follow-dev",
+      id: "follow-uniquebeing404",
       title: "Follow @uniquebeing404",
       description: "Support our dev on Farcaster",
       points: 50,
       icon: UserPlus,
+      type: 'follow',
+      followUrl: 'https://farcaster.xyz/uniquebeing404',
     },
     {
-      id: "share-course",
-      title: "Share a Course",
-      description: "Help tutors by sharing their courses",
-      points: 100,
-      icon: Share2,
+      id: "finish-1-course",
+      title: "Finish 1 Course",
+      description: "Complete your first course",
+      points: 1000,
+      icon: BookOpen,
+      type: 'app',
     },
     {
-      id: "promote-nft",
-      title: "Promote an NFT",
-      description: "Help market NFTs and earn commission",
-      points: 150,
-      icon: TrendingUp,
+      id: "finish-5-courses",
+      title: "Finish 5 Courses",
+      description: "Complete 5 courses to master skills",
+      points: 1000,
+      icon: BookOpen,
+      type: 'app',
+    },
+    {
+      id: "list-item",
+      title: "List an Item",
+      description: "List your first item in marketplace",
+      points: 1000,
+      icon: Package,
+      type: 'app',
+    },
+    {
+      id: "list-nft",
+      title: "List an NFT",
+      description: "List your first NFT for sale",
+      points: 1000,
+      icon: Image,
+      type: 'app',
     },
   ];
 
-  const handleCompleteTask = (taskId: string) => {
+  useEffect(() => {
+    if (user) {
+      loadCompletedTasks();
+      loadUserPoints();
+    }
+  }, [user]);
+
+  const loadCompletedTasks = async () => {
+    if (!user) return;
+
+    const { data } = await supabase
+      .from('task_completions')
+      .select('task_id')
+      .eq('user_id', user.id);
+
+    if (data) {
+      setCompletedTasks(data.map(t => t.task_id));
+    }
+  };
+
+  const loadUserPoints = async () => {
+    if (!user) return;
+
+    const { data } = await supabase
+      .from('user_points')
+      .select('total_points')
+      .eq('user_id', user.id)
+      .single();
+
+    if (data) {
+      setTotalPoints(data.total_points);
+    }
+  };
+
+  const checkFollowStatus = async (taskId: string, username: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-farcaster-follow', {
+        body: { targetUsername: username },
+      });
+
+      if (error) throw error;
+
+      setFollowStatus(prev => ({
+        ...prev,
+        [taskId]: data.isFollowing,
+      }));
+
+      return data.isFollowing;
+    } catch (error) {
+      console.error('Error checking follow status:', error);
+      return false;
+    }
+  };
+
+  const handleCompleteTask = async (task: Task) => {
     if (!user) {
       toast({
         title: "Sign in required",
@@ -60,13 +141,63 @@ export const EarnSection = () => {
       return;
     }
 
-    setCompletedTasks([...completedTasks, taskId]);
-    const task = tasks.find(t => t.id === taskId);
-    
-    toast({
-      title: "Task completed! 🎉",
-      description: `You earned ${task?.points} UP points`,
-    });
+    setLoading(task.id);
+
+    try {
+      if (task.type === 'follow') {
+        // Open Farcaster link
+        window.open(task.followUrl, '_blank');
+
+        // Wait a moment for user to follow
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Check if they're following
+        const username = task.id === 'follow-uniquehub' ? 'uniquehub' : 'uniquebeing404';
+        const isFollowing = await checkFollowStatus(task.id, username);
+
+        if (!isFollowing) {
+          toast({
+            title: "Not following yet",
+            description: "Please make sure you're following the account",
+            variant: "destructive",
+          });
+          setLoading(null);
+          return;
+        }
+      }
+
+      // Complete the task
+      const { data, error } = await supabase.functions.invoke('complete-task', {
+        body: { taskId: task.id },
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        setCompletedTasks(prev => [...prev, task.id]);
+        setTotalPoints(prev => prev + data.pointsAwarded);
+        
+        toast({
+          title: "Task completed! 🎉",
+          description: `You earned ${data.pointsAwarded} UP points`,
+        });
+      } else {
+        toast({
+          title: "Task not completed",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('Error completing task:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to complete task",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(null);
+    }
   };
 
   const isTaskCompleted = (taskId: string) => completedTasks.includes(taskId);
@@ -96,7 +227,7 @@ export const EarnSection = () => {
             <div className="text-[10px] text-muted-foreground">Commission</div>
           </div>
           <div>
-            <div className="text-base font-bold text-primary">0</div>
+            <div className="text-base font-bold text-primary">{totalPoints}</div>
             <div className="text-[10px] text-muted-foreground">UP Points</div>
           </div>
         </div>
@@ -126,14 +257,16 @@ export const EarnSection = () => {
                       size="sm"
                       variant={completed ? "outline" : "default"}
                       className="h-7 text-xs px-3"
-                      onClick={() => handleCompleteTask(task.id)}
-                      disabled={completed}
+                      onClick={() => handleCompleteTask(task)}
+                      disabled={completed || loading === task.id}
                     >
                       {completed ? (
                         <>
                           <CheckCircle2 className="w-3 h-3 mr-1" />
                           Done
                         </>
+                      ) : loading === task.id ? (
+                        "Checking..."
                       ) : (
                         "Complete"
                       )}
