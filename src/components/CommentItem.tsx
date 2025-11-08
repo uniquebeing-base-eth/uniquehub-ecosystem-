@@ -58,10 +58,10 @@ export const CommentItem = ({ comment, onReplyAdded, isReply = false }: CommentI
   };
 
   return (
-    <div className={`${isReply ? 'ml-8 mt-3' : ''}`}>
-      <div className="p-2.5 rounded-lg bg-background/50 border border-primary/10 hover:border-primary/20 transition-colors">
-        <div className="flex items-start gap-2">
-          <Avatar className="h-8 w-8 border border-primary/20 flex-shrink-0">
+    <div className={`${isReply ? 'ml-6 mt-2' : ''}`}>
+      <div className="p-2 rounded-lg bg-background/50 border border-primary/10 hover:border-primary/20 transition-colors">
+        <div className="flex items-start gap-1.5">
+          <Avatar className="h-7 w-7 border border-primary/20 flex-shrink-0">
             <AvatarImage src={comment.profiles?.avatar_url} />
             <AvatarFallback className="bg-primary/10 text-xs">
               {comment.profiles?.display_name?.[0]?.toUpperCase() || '?'}
@@ -83,10 +83,10 @@ export const CommentItem = ({ comment, onReplyAdded, isReply = false }: CommentI
                 </a>
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
               {comment.comment}
             </p>
-            <div className="flex items-center gap-3 mt-1">
+            <div className="flex items-center gap-3 mt-0.5">
               <p className="text-[9px] text-muted-foreground/70">
                 {new Date(comment.created_at).toLocaleDateString()}
               </p>
@@ -106,12 +106,12 @@ export const CommentItem = ({ comment, onReplyAdded, isReply = false }: CommentI
 
         {/* Reply Form */}
         {showReplyForm && (
-          <div className="mt-3 ml-10 space-y-2">
+          <div className="mt-2 ml-8 space-y-1.5">
             <Textarea
               placeholder="Write your reply..."
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
-              className="min-h-[60px] text-xs bg-background/50 border-primary/20 focus:border-primary/50 resize-none"
+              className="min-h-[50px] text-xs bg-background/50 border-primary/20 focus:border-primary/50 resize-none"
             />
             <div className="flex gap-2">
               <Button

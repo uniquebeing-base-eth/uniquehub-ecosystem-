@@ -351,18 +351,18 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
             )}
 
             {/* Comments Section */}
-            <div className="p-3 space-y-3">
+            <div className="p-3 space-y-2">
               <h4 className="text-xs font-semibold text-foreground">
                 Comments ({comments.length})
               </h4>
 
               {/* Add Comment */}
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Textarea
                   placeholder="Share your thoughts about this course..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  className="min-h-[60px] text-xs bg-background/50 border-primary/20 focus:border-primary/50 resize-none"
+                  className="min-h-[50px] text-xs bg-background/50 border-primary/20 focus:border-primary/50 resize-none"
                 />
                 <Button
                   onClick={handleCommentSubmit}
@@ -376,7 +376,7 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
               </div>
 
               {/* Comments List */}
-              <div className="space-y-3 mt-4">
+              <div className="space-y-2 mt-3">
                 {comments.map((comment) => (
                   <CommentItem
                     key={comment.id}
