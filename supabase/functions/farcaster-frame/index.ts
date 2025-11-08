@@ -15,20 +15,22 @@ serve(async (req) => {
     const title = url.searchParams.get('title') || 'UniqueHub';
     const description = url.searchParams.get('description') || 'Learn, Trade, Earn on Base';
     const imageUrl = url.searchParams.get('image') || 'https://uniqueehub.vercel.app/opengraph-image.png';
-    const appUrl = url.searchParams.get('url') || 'https://uniqueehub.vercel.app';
+    
+    // Always use the main mini app URL for the action
+    const miniAppUrl = 'https://uniqueehub.vercel.app';
 
-    // Create the Mini App Embed JSON
+    // Create the Mini App Embed JSON according to Farcaster spec
     const miniAppEmbed = {
       version: "1",
       imageUrl: imageUrl,
       button: {
-        title: "Launch UniqueHub",
+        title: "Open App",
         action: {
           type: "launch_frame",
           name: "UniqueHub",
-          url: appUrl,
+          url: miniAppUrl,
           splashImageUrl: "https://uniqueehub.vercel.app/icon.png",
-          splashBackgroundColor: "#0F172A"
+          splashBackgroundColor: "#1a4d8f"
         }
       }
     };
@@ -47,7 +49,7 @@ serve(async (req) => {
     <meta property="og:title" content="${title}">
     <meta property="og:description" content="${description}">
     <meta property="og:image" content="${imageUrl}">
-    <meta property="og:url" content="${appUrl}">
+    <meta property="og:url" content="${miniAppUrl}">
     <meta property="og:type" content="website">
     
     <!-- Farcaster Mini App Embed -->
@@ -58,7 +60,7 @@ serve(async (req) => {
   <body>
     <h1>${title}</h1>
     <p>${description}</p>
-    <a href="${appUrl}">Open UniqueHub</a>
+    <a href="${miniAppUrl}">Open UniqueHub</a>
   </body>
 </html>`;
 
