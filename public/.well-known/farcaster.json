@@ -1,27 +1,30 @@
 {
+  "accountAssociation": {
+    "header": "eyJmaWQiOjEyMzQ1Niwidw",
+    "payload": "eyJkb21haW4iOiJ1bmlxdWVl",
+    "signature": "MHhhYmNkZWYxMjM0NTY3ODk"
+  },
   "miniapp": {
     "version": "1",
     "name": "UniqueHub",
-    "iconUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=5",
+    "iconUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=6",
     "homeUrl": "https://uniqueehub.vercel.app",
-    "imageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=5",
-    "buttonTitle": "🎓 Launch UniqueHub",
-    "splashImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=5",
+    "imageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=6",
+    "buttonTitle": "Launch UniqueHub",
+    "splashImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=6",
     "splashBackgroundColor": "#1a4d8f",
-    "description": "Web3-powered super app combining learning, earning, and digital asset trading with courses and marketplace for NFTs",
-    "subtitle": "Web3 Learning & Trading Platform",
+    "description": "Web3 powered super app for learning earning and digital asset trading with courses and NFT marketplace",
+    "subtitle": "Web3 Learning and Trading",
     "primaryCategory": "education",
     "tags": [
       "web3",
       "learning",
       "courses",
       "nft",
-      "marketplace",
-      "education",
-      "trading"
+      "marketplace"
     ],
-    "ogTitle": "UniqueHub - Web3 Learning & Trading Platform",
-    "ogDescription": "Web3-powered super app combining learning, earning, and digital asset trading",
-    "ogImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=5"
+    "ogTitle": "UniqueHub Learning Platform",
+    "ogDescription": "Web3 powered super app for learning earning and trading",
+    "ogImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=6"
   }
 }
