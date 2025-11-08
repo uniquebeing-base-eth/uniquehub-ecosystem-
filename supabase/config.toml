@@ -35,3 +35,7 @@ verify_jwt = true
 
 [functions.fetch-farcaster-wallet]
 verify_jwt = true
+
+[functions.farcaster-frame]
+verify_jwt = false
+
