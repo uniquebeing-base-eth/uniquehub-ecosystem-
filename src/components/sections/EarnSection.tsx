@@ -115,20 +115,44 @@ export const EarnSection = () => {
 
   const checkFollowStatus = async (taskId: string, username: string) => {
     try {
+      console.log('Checking follow status for:', username);
+      
       const { data, error } = await supabase.functions.invoke('verify-farcaster-follow', {
         body: { targetUsername: username },
       });
 
-      if (error) throw error;
+      console.log('Follow verification response:', data, error);
+
+      if (error) {
+        console.error('Follow verification error:', error);
+        throw error;
+      }
+
+      if (data?.error) {
+        console.error('Follow verification returned error:', data.error);
+        toast({
+          title: "Verification failed",
+          description: data.error,
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      const isFollowing = data?.isFollowing || false;
 
       setFollowStatus(prev => ({
         ...prev,
-        [taskId]: data.isFollowing,
+        [taskId]: isFollowing,
       }));
 
-      return data.isFollowing;
-    } catch (error) {
+      return isFollowing;
+    } catch (error: any) {
       console.error('Error checking follow status:', error);
+      toast({
+        title: "Verification error",
+        description: "Unable to verify follow status. Please try again.",
+        variant: "destructive",
+      });
       return false;
     }
   };
@@ -147,25 +171,42 @@ export const EarnSection = () => {
 
     try {
       if (task.type === 'follow') {
-        // Open Farcaster link
-        window.open(task.followUrl, '_blank');
+        // For follow tasks, first open the link
+        if (!followStatus[task.id]) {
+          window.open(task.followUrl, '_blank');
+          
+          toast({
+            title: "Follow the account",
+            description: "Click Complete again after following to verify",
+          });
+          
+          setLoading(null);
+          return;
+        }
 
-        // Wait a moment for user to follow
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // Check if they're following
+        // If we reach here, user clicked Complete again - verify the follow
         const username = task.id === 'follow-uniquehub' ? 'uniquehub' : 'uniquebeing404';
+        
+        toast({
+          title: "Verifying...",
+          description: "Checking if you're following the account",
+        });
+
         const isFollowing = await checkFollowStatus(task.id, username);
 
         if (!isFollowing) {
           toast({
             title: "Not following yet",
-            description: "Please make sure you're following the account",
+            description: "Please follow the account first, then try again",
             variant: "destructive",
           });
           setLoading(null);
+          setFollowStatus(prev => ({ ...prev, [task.id]: false }));
           return;
         }
+
+        // Mark that we've verified the follow
+        setFollowStatus(prev => ({ ...prev, [task.id]: true }));
       }
 
       // Complete the task
@@ -173,9 +214,12 @@ export const EarnSection = () => {
         body: { taskId: task.id },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Complete task error:', error);
+        throw error;
+      }
 
-      if (data.success) {
+      if (data?.success) {
         setCompletedTasks(prev => [...prev, task.id]);
         setTotalPoints(prev => prev + data.pointsAwarded);
         
@@ -186,7 +230,7 @@ export const EarnSection = () => {
       } else {
         toast({
           title: "Task not completed",
-          description: data.message,
+          description: data?.message || "Unable to complete task",
           variant: "destructive",
         });
       }
@@ -194,7 +238,7 @@ export const EarnSection = () => {
       console.error('Error completing task:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to complete task",
+        description: error.message || "Failed to complete task. Please try again.",
         variant: "destructive",
       });
     } finally {

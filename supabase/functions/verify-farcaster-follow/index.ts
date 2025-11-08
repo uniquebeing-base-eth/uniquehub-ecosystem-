@@ -11,8 +11,11 @@ Deno.serve(async (req) => {
   }
 
   try {
+    console.log('Verify follow function called');
+    
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.error('No authorization header');
       throw new Error('No authorization header');
     }
 
@@ -25,56 +28,44 @@ Deno.serve(async (req) => {
     );
 
     if (authError || !user) {
+      console.error('Auth error:', authError);
       throw new Error('Unauthorized');
     }
 
+    console.log('User authenticated:', user.id);
+
     const { targetUsername } = await req.json();
+    console.log('Target username:', targetUsername);
     
     // Get user's Farcaster FID from profile
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('farcaster_fid')
       .eq('user_id', user.id)
       .single();
 
+    if (profileError) {
+      console.error('Profile error:', profileError);
+    }
+
     if (!profile?.farcaster_fid) {
+      console.log('No Farcaster account linked for user:', user.id);
       return new Response(
         JSON.stringify({ isFollowing: false, error: 'No Farcaster account linked' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    console.log('User FID:', profile.farcaster_fid);
+
     const neynarApiKey = Deno.env.get('NEYNAR_API_KEY');
     if (!neynarApiKey) {
+      console.error('NEYNAR_API_KEY not configured');
       throw new Error('NEYNAR_API_KEY not configured');
     }
 
-    // Check if user follows the target
-    const response = await fetch(
-      `https://api.neynar.com/v2/farcaster/user/bulk?fids=${profile.farcaster_fid}`,
-      {
-        headers: {
-          'accept': 'application/json',
-          'api_key': neynarApiKey,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch user data from Neynar');
-    }
-
-    const userData = await response.json();
-    const user_data = userData.users?.[0];
-    
-    if (!user_data) {
-      return new Response(
-        JSON.stringify({ isFollowing: false, error: 'User not found' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     // Get the target user's FID
+    console.log('Fetching target user FID...');
     const targetResponse = await fetch(
       `https://api.neynar.com/v2/farcaster/user/by_username?username=${targetUsername}`,
       {
@@ -86,6 +77,7 @@ Deno.serve(async (req) => {
     );
 
     if (!targetResponse.ok) {
+      console.error('Failed to fetch target user:', targetResponse.status);
       return new Response(
         JSON.stringify({ isFollowing: false, error: 'Target user not found' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -96,16 +88,17 @@ Deno.serve(async (req) => {
     const targetFid = targetData.result?.user?.fid;
 
     if (!targetFid) {
+      console.error('Target FID not found in response');
       return new Response(
         JSON.stringify({ isFollowing: false, error: 'Target FID not found' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Check if the user's following list includes the target FID
-    const followingList = user_data.following_count > 0 ? user_data.viewer_context?.following || false : false;
+    console.log('Target FID:', targetFid);
     
-    // Use a more reliable method: check followers/following relationship
+    // Check followers/following relationship
+    console.log('Checking follow relationship...');
     const relationshipResponse = await fetch(
       `https://api.neynar.com/v2/farcaster/user/bulk?fids=${targetFid}&viewer_fid=${profile.farcaster_fid}`,
       {
@@ -116,19 +109,22 @@ Deno.serve(async (req) => {
       }
     );
 
-    if (relationshipResponse.ok) {
-      const relationshipData = await relationshipResponse.json();
-      const targetUserData = relationshipData.users?.[0];
-      const isFollowing = targetUserData?.viewer_context?.following || false;
-
+    if (!relationshipResponse.ok) {
+      console.error('Failed to check relationship:', relationshipResponse.status);
       return new Response(
-        JSON.stringify({ isFollowing }),
+        JSON.stringify({ isFollowing: false, error: 'Failed to verify follow status' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    const relationshipData = await relationshipResponse.json();
+    const targetUserData = relationshipData.users?.[0];
+    const isFollowing = targetUserData?.viewer_context?.following || false;
+
+    console.log('Follow status:', isFollowing);
+
     return new Response(
-      JSON.stringify({ isFollowing: false }),
+      JSON.stringify({ isFollowing }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
