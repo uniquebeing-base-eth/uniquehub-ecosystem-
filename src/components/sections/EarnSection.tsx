@@ -22,7 +22,7 @@ export const EarnSection = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
-  const [followStatus, setFollowStatus] = useState<Record<string, boolean>>({});
+  const [verifiedTasks, setVerifiedTasks] = useState<string[]>([]); // Tasks verified and ready to claim
   const [loading, setLoading] = useState<string | null>(null);
   const [totalPoints, setTotalPoints] = useState(0);
 
@@ -115,49 +115,21 @@ export const EarnSection = () => {
 
   const checkFollowStatus = async (taskId: string, username: string) => {
     try {
-      console.log('Checking follow status for:', username);
-      
       const { data, error } = await supabase.functions.invoke('verify-farcaster-follow', {
         body: { targetUsername: username },
       });
 
-      console.log('Follow verification response:', data, error);
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      if (error) {
-        console.error('Follow verification error:', error);
-        throw error;
-      }
-
-      if (data?.error) {
-        console.error('Follow verification returned error:', data.error);
-        toast({
-          title: "Verification failed",
-          description: data.error,
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      const isFollowing = data?.isFollowing || false;
-
-      setFollowStatus(prev => ({
-        ...prev,
-        [taskId]: isFollowing,
-      }));
-
-      return isFollowing;
+      return data?.isFollowing || false;
     } catch (error: any) {
       console.error('Error checking follow status:', error);
-      toast({
-        title: "Verification error",
-        description: "Unable to verify follow status. Please try again.",
-        variant: "destructive",
-      });
-      return false;
+      throw error;
     }
   };
 
-  const handleCompleteTask = async (task: Task) => {
+  const handleVerifyTask = async (task: Task) => {
     if (!user) {
       toast({
         title: "Sign in required",
@@ -171,74 +143,78 @@ export const EarnSection = () => {
 
     try {
       if (task.type === 'follow') {
-        // For follow tasks, first open the link
-        if (!followStatus[task.id]) {
-          window.open(task.followUrl, '_blank');
-          
-          toast({
-            title: "Follow the account",
-            description: "Click Complete again after following to verify",
-          });
-          
-          setLoading(null);
-          return;
-        }
-
-        // If we reach here, user clicked Complete again - verify the follow
         const username = task.id === 'follow-uniquehub' ? 'uniquehub' : 'uniquebeing404';
         
         toast({
-          title: "Verifying...",
-          description: "Checking if you're following the account",
+          title: "Checking...",
+          description: "Verifying if you've completed the task",
         });
 
         const isFollowing = await checkFollowStatus(task.id, username);
 
         if (!isFollowing) {
+          window.open(task.followUrl, '_blank');
           toast({
-            title: "Not following yet",
-            description: "Please follow the account first, then try again",
+            title: "Not completed yet",
+            description: "Please follow the account and try again",
             variant: "destructive",
           });
           setLoading(null);
-          setFollowStatus(prev => ({ ...prev, [task.id]: false }));
           return;
         }
 
-        // Mark that we've verified the follow
-        setFollowStatus(prev => ({ ...prev, [task.id]: true }));
+        // Mark as verified and ready to claim
+        setVerifiedTasks(prev => [...prev, task.id]);
+        toast({
+          title: "Verified!",
+          description: "Click 'Claim Points' to receive your reward",
+        });
       }
+    } catch (error: any) {
+      console.error('Error verifying task:', error);
+      toast({
+        title: "Verification failed",
+        description: "Unable to verify task. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(null);
+    }
+  };
 
-      // Complete the task
+  const handleClaimPoints = async (task: Task) => {
+    if (!user) return;
+
+    setLoading(task.id);
+
+    try {
       const { data, error } = await supabase.functions.invoke('complete-task', {
         body: { taskId: task.id },
       });
 
-      if (error) {
-        console.error('Complete task error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       if (data?.success) {
         setCompletedTasks(prev => [...prev, task.id]);
+        setVerifiedTasks(prev => prev.filter(id => id !== task.id));
         setTotalPoints(prev => prev + data.pointsAwarded);
         
         toast({
-          title: "Task completed! 🎉",
+          title: "Points claimed! 🎉",
           description: `You earned ${data.pointsAwarded} UP points`,
         });
       } else {
         toast({
-          title: "Task not completed",
-          description: data?.message || "Unable to complete task",
+          title: "Failed to claim",
+          description: data?.message || "Unable to claim points",
           variant: "destructive",
         });
       }
     } catch (error: any) {
-      console.error('Error completing task:', error);
+      console.error('Error claiming points:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to complete task. Please try again.",
+        description: error.message || "Failed to claim points. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -247,6 +223,7 @@ export const EarnSection = () => {
   };
 
   const isTaskCompleted = (taskId: string) => completedTasks.includes(taskId);
+  const isTaskVerified = (taskId: string) => verifiedTasks.includes(taskId);
 
   return (
     <div className="space-y-4 pb-20">
@@ -288,6 +265,7 @@ export const EarnSection = () => {
         {tasks.map((task) => {
           const Icon = task.icon;
           const completed = isTaskCompleted(task.id);
+          const verified = isTaskVerified(task.id);
           
           return (
             <Card key={task.id} className="p-3 relative overflow-hidden">
@@ -305,9 +283,9 @@ export const EarnSection = () => {
                     </span>
                     <Button
                       size="sm"
-                      variant={completed ? "outline" : "default"}
+                      variant={completed ? "outline" : verified ? "default" : "secondary"}
                       className="h-7 text-xs px-3"
-                      onClick={() => handleCompleteTask(task)}
+                      onClick={() => verified ? handleClaimPoints(task) : handleVerifyTask(task)}
                       disabled={completed || loading === task.id}
                     >
                       {completed ? (
@@ -317,6 +295,8 @@ export const EarnSection = () => {
                         </>
                       ) : loading === task.id ? (
                         "Checking..."
+                      ) : verified ? (
+                        "Claim Points"
                       ) : (
                         "Complete"
                       )}
