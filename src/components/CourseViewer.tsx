@@ -7,6 +7,7 @@ import { Play, BookOpen, X, Star, Send, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import { ShareToFarcaster } from '@/components/ShareToFarcaster';
 
 interface CourseViewerProps {
   course: any;
@@ -21,12 +22,28 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
     fetchAuthorProfile();
     fetchUserRating();
     fetchComments();
+    checkCompletion();
   }, [course.id]);
+
+  const checkCompletion = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('enrollments')
+      .select('progress_percentage')
+      .eq('user_id', user.id)
+      .eq('course_id', course.id)
+      .single();
+    
+    if (data && data.progress_percentage === 100) {
+      setIsCompleted(true);
+    }
+  };
 
   const fetchAuthorProfile = async () => {
     const { data } = await supabase
@@ -239,6 +256,27 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   {course.description}
                 </p>
+              </div>
+            )}
+
+            {/* Course Completion Share */}
+            {isCompleted && (
+              <div className="p-3 border-b border-primary/10 bg-gradient-to-br from-success/5 to-primary/5">
+                <div className="text-center space-y-2">
+                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-primary mb-1">
+                    <Star className="w-5 h-5 text-white fill-white" />
+                  </div>
+                  <h4 className="text-sm font-bold text-foreground">Course Completed! 🎉</h4>
+                  <p className="text-xs text-muted-foreground">Share your achievement with others</p>
+                  <ShareToFarcaster
+                    text={`I just completed "${course.title}"! 🎓 Learn now!`}
+                    embeds={course.thumbnail_url ? [`https://uniqueehub.vercel.app/opengraph-image.png`, `https://uniqueehub.vercel.app/#courses`] : [`https://uniqueehub.vercel.app/#courses`]}
+                    buttonText="Share Achievement"
+                    variant="default"
+                    size="sm"
+                    className="w-full bg-gradient-primary"
+                  />
+                </div>
               </div>
             )}
 

@@ -19,7 +19,7 @@ const navItems = [
 export const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-card via-card/98 to-card/95 backdrop-blur-md border-t border-primary/20 z-50 shadow-[0_-10px_40px_-10px_hsl(var(--primary)/0.3)]">
-      <div className="flex items-center justify-around px-2 py-3 max-w-2xl mx-auto">
+      <div className="flex items-center justify-around px-2 py-2 max-w-2xl mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -39,19 +39,19 @@ export const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationPro
                 className={cn(
                   "flex items-center justify-center rounded-full transition-all duration-300",
                   isUpload
-                    ? "w-16 h-16 bg-gradient-primary shadow-[0_0_30px_hsl(var(--primary)/0.6)] hover:shadow-[0_0_40px_hsl(var(--primary)/0.8)] hover:scale-110"
-                    : "w-12 h-12",
-                  isActive && !isUpload && "bg-gradient-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)] scale-110",
+                    ? "w-14 h-14 bg-gradient-primary shadow-[0_0_30px_hsl(var(--primary)/0.6)] hover:shadow-[0_0_40px_hsl(var(--primary)/0.8)] hover:scale-110"
+                    : "w-11 h-11",
+                  isActive && !isUpload && "bg-gradient-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)] scale-105",
                   !isActive && !isUpload && "hover:bg-primary/10 hover:scale-105 active:scale-95"
                 )}
               >
                 <Icon 
                   className={cn(
                     "transition-all duration-300",
-                    isUpload ? "w-7 h-7 text-white" : "w-6 h-6",
+                    isUpload ? "w-7 h-7 text-white" : "w-5 h-5",
                     isActive && !isUpload ? "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" : "text-muted-foreground group-hover:text-primary"
                   )} 
-                  strokeWidth={isActive || isUpload ? 2.5 : 2} 
+                  strokeWidth={isActive || isUpload ? 3 : 2} 
                 />
               </div>
               

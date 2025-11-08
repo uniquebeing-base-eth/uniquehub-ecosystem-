@@ -8,9 +8,12 @@ interface ShareToFarcasterProps {
   text: string;
   embeds?: string[];
   className?: string;
+  buttonText?: string;
+  variant?: "default" | "outline" | "ghost" | "secondary";
+  size?: "default" | "sm" | "lg" | "icon";
 }
 
-export const ShareToFarcaster = ({ text, embeds, className }: ShareToFarcasterProps) => {
+export const ShareToFarcaster = ({ text, embeds, className, buttonText = "Share to Farcaster", variant = "outline", size = "sm" }: ShareToFarcasterProps) => {
   const [isSharing, setIsSharing] = useState(false);
 
   const handleShare = async () => {
@@ -56,8 +59,8 @@ export const ShareToFarcaster = ({ text, embeds, className }: ShareToFarcasterPr
 
   return (
     <Button
-      variant="outline"
-      size="sm"
+      variant={variant}
+      size={size}
       onClick={handleShare}
       disabled={isSharing}
       className={className}
@@ -67,7 +70,7 @@ export const ShareToFarcaster = ({ text, embeds, className }: ShareToFarcasterPr
       ) : (
         <Share2 className="w-4 h-4 mr-2" />
       )}
-      Share to Farcaster
+      {buttonText}
     </Button>
   );
 };

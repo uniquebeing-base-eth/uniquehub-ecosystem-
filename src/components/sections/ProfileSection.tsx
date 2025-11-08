@@ -6,6 +6,7 @@ import { User, BookOpen, ShoppingBag, Trophy, Star } from "lucide-react";
 import penguinAvatar from "@/assets/penguin-avatar.png";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 
 export const ProfileSection = () => {
   const { user } = useAuth();
@@ -144,13 +145,25 @@ export const ProfileSection = () => {
       {createdCourses.length > 0 && (
         <Card className="p-4">
           <h3 className="text-base font-bold text-foreground mb-3">My Courses</h3>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
             {createdCourses.slice(0, 4).map((course) => (
-              <div key={course.id} className="p-2 border border-border rounded-lg">
-                <h4 className="text-xs font-medium text-foreground line-clamp-2">{course.title}</h4>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  ${course.price_usdc}
-                </p>
+              <div key={course.id} className="p-3 border border-border rounded-lg space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-xs font-medium text-foreground line-clamp-2">{course.title}</h4>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      ${course.price_usdc}
+                    </p>
+                  </div>
+                </div>
+                <ShareToFarcaster
+                  text={`Check out my course: ${course.title} - Learn now! 🎓`}
+                  embeds={course.thumbnail_url ? [`https://uniqueehub.vercel.app/opengraph-image.png`, `https://uniqueehub.vercel.app/#courses`] : [`https://uniqueehub.vercel.app/#courses`]}
+                  buttonText="Share Course"
+                  size="sm"
+                  variant="secondary"
+                  className="w-full"
+                />
               </div>
             ))}
           </div>
