@@ -4,6 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Sparkles, TrendingUp, Wallet, BookOpen, Users, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import web3Bg from '@/assets/web3-bg.jpg';
+import animeHeroBg from '@/assets/anime-hero-bg.jpg';
+import animeNftBg from '@/assets/anime-nft-bg.jpg';
+import animeEarnBg from '@/assets/anime-earn-bg.jpg';
+import animeFactsBg from '@/assets/anime-facts-bg.jpg';
 
 interface HomeSectionProps {
   onNavigate?: (tab: string) => void;
@@ -86,7 +90,12 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
   return (
     <div className="space-y-3 pb-20 animate-fade-in">
       {/* Hero Section */}
-      <div className="bg-gradient-primary rounded-2xl p-4 space-y-2 relative overflow-hidden" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 6s ease infinite' }}>
+      <div className="rounded-2xl p-4 space-y-2 relative overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${animeHeroBg})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-primary/70 to-primary/60" />
         <div className="relative z-10">
           <h2 className="text-sm font-semibold text-white">
             Hi {userName}
@@ -107,10 +116,15 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-2">
         <Card 
-          className="p-3 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group bg-gradient-to-br from-card to-card-hover rounded-2xl hover:scale-105"
+          className="p-3 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group rounded-2xl hover:scale-105 relative overflow-hidden"
           onClick={() => onNavigate?.('marketplace')}
         >
-          <div className="space-y-1.5">
+          <div 
+            className="absolute inset-0 bg-cover bg-center opacity-40"
+            style={{ backgroundImage: `url(${animeNftBg})` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-card/90 to-card-hover/90" />
+          <div className="space-y-1.5 relative z-10">
             <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Sparkles className="w-4 h-4 text-primary" />
             </div>
@@ -119,10 +133,15 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
           </div>
         </Card>
         <Card 
-          className="p-3 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group bg-gradient-to-br from-card to-card-hover rounded-2xl hover:scale-105"
+          className="p-3 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group rounded-2xl hover:scale-105 relative overflow-hidden"
           onClick={() => onNavigate?.('earn')}
         >
-          <div className="space-y-1.5">
+          <div 
+            className="absolute inset-0 bg-cover bg-center opacity-40"
+            style={{ backgroundImage: `url(${animeEarnBg})` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-card/90 to-card-hover/90" />
+          <div className="space-y-1.5 relative z-10">
             <div className="w-9 h-9 rounded-xl bg-success/10 flex items-center justify-center group-hover:scale-110 transition-transform">
               <TrendingUp className="w-4 h-4 text-success" />
             </div>
@@ -183,7 +202,12 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
               )}
               
               {slide.type === 'facts' && (
-                <Card className="p-4 bg-gradient-primary text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 6s ease infinite' }}>
+                <Card className="p-4 text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col">
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ backgroundImage: `url(${animeFactsBg})` }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/85 via-primary/75 to-primary/65" />
                   <div className="flex-1 relative z-10">
                     <h3 className="text-base font-bold mb-3">{slide.title}</h3>
                     <div className="space-y-1.5 text-xs text-white/90">
@@ -207,10 +231,19 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
               )}
               
               {slide.type === 'course' && slide.course && (
-                <Card className="p-4 bg-gradient-primary text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 6s ease infinite' }}>
+                <Card className="p-4 text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col">
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ 
+                      backgroundImage: slide.course.thumbnail_url 
+                        ? `url(${slide.course.thumbnail_url})` 
+                        : `url(${web3Bg})`
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/85 to-primary/80" />
                   <div className="flex gap-3 flex-1 relative z-10">
                     {slide.course.thumbnail_url && (
-                      <div className="w-24 h-full rounded-xl overflow-hidden flex-shrink-0 bg-white/10">
+                      <div className="w-24 h-full rounded-xl overflow-hidden flex-shrink-0 bg-white/10 border border-white/20">
                         <img 
                           src={slide.course.thumbnail_url} 
                           alt={slide.course.title}
