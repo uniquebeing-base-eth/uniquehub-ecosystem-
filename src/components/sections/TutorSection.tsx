@@ -5,6 +5,7 @@ import { Plus, BookOpen, Users, Star, DollarSign } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { CourseUpload } from "@/components/CourseUpload";
+import cardBgTutor from '@/assets/card-bg-tutor.jpg';
 
 export const TutorSection = () => {
   const { user } = useAuth();
@@ -81,20 +82,29 @@ export const TutorSection = () => {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-3 gap-3">
-        <Card className="p-3 text-center">
+        <Card className="p-3 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgTutor})` }} />
+          <div className="relative z-10">
           <BookOpen className="w-7 h-7 text-primary mx-auto mb-1.5" />
           <div className="text-xl font-bold text-foreground">{stats.totalCourses}</div>
           <div className="text-xs text-muted-foreground">Courses Created</div>
+          </div>
         </Card>
-        <Card className="p-3 text-center">
+        <Card className="p-3 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgTutor})` }} />
+          <div className="relative z-10">
           <Users className="w-7 h-7 text-success mx-auto mb-1.5" />
           <div className="text-xl font-bold text-foreground">{stats.totalStudents}</div>
           <div className="text-xs text-muted-foreground">Total Students</div>
+          </div>
         </Card>
-        <Card className="p-3 text-center">
+        <Card className="p-3 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgTutor})` }} />
+          <div className="relative z-10">
           <DollarSign className="w-7 h-7 text-warning mx-auto mb-1.5" />
           <div className="text-xl font-bold text-foreground">{stats.totalEarnings}</div>
           <div className="text-xs text-muted-foreground">USDC Earned</div>
+          </div>
         </Card>
       </div>
 
@@ -107,7 +117,9 @@ export const TutorSection = () => {
       )}
 
       {/* My Courses */}
-      <Card className="p-4">
+      <Card className="p-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgTutor})` }} />
+        <div className="relative z-10">
         <h3 className="text-lg font-bold text-foreground mb-3">My Courses</h3>
         {courses.length > 0 ? (
           <div className="space-y-3">
@@ -164,10 +176,13 @@ export const TutorSection = () => {
             </Button>
           </div>
         )}
+        </div>
       </Card>
 
       {/* Tips for Success */}
-      <Card className="p-4">
+      <Card className="p-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgTutor})` }} />
+        <div className="relative z-10">
         <h3 className="text-lg font-bold text-foreground mb-3">Tips for Success</h3>
         <div className="space-y-2.5">
           <div className="flex items-start gap-2.5">
@@ -193,6 +208,7 @@ export const TutorSection = () => {
               <p className="text-xs text-muted-foreground leading-relaxed">Respond to questions and provide support to build a good reputation</p>
             </div>
           </div>
+        </div>
         </div>
       </Card>
     </div>
