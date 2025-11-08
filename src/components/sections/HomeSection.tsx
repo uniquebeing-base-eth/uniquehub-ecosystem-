@@ -83,19 +83,19 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
   ];
 
   return (
-    <div className="space-y-4 pb-24 animate-fade-in">
+    <div className="space-y-3 pb-20 animate-fade-in">
       {/* Hero Section */}
-      <div className="bg-gradient-primary rounded-2xl p-5 space-y-3 relative overflow-hidden" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 6s ease infinite' }}>
+      <div className="bg-gradient-primary rounded-2xl p-4 space-y-2 relative overflow-hidden" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 6s ease infinite' }}>
         <div className="relative z-10">
-          <h2 className="text-base font-semibold text-white">
+          <h2 className="text-sm font-semibold text-white">
             Hi {userName}
           </h2>
-          <h1 className="text-lg font-bold leading-snug text-white">
+          <h1 className="text-base font-bold leading-snug text-white">
             Welcome to UniqueHub your super app for learning, earning and trading.
           </h1>
           <Button 
             variant="secondary" 
-            className="bg-white/90 text-primary hover:bg-white hover:shadow-lg font-semibold rounded-2xl px-6 py-2 h-auto text-sm transition-all duration-300 hover:scale-105"
+            className="bg-white/90 text-primary hover:bg-white hover:shadow-lg font-semibold rounded-2xl px-5 py-1.5 h-auto text-xs transition-all duration-300 hover:scale-105 mt-2"
             onClick={() => onNavigate?.('courses')}
           >
             Get started
@@ -104,26 +104,26 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2">
         <Card 
-          className="p-4 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group bg-gradient-to-br from-card to-card-hover rounded-2xl hover:scale-105"
+          className="p-3 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group bg-gradient-to-br from-card to-card-hover rounded-2xl hover:scale-105"
           onClick={() => onNavigate?.('marketplace')}
         >
-          <div className="space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Sparkles className="w-5 h-5 text-primary" />
+          <div className="space-y-1.5">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Sparkles className="w-4 h-4 text-primary" />
             </div>
             <h3 className="font-semibold text-sm text-foreground">Discover NFTs</h3>
             <p className="text-xs text-muted-foreground">Explore digital art</p>
           </div>
         </Card>
         <Card 
-          className="p-4 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group bg-gradient-to-br from-card to-card-hover rounded-2xl hover:scale-105"
+          className="p-3 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group bg-gradient-to-br from-card to-card-hover rounded-2xl hover:scale-105"
           onClick={() => onNavigate?.('earn')}
         >
-          <div className="space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <TrendingUp className="w-5 h-5 text-success" />
+          <div className="space-y-1.5">
+            <div className="w-9 h-9 rounded-xl bg-success/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <TrendingUp className="w-4 h-4 text-success" />
             </div>
             <h3 className="font-semibold text-sm text-foreground">Start Earning</h3>
             <p className="text-xs text-muted-foreground">Complete tasks & earn</p>
@@ -144,87 +144,111 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
           {slides.map((slide, index) => (
             <div key={index} className="w-full flex-shrink-0">
               {slide.type === 'web3' && (
-                <Card className="p-5 bg-gradient-primary text-white rounded-2xl overflow-hidden relative mx-0.5" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 6s ease infinite' }}>
-                  <div className="flex items-center justify-between mb-3 relative z-10">
+                <Card className="p-4 bg-gradient-primary text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 6s ease infinite' }}>
+                  <div className="flex items-start justify-between flex-1 relative z-10">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <Wallet className="w-5 h-5" />
-                        <h3 className="text-lg font-bold">{slide.title}</h3>
+                        <h3 className="text-base font-bold">{slide.title}</h3>
                       </div>
                       <p className="text-sm text-white/80 mb-3">{slide.description}</p>
                       <Button 
                         variant="secondary"
-                        className="bg-white/90 text-primary hover:bg-white hover:shadow-lg rounded-2xl px-5 py-2 h-auto text-sm transition-all duration-300 hover:scale-105"
+                        className="bg-white/90 text-primary hover:bg-white hover:shadow-lg rounded-2xl px-4 py-1.5 h-auto text-xs transition-all duration-300 hover:scale-105"
                         onClick={slide.action}
                       >
                         Start Now
                       </Button>
                     </div>
-                    <div className="text-4xl opacity-80">{slide.icon}</div>
+                    <div className="text-3xl opacity-80">🔗</div>
+                  </div>
+                  <div className="flex gap-1.5 mt-auto relative z-10">
+                    {slides.map((_, dotIndex) => (
+                      <div
+                        key={dotIndex}
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          dotIndex === currentSlide ? 'bg-white' : 'bg-white/40'
+                        }`}
+                      />
+                    ))}
                   </div>
                 </Card>
               )}
               
               {slide.type === 'facts' && (
-                <Card className="p-5 bg-gradient-primary text-white rounded-2xl overflow-hidden relative mx-0.5" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 6s ease infinite' }}>
-                  <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="text-3xl">{slide.icon}</div>
-                      <h3 className="text-lg font-bold">{slide.title}</h3>
-                    </div>
-                    <div className="space-y-2 text-sm text-white/90">
+                <Card className="p-4 bg-gradient-primary text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 6s ease infinite' }}>
+                  <div className="flex-1 relative z-10">
+                    <h3 className="text-base font-bold mb-3">{slide.title}</h3>
+                    <div className="space-y-1.5 text-xs text-white/90">
                       <p>• Learn Web3 skills from expert tutors</p>
                       <p>• Trade NFTs and digital collectibles</p>
                       <p>• Earn rewards by completing tasks</p>
-                      <p>• Built on Base blockchain for fast transactions</p>
+                      <p>• Built on Base blockchain</p>
                     </div>
+                  </div>
+                  <div className="flex gap-1.5 mt-auto relative z-10">
+                    {slides.map((_, dotIndex) => (
+                      <div
+                        key={dotIndex}
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          dotIndex === currentSlide ? 'bg-white' : 'bg-white/40'
+                        }`}
+                      />
+                    ))}
                   </div>
                 </Card>
               )}
               
               {slide.type === 'course' && slide.course && (
-                <Card className="p-5 bg-gradient-primary text-white rounded-2xl overflow-hidden relative mx-0.5" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 6s ease infinite' }}>
-                  <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-2">
-                      <BookOpen className="w-5 h-5" />
-                      <span className="text-xs font-medium opacity-80">Trending Course</span>
-                    </div>
-                    <h3 className="text-lg font-bold mb-2">{slide.course.title}</h3>
-                    <p className="text-sm text-white/80 mb-3 line-clamp-2">{slide.course.description}</p>
-                    <div className="flex items-center gap-3 mb-3 text-sm">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-white" />
-                        <span className="font-medium">{slide.course.rating.toFixed(1)}</span>
+                <Card className="p-4 bg-gradient-primary text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 6s ease infinite' }}>
+                  <div className="flex gap-3 flex-1 relative z-10">
+                    {slide.course.thumbnail_url && (
+                      <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-white/10">
+                        <img 
+                          src={slide.course.thumbnail_url} 
+                          alt={slide.course.title}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        <span className="font-medium">{slide.course.enrollment_count} students</span>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <BookOpen className="w-4 h-4" />
+                        <span className="text-xs font-medium opacity-80">Trending</span>
                       </div>
+                      <h3 className="text-sm font-bold mb-1 line-clamp-2">{slide.course.title}</h3>
+                      <div className="flex items-center gap-2 text-xs mb-2">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-white" />
+                          <span className="font-medium">{slide.course.rating.toFixed(1)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          <span className="font-medium">{slide.course.enrollment_count}</span>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="secondary"
+                        className="bg-white/90 text-primary hover:bg-white hover:shadow-lg rounded-2xl px-4 py-1.5 h-auto text-xs transition-all duration-300 hover:scale-105"
+                        onClick={() => onNavigate?.('courses')}
+                      >
+                        View Course
+                      </Button>
                     </div>
-                    <Button 
-                      variant="secondary"
-                      className="bg-white/90 text-primary hover:bg-white hover:shadow-lg rounded-2xl px-5 py-2 h-auto text-sm transition-all duration-300 hover:scale-105"
-                      onClick={() => onNavigate?.('courses')}
-                    >
-                      View Course
-                    </Button>
+                  </div>
+                  <div className="flex gap-1.5 mt-auto relative z-10">
+                    {slides.map((_, dotIndex) => (
+                      <div
+                        key={dotIndex}
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          dotIndex === currentSlide ? 'bg-white' : 'bg-white/40'
+                        }`}
+                      />
+                    ))}
                   </div>
                 </Card>
               )}
             </div>
-          ))}
-        </div>
-        
-        {/* Dots Indicator */}
-        <div className="flex gap-1.5 mt-3 justify-center">
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`w-1.5 h-1.5 rounded-full transition-all ${
-                index === currentSlide ? 'bg-primary w-4' : 'bg-muted-foreground/30'
-              }`}
-            />
           ))}
         </div>
       </div>
