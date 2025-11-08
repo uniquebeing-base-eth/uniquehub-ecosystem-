@@ -5,6 +5,8 @@ import { CheckCircle2, Circle, Coins, BookOpen, Package, Image, UserPlus } from 
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { ShareToFarcaster } from "@/components/ShareToFarcaster";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import animeEarnBg from '@/assets/anime-earn-bg.jpg';
 import cardBgEarn from '@/assets/card-bg-earn.jpg';
 
@@ -26,6 +28,8 @@ export const EarnSection = () => {
   const [clickedTasks, setClickedTasks] = useState<string[]>([]); // Tasks where user clicked once
   const [loading, setLoading] = useState<string | null>(null);
   const [totalPoints, setTotalPoints] = useState(0);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [lastClaimedPoints, setLastClaimedPoints] = useState(0);
 
   const tasks: Task[] = [
     {
@@ -211,12 +215,23 @@ export const EarnSection = () => {
       if (data?.success) {
         setCompletedTasks(prev => [...prev, task.id]);
         setVerifiedTasks(prev => prev.filter(id => id !== task.id));
-        setTotalPoints(prev => prev + data.pointsAwarded);
+        setClickedTasks(prev => prev.filter(id => id !== task.id));
+        
+        // Update local points state
+        const newTotalPoints = totalPoints + data.pointsAwarded;
+        setTotalPoints(newTotalPoints);
+        setLastClaimedPoints(data.pointsAwarded);
+        
+        // Reload points from DB to ensure accuracy
+        await loadUserPoints();
         
         toast({
           title: "Points claimed! 🎉",
           description: `You earned ${data.pointsAwarded} UP points`,
         });
+
+        // Show share dialog
+        setShowShareDialog(true);
       } else {
         toast({
           title: "Failed to claim",
@@ -341,6 +356,32 @@ export const EarnSection = () => {
           </li>
         </ul>
       </Card>
+
+      {/* Share Dialog */}
+      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Congratulations! 🎉</DialogTitle>
+            <DialogDescription>
+              You just earned {lastClaimedPoints} UP points! Share your achievement on Farcaster.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 mt-4">
+            <ShareToFarcaster
+              text={`Just earned ${lastClaimedPoints} UP points on @uniquehub! 🎉 Join me and start earning rewards for completing tasks! 💎`}
+              buttonText="Share on Farcaster"
+              className="w-full"
+            />
+            <Button
+              variant="outline"
+              onClick={() => setShowShareDialog(false)}
+              className="w-full"
+            >
+              Skip
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

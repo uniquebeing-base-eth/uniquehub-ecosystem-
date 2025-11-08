@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,6 +18,32 @@ export const MarketplaceCommentItem = ({ comment, onReplyAdded, isReply = false 
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [replies, setReplies] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!isReply) {
+      fetchReplies();
+    }
+  }, [comment.id]);
+
+  const fetchReplies = async () => {
+    const { data } = await supabase
+      .from('marketplace_item_comments')
+      .select(`
+        *,
+        profiles:user_id (
+          display_name,
+          farcaster_username,
+          avatar_url
+        )
+      `)
+      .eq('parent_comment_id', comment.id)
+      .order('created_at', { ascending: true });
+    
+    if (data) {
+      setReplies(data);
+    }
+  };
 
   const getFarcasterUrl = (username: string) => {
     return `https://warpcast.com/${username.replace('@', '')}`;
@@ -50,6 +76,7 @@ export const MarketplaceCommentItem = ({ comment, onReplyAdded, isReply = false 
     } else {
       setReplyText('');
       setShowReplyForm(false);
+      fetchReplies();
       onReplyAdded();
       toast({ title: "Reply posted!" });
     }
@@ -136,9 +163,9 @@ export const MarketplaceCommentItem = ({ comment, onReplyAdded, isReply = false 
       </div>
 
       {/* Nested Replies */}
-      {comment.replies && comment.replies.length > 0 && (
+      {!isReply && replies.length > 0 && (
         <div className="mt-2 space-y-2">
-          {comment.replies.map((reply: any) => (
+          {replies.map((reply: any) => (
             <MarketplaceCommentItem
               key={reply.id}
               comment={reply}
