@@ -25,19 +25,39 @@ export const ShareToFarcaster = ({
   const handleShare = async () => {
     setIsSharing(true);
     try {
-      // Build Farcaster composer URL with intent
+      // Prefer native Farcaster Mini App composer when available
+      try {
+        const { sdk } = await import('@farcaster/miniapp-sdk');
+        const context = await sdk.context;
+        if (context) {
+          const preparedEmbeds = embeds && embeds.length > 0
+            ? (embeds.length === 1
+                ? [embeds[0]] as [string]
+                : [embeds[0], embeds[1]] as [string, string])
+            : undefined;
+          await sdk.actions.composeCast({
+            text,
+            embeds: preparedEmbeds,
+          });
+          toast.success('Opening Farcaster composer...');
+          return; // Stop here if SDK handled it
+        }
+      } catch (_) {
+        // SDK not available or not in Farcaster context; fall back to Warpcast web intent
+      }
+
+      // Fallback: open Warpcast web composer
       const encodedText = encodeURIComponent(text);
       let composerUrl = `https://warpcast.com/~/compose?text=${encodedText}`;
-      
-      // Add embeds if provided (URLs that will show preview cards)
       if (embeds && embeds.length > 0) {
-        const embedParams = embeds.map(embed => `&embeds[]=${encodeURIComponent(embed)}`).join('');
+        const embedParams = embeds
+          .filter(Boolean)
+          .map((embed) => `&embeds[]=${encodeURIComponent(embed)}`)
+          .join('');
         composerUrl += embedParams;
       }
-      
-      // Open in new window/tab or in the current app
+
       window.open(composerUrl, '_blank');
-      
       toast.success('Opening Farcaster composer...');
     } catch (error) {
       console.error('Error sharing to Farcaster:', error);
