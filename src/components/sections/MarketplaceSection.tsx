@@ -11,7 +11,8 @@ import { NFTMarketplace } from "@/components/NFTMarketplace";
 export const MarketplaceSection = () => {
   const { user } = useAuth();
   const [nfts, setNfts] = useState<any[]>([]);
-  const [filteredNfts, setFilteredNfts] = useState<any[]>([]);
+  const [marketItems, setMarketItems] = useState<any[]>([]);
+  const [filteredItems, setFilteredItems] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
 
@@ -20,19 +21,31 @@ export const MarketplaceSection = () => {
     { value: "fashion", label: "Fashion" },
     { value: "art", label: "Art" },
     { value: "collectibles", label: "Collectibles" },
-    { value: "clothes", label: "Clothes" },
     { value: "electronics", label: "Electronics" },
-    { value: "books", label: "Books" },
-    { value: "gaming", label: "Gaming" },
+    { value: "accessories", label: "Accessories" },
+    { value: "nfts", label: "NFTs" },
   ];
 
   useEffect(() => {
     fetchNfts();
+    fetchMarketItems();
   }, []);
 
   useEffect(() => {
-    filterNfts();
-  }, [nfts, searchTerm, selectedFilter]);
+    filterItems();
+  }, [nfts, marketItems, searchTerm, selectedFilter]);
+
+  const fetchMarketItems = async () => {
+    const { data, error } = await supabase
+      .from('marketplace_items')
+      .select('*')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+    
+    if (!error && data) {
+      setMarketItems(data);
+    }
+  };
 
   const fetchNfts = async () => {
     const { data, error } = await supabase
@@ -46,26 +59,28 @@ export const MarketplaceSection = () => {
     }
   };
 
-  const filterNfts = () => {
-    let filtered = [...nfts];
+  const filterItems = () => {
+    let filtered: any[] = [];
 
+    // Combine marketplace items and NFTs
+    if (selectedFilter === "nfts") {
+      filtered = [...nfts];
+    } else if (selectedFilter === "all") {
+      filtered = [...marketItems, ...nfts];
+    } else {
+      filtered = marketItems.filter(item => item.category === selectedFilter);
+    }
+
+    // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter(nft =>
-        nft.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        nft.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(item =>
+        item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.description?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    if (selectedFilter === "recent") {
-      filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    } else if (selectedFilter === "trending") {
-      // Sort by views or popularity if available
-      filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
-    } else if (selectedFilter !== "all") {
-      filtered = filtered.filter(nft => nft.category === selectedFilter);
-    }
-
-    setFilteredNfts(filtered);
+    setFilteredItems(filtered);
   };
 
   return (
@@ -98,8 +113,50 @@ export const MarketplaceSection = () => {
         ))}
       </div>
 
+      {/* Marketplace Items Grid */}
+      {selectedFilter !== "nfts" && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold">Marketplace Items</h3>
+          {filteredItems.filter(item => item.title).length === 0 ? (
+            <Card className="p-8 text-center">
+              <p className="text-sm text-muted-foreground">No items found</p>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {filteredItems.filter(item => item.title).map((item) => (
+                <Card key={item.id} className="overflow-hidden hover:border-primary/50 transition-colors">
+                  {item.image_url && (
+                    <img
+                      src={item.image_url}
+                      alt={item.title}
+                      className="w-full h-32 object-cover"
+                    />
+                  )}
+                  <div className="p-3 space-y-2">
+                    <h4 className="font-semibold text-sm line-clamp-1">{item.title}</h4>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{item.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-primary">${item.price_usdc} USDC</span>
+                      <Badge variant="secondary" className="text-[10px]">{item.category}</Badge>
+                    </div>
+                    <Button size="sm" className="w-full" variant="outline">
+                      Buy Now
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* NFT Marketplace Component */}
-      <NFTMarketplace />
+      {(selectedFilter === "all" || selectedFilter === "nfts") && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold">NFTs</h3>
+          <NFTMarketplace />
+        </div>
+      )}
     </div>
   );
 };
