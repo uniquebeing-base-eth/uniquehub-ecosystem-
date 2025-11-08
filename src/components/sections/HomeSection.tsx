@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, TrendingUp, Wallet, BookOpen, Users, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import web3Bg from '@/assets/web3-bg.jpg';
+import animeLearnBg from '@/assets/anime-bg-learn.jpg';
 import animeHeroBg from '@/assets/anime-hero-bg.jpg';
 import animeNftBg from '@/assets/anime-nft-bg.jpg';
 import animeEarnBg from '@/assets/anime-earn-bg.jpg';
@@ -97,7 +97,7 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
         />
         <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-black/20 to-black/30" />
         <div className="relative z-10">
-          <h2 className="text-sm font-semibold text-white">
+          <h2 className="text-sm font-semibold text-white mb-3">
             Hi {userName}
           </h2>
           <h1 className="text-base font-bold leading-snug text-white">
@@ -166,12 +166,12 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
               {slide.type === 'web3' && (
                 <Card className="p-4 text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col">
                   <div 
-                    className="absolute inset-0 bg-cover bg-center"
+                    className="absolute inset-0 bg-cover bg-center opacity-100"
                     style={{ 
-                      backgroundImage: `url(${web3Bg})`,
+                      backgroundImage: `url(${animeLearnBg})`,
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/80 to-primary/70" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-black/40 to-black/50" />
                   <div className="flex-1 relative z-10">
                     <div className="flex items-center gap-2 mb-2">
                       <Wallet className="w-5 h-5" />
@@ -237,7 +237,7 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
                     style={{ 
                       backgroundImage: slide.course.thumbnail_url 
                         ? `url(${slide.course.thumbnail_url})` 
-                        : `url(${web3Bg})`
+                        : `url(${animeLearnBg})`
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/85 to-primary/80" />
