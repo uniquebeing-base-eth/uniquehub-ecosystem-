@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { ShareToFarcaster } from '@/components/ShareToFarcaster';
-import { CommentReactions } from '@/components/CommentReactions';
+import { CommentItem } from '@/components/CommentItem';
 
 interface CourseViewerProps {
   course: any;
@@ -69,7 +69,7 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
   const fetchComments = async () => {
     console.log('Fetching comments for course:', course.id);
     
-    // First fetch comments
+    // Fetch all comments (both top-level and replies)
     const { data: commentsData, error: commentsError } = await supabase
       .from('course_comments')
       .select('*')
@@ -90,7 +90,7 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
       return;
     }
 
-    // Then fetch profiles for all comment authors
+    // Fetch profiles for all comment authors
     const userIds = [...new Set(commentsData.map(c => c.user_id))];
     const { data: profilesData, error: profilesError } = await supabase
       .from('profiles')
@@ -103,14 +103,34 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
       console.error('Error fetching profiles:', profilesError);
     }
 
-    // Merge comments with profiles
+    // Build threaded comment structure
     const commentsWithProfiles = commentsData.map(comment => ({
       ...comment,
-      profiles: profilesData?.find(p => p.user_id === comment.user_id) || null
+      profiles: profilesData?.find(p => p.user_id === comment.user_id) || null,
+      replies: []
     }));
 
-    console.log('Final comments with profiles:', commentsWithProfiles);
-    setComments(commentsWithProfiles);
+    // Organize into threads (top-level comments with nested replies)
+    const topLevelComments = commentsWithProfiles.filter(c => !c.parent_comment_id);
+    const replyComments = commentsWithProfiles.filter(c => c.parent_comment_id);
+
+    // Attach replies to their parent comments
+    replyComments.forEach(reply => {
+      const parent = topLevelComments.find(c => c.id === reply.parent_comment_id);
+      if (parent) {
+        parent.replies.push(reply);
+      }
+    });
+
+    // Sort replies by date (oldest first for replies)
+    topLevelComments.forEach(comment => {
+      comment.replies.sort((a: any, b: any) => 
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+    });
+
+    console.log('Final threaded comments:', topLevelComments);
+    setComments(topLevelComments);
   };
 
   const handleRating = async (rating: number) => {
@@ -358,43 +378,11 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
               {/* Comments List */}
               <div className="space-y-3 mt-4">
                 {comments.map((comment) => (
-                  <div
+                  <CommentItem
                     key={comment.id}
-                    className="p-2.5 rounded-lg bg-background/50 border border-primary/10 hover:border-primary/20 transition-colors"
-                  >
-                    <div className="flex items-start gap-2">
-                      <Avatar className="h-8 w-8 border border-primary/20">
-                        <AvatarImage src={comment.profiles?.avatar_url} />
-                        <AvatarFallback className="bg-primary/10 text-xs">
-                          {comment.profiles?.display_name?.[0]?.toUpperCase() || '?'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs font-semibold text-foreground">
-                            {comment.profiles?.display_name || 'Anonymous'}
-                          </p>
-                          {comment.profiles?.farcaster_username && (
-                            <a
-                              href={getFarcasterUrl(comment.profiles.farcaster_username)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[10px] text-primary hover:text-primary/80 transition-colors"
-                            >
-                              @{comment.profiles.farcaster_username.replace('@', '')}
-                            </a>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                          {comment.comment}
-                        </p>
-                        <p className="text-[9px] text-muted-foreground/70 mt-1">
-                          {new Date(comment.created_at).toLocaleDateString()}
-                        </p>
-                        <CommentReactions commentId={comment.id} />
-                      </div>
-                    </div>
-                  </div>
+                    comment={comment}
+                    onReplyAdded={fetchComments}
+                  />
                 ))}
                 {comments.length === 0 && (
                   <p className="text-xs text-muted-foreground text-center py-4">
