@@ -7,7 +7,7 @@
   "miniapp": {
     "version": "1",
     "name": "UniqueHub",
-    "iconUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=6",
+    "iconUrl": "https://uniqueehub.vercel.app/icon.png",
     "homeUrl": "https://uniqueehub.vercel.app",
     "imageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=6",
     "buttonTitle": "Launch UniqueHub",
