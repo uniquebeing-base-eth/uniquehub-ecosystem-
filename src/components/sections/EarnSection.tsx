@@ -23,6 +23,7 @@ export const EarnSection = () => {
   const { user } = useAuth();
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
   const [verifiedTasks, setVerifiedTasks] = useState<string[]>([]); // Tasks verified and ready to claim
+  const [clickedTasks, setClickedTasks] = useState<string[]>([]); // Tasks where user clicked once
   const [loading, setLoading] = useState<string | null>(null);
   const [totalPoints, setTotalPoints] = useState(0);
 
@@ -139,6 +140,20 @@ export const EarnSection = () => {
       return;
     }
 
+    // First click - open the link
+    if (!clickedTasks.includes(task.id)) {
+      if (task.type === 'follow' && task.followUrl) {
+        window.open(task.followUrl, '_blank');
+        setClickedTasks(prev => [...prev, task.id]);
+        toast({
+          title: "Follow the account",
+          description: "After following, come back and click Complete again",
+        });
+      }
+      return;
+    }
+
+    // Second click - verify
     setLoading(task.id);
 
     try {
@@ -153,10 +168,9 @@ export const EarnSection = () => {
         const isFollowing = await checkFollowStatus(task.id, username);
 
         if (!isFollowing) {
-          window.open(task.followUrl, '_blank');
           toast({
-            title: "Not completed yet",
-            description: "Please follow the account and try again",
+            title: "Not followed yet",
+            description: "Please follow the account first, then try again",
             variant: "destructive",
           });
           setLoading(null);
@@ -166,7 +180,7 @@ export const EarnSection = () => {
         // Mark as verified and ready to claim
         setVerifiedTasks(prev => [...prev, task.id]);
         toast({
-          title: "Verified!",
+          title: "Verified! ✓",
           description: "Click 'Claim Points' to receive your reward",
         });
       }
@@ -174,7 +188,7 @@ export const EarnSection = () => {
       console.error('Error verifying task:', error);
       toast({
         title: "Verification failed",
-        description: "Unable to verify task. Please try again.",
+        description: "Unable to verify. Please try again.",
         variant: "destructive",
       });
     } finally {
