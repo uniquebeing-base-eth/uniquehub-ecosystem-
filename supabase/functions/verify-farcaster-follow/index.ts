@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
     }
 
     // Get the target user's FID
-    console.log('Fetching target user FID...');
+    console.log('Fetching target user FID for username:', targetUsername);
     const targetResponse = await fetch(
       `https://api.neynar.com/v2/farcaster/user/by_username?username=${targetUsername}`,
       {
@@ -77,7 +77,8 @@ Deno.serve(async (req) => {
     );
 
     if (!targetResponse.ok) {
-      console.error('Failed to fetch target user:', targetResponse.status);
+      const errorText = await targetResponse.text();
+      console.error('Failed to fetch target user:', targetResponse.status, errorText);
       return new Response(
         JSON.stringify({ isFollowing: false, error: 'Target user not found' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -85,10 +86,13 @@ Deno.serve(async (req) => {
     }
 
     const targetData = await targetResponse.json();
-    const targetFid = targetData.result?.user?.fid;
+    console.log('Target API response:', JSON.stringify(targetData));
+    
+    // Neynar v2 API returns user directly in the response
+    const targetFid = targetData.user?.fid;
 
     if (!targetFid) {
-      console.error('Target FID not found in response');
+      console.error('Target FID not found in response. Full response:', JSON.stringify(targetData));
       return new Response(
         JSON.stringify({ isFollowing: false, error: 'Target FID not found' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

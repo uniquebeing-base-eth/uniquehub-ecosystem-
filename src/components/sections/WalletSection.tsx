@@ -11,11 +11,15 @@ export const WalletSection = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [ethBalance, setEthBalance] = useState('0.00');
+  const [usdcBalance, setUsdcBalance] = useState('0.00');
+  const [upPoints, setUpPoints] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
       fetchWalletData();
+      fetchPoints();
     }
   }, [user]);
 
@@ -24,19 +28,48 @@ export const WalletSection = () => {
     
     setLoading(true);
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('wallet_address')
-        .eq('user_id', user.id)
-        .single();
+      // Fetch wallet from Farcaster via FID
+      const { data, error } = await supabase.functions.invoke('fetch-farcaster-wallet');
 
-      if (profile?.wallet_address) {
-        setWalletAddress(profile.wallet_address);
+      if (error) {
+        console.error('Error fetching Farcaster wallet:', error);
+        // Fallback to profile wallet_address
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('wallet_address')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile?.wallet_address) {
+          setWalletAddress(profile.wallet_address);
+        }
+      } else if (data) {
+        setWalletAddress(data.walletAddress);
+        setEthBalance(data.ethBalance || '0.00');
+        setUsdcBalance(data.usdcBalance || '0.00');
       }
     } catch (error) {
       console.error('Error fetching wallet data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPoints = async () => {
+    if (!user) return;
+
+    try {
+      const { data } = await supabase
+        .from('user_points')
+        .select('total_points')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data) {
+        setUpPoints(data.total_points);
+      }
+    } catch (error) {
+      console.error('Error fetching points:', error);
     }
   };
 
@@ -95,9 +128,9 @@ export const WalletSection = () => {
 
       {/* Balances */}
       <div className="space-y-2">
-        <WalletCard type="eth" amount="0.00" symbol="ETH" />
-        <WalletCard type="usdc" amount="0.00" symbol="USDC" />
-        <WalletCard type="points" amount="0" symbol="UP" />
+        <WalletCard type="eth" amount={ethBalance} symbol="ETH" />
+        <WalletCard type="usdc" amount={usdcBalance} symbol="USDC" />
+        <WalletCard type="points" amount={upPoints.toString()} symbol="UP" />
       </div>
 
       {/* Quick Actions */}
