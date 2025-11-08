@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { ShareToFarcaster } from '@/components/ShareToFarcaster';
+import { CommentReactions } from '@/components/CommentReactions';
 
 interface CourseViewerProps {
   course: any;
@@ -66,19 +67,50 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
   };
 
   const fetchComments = async () => {
-    const { data } = await supabase
+    console.log('Fetching comments for course:', course.id);
+    
+    // First fetch comments
+    const { data: commentsData, error: commentsError } = await supabase
       .from('course_comments')
-      .select(`
-        *,
-        profiles:user_id (
-          display_name,
-          farcaster_username,
-          avatar_url
-        )
-      `)
+      .select('*')
       .eq('course_id', course.id)
       .order('created_at', { ascending: false });
-    setComments(data || []);
+
+    console.log('Comments fetched:', { commentsData, commentsError });
+
+    if (commentsError) {
+      console.error('Error fetching comments:', commentsError);
+      toast({ title: "Failed to load comments", description: commentsError.message, variant: "destructive" });
+      return;
+    }
+
+    if (!commentsData || commentsData.length === 0) {
+      console.log('No comments found');
+      setComments([]);
+      return;
+    }
+
+    // Then fetch profiles for all comment authors
+    const userIds = [...new Set(commentsData.map(c => c.user_id))];
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('user_id, display_name, farcaster_username, avatar_url')
+      .in('user_id', userIds);
+
+    console.log('Profiles fetched:', { profilesData, profilesError });
+
+    if (profilesError) {
+      console.error('Error fetching profiles:', profilesError);
+    }
+
+    // Merge comments with profiles
+    const commentsWithProfiles = commentsData.map(comment => ({
+      ...comment,
+      profiles: profilesData?.find(p => p.user_id === comment.user_id) || null
+    }));
+
+    console.log('Final comments with profiles:', commentsWithProfiles);
+    setComments(commentsWithProfiles);
   };
 
   const handleRating = async (rating: number) => {
@@ -359,6 +391,7 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
                         <p className="text-[9px] text-muted-foreground/70 mt-1">
                           {new Date(comment.created_at).toLocaleDateString()}
                         </p>
+                        <CommentReactions commentId={comment.id} />
                       </div>
                     </div>
                   </div>

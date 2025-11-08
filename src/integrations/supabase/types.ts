@@ -82,6 +82,38 @@ export type Database = {
           },
         ]
       }
+      course_comment_reactions: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          reaction: Database["public"]["Enums"]["reaction_type"]
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          reaction: Database["public"]["Enums"]["reaction_type"]
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          reaction?: Database["public"]["Enums"]["reaction_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_comment_reactions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "course_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_comments: {
         Row: {
           comment: string
@@ -605,6 +637,7 @@ export type Database = {
         | "monthly_checkin"
         | "buy_volume"
         | "trade_volume"
+      reaction_type: "blue_heart" | "sparkles" | "fire"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -739,6 +772,7 @@ export const Constants = {
         "buy_volume",
         "trade_volume",
       ],
+      reaction_type: ["blue_heart", "sparkles", "fire"],
     },
   },
 } as const
