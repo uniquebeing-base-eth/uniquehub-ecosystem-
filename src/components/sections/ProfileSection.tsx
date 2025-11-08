@@ -12,6 +12,7 @@ import cardBgProfile from '@/assets/card-bg-profile.jpg';
 export const ProfileSection = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [createdCourses, setCreatedCourses] = useState<any[]>([]);
   const [marketplaceItems, setMarketplaceItems] = useState<any[]>([]);
@@ -19,6 +20,7 @@ export const ProfileSection = () => {
   useEffect(() => {
     if (user) {
       fetchProfile();
+      fetchWalletFromFarcaster();
       fetchEnrollments();
       fetchCreatedCourses();
       fetchMarketplaceItems();
@@ -33,6 +35,37 @@ export const ProfileSection = () => {
       .eq('user_id', user.id)
       .single();
     setProfile(data);
+  };
+
+  const fetchWalletFromFarcaster = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-farcaster-wallet');
+      
+      if (!error && data?.walletAddress) {
+        setWalletAddress(data.walletAddress);
+        
+        // Update profile with the fetched wallet address
+        await supabase
+          .from('profiles')
+          .update({ wallet_address: data.walletAddress })
+          .eq('user_id', user.id);
+      } else {
+        // Fallback to stored wallet address
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('wallet_address')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profile?.wallet_address) {
+          setWalletAddress(profile.wallet_address);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching wallet from Farcaster:', error);
+    }
   };
 
   const fetchEnrollments = async () => {
@@ -87,12 +120,15 @@ export const ProfileSection = () => {
             className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
           />
           <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-semibold text-foreground">
+              {profile?.display_name || profile?.farcaster_username || 'User'}
+            </h3>
             {profile?.bio && (
               <p className="text-xs text-muted-foreground line-clamp-2">{profile.bio}</p>
             )}
-            {profile?.wallet_address && (
+            {walletAddress && (
               <p className="text-[10px] text-muted-foreground mt-1 font-mono">
-                {profile.wallet_address.slice(0, 6)}...{profile.wallet_address.slice(-4)}
+                {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
               </p>
             )}
             <div className="flex items-center gap-1.5 mt-1">
