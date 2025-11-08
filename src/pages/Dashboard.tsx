@@ -12,6 +12,7 @@ import { TutorSection } from "@/components/sections/TutorSection";
 import { UploadSection } from "@/components/sections/UploadSection";
 import { WalletSection } from "@/components/sections/WalletSection";
 import { EarnSection } from "@/components/sections/EarnSection";
+import { MiniAppPrompt } from "@/components/MiniAppPrompt";
 import cubeLogo from "@/assets/uniquehub-cube.png";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -170,6 +171,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen flex flex-col anime-bg-main">
+      <MiniAppPrompt />
       <div className="flex-1 mx-auto max-w-2xl w-full">
         {/* Header */}
         <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border px-3 py-2.5 shadow-sm">

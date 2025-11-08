@@ -13,6 +13,7 @@
     "buttonTitle": "Launch UniqueHub",
     "splashImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=6",
     "splashBackgroundColor": "#1a4d8f",
+    "webhookUrl": "https://ucqcrhfcflrepsdlcvpq.supabase.co/functions/v1/miniapp-webhook",
     "description": "Web3 powered super app for learning earning and digital asset trading with courses and NFT marketplace",
     "subtitle": "Web3 Learning and Trading",
     "primaryCategory": "education",
