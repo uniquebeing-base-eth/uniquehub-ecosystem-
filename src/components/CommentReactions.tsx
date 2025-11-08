@@ -108,14 +108,19 @@ export const CommentReactions = ({ commentId }: CommentReactionsProps) => {
   };
 
   const getColor = (type: ReactionType, active: boolean) => {
-    if (!active) return 'text-muted-foreground hover:text-foreground';
     switch (type) {
       case 'blue_heart':
-        return 'text-blue-500 fill-blue-500';
+        return active 
+          ? 'text-blue-500 fill-blue-500' 
+          : 'text-blue-400/50 fill-blue-400/50 hover:text-blue-500 hover:fill-blue-500';
       case 'sparkles':
-        return 'text-yellow-400 fill-yellow-400';
+        return active 
+          ? 'text-yellow-400 fill-yellow-400' 
+          : 'text-yellow-400/50 fill-yellow-400/50 hover:text-yellow-400 hover:fill-yellow-400';
       case 'fire':
-        return 'text-orange-500 fill-orange-500';
+        return active 
+          ? 'text-orange-500 fill-orange-500' 
+          : 'text-orange-400/50 fill-orange-400/50 hover:text-orange-500 hover:fill-orange-500';
     }
   };
 
