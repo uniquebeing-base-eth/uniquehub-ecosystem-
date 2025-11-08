@@ -14,10 +14,7 @@ export const UploadSection = () => {
   const [showMarketItemUpload, setShowMarketItemUpload] = useState(false);
 
   return (
-    <div className="relative min-h-screen pb-24">
-      <div className="absolute inset-0 bg-cover bg-center opacity-100" style={{ backgroundImage: `url(${animeUploadBg})` }} />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/85 to-background/90" />
-      <div className="relative z-10 space-y-6">
+    <div className="space-y-6 pb-24">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold">Upload Content</h2>
         <p className="text-muted-foreground">
@@ -112,7 +109,6 @@ export const UploadSection = () => {
           />
         </DialogContent>
       </Dialog>
-      </div>
     </div>
   );
 };

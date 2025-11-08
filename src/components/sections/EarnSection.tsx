@@ -205,10 +205,7 @@ export const EarnSection = () => {
   const isTaskCompleted = (taskId: string) => completedTasks.includes(taskId);
 
   return (
-    <div className="relative min-h-screen pb-20">
-      <div className="absolute inset-0 bg-cover bg-center opacity-100" style={{ backgroundImage: `url(${animeEarnBg})` }} />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/85 to-background/90" />
-      <div className="relative z-10 space-y-4">
+    <div className="space-y-4 pb-20">
       <div className="text-center space-y-1 mb-4">
         <h2 className="text-xl font-bold">Earn Rewards</h2>
         <p className="text-xs text-muted-foreground">
@@ -306,7 +303,6 @@ export const EarnSection = () => {
           </li>
         </ul>
       </Card>
-      </div>
     </div>
   );
 };
