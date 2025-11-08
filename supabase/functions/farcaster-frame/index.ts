@@ -28,7 +28,7 @@ serve(async (req) => {
         action: {
           type: "launch_frame",
           name: "UniqueHub",
-          url: url.href,
+          url: miniAppUrl,
           splashImageUrl: "https://uniqueehub.vercel.app/icon.png",
           splashBackgroundColor: "#1a4d8f"
         }
@@ -49,7 +49,7 @@ serve(async (req) => {
     <meta property="og:title" content="${title}">
     <meta property="og:description" content="${description}">
     <meta property="og:image" content="${imageUrl}">
-    <meta property="og:url" content="${url.href}">
+    <meta property="og:url" content="${miniAppUrl}">
     <meta property="og:type" content="website">
     
     <!-- Farcaster Mini App Embed -->
@@ -61,13 +61,6 @@ serve(async (req) => {
     <h1>${title}</h1>
     <p>${description}</p>
     <a href="${miniAppUrl}">Open UniqueHub</a>
-    <script>
-      // Auto-redirect to the Mini App URL when launched
-      window.onload = function () {
-        try { window.location.replace('${miniAppUrl}'); }
-        catch (e) { window.location.href = '${miniAppUrl}'; }
-      };
-    </script>
   </body>
 </html>`;
 
