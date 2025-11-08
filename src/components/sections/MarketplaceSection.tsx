@@ -79,12 +79,12 @@ export const MarketplaceSection = () => {
       </div>
 
       {/* Category Filter Pills */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
+      <div className="flex flex-wrap gap-2">
         {filters.map((filter) => (
           <button
             key={filter.value}
             onClick={() => setSelectedFilter(filter.value)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
               selectedFilter === filter.value
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-card text-foreground border border-border'
