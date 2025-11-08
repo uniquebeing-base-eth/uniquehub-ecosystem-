@@ -69,22 +69,22 @@ export const MarketplaceSection = () => {
     <div className="space-y-4 pb-24">
       {/* Search Bar */}
       <div className="relative">
-        <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+        <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search items, NFTs, or products..."
+          placeholder="Search items, NFTs..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-12 h-12 rounded-full bg-card border-border"
+          className="pl-10 h-11 rounded-full bg-card border-border text-sm"
         />
       </div>
 
       {/* Category Filter Pills */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
         {filters.map((filter) => (
           <button
             key={filter.value}
             onClick={() => setSelectedFilter(filter.value)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
               selectedFilter === filter.value
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-card text-foreground border border-border'
