@@ -92,10 +92,10 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
       {/* Hero Section */}
       <div className="rounded-2xl p-4 space-y-2 relative overflow-hidden">
         <div 
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-center opacity-100"
           style={{ backgroundImage: `url(${animeHeroBg})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-primary/70 to-primary/60" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/75 via-blue-500/70 to-purple-600/70" />
         <div className="relative z-10">
           <h2 className="text-sm font-semibold text-white">
             Hi {userName}
@@ -105,7 +105,7 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
           </h1>
           <Button 
             variant="secondary" 
-            className="bg-white/90 text-primary hover:bg-white hover:shadow-lg font-semibold rounded-2xl px-5 py-1.5 h-auto text-xs transition-all duration-300 hover:scale-105 mt-2"
+            className="bg-white/90 text-blue-600 hover:bg-white hover:shadow-lg font-semibold rounded-2xl px-5 py-1.5 h-auto text-xs transition-all duration-300 hover:scale-105 mt-2"
             onClick={() => onNavigate?.('courses')}
           >
             Get started
@@ -116,37 +116,37 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-2">
         <Card 
-          className="p-3 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group rounded-2xl hover:scale-105 relative overflow-hidden"
+          className="p-3 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group rounded-2xl hover:scale-105 relative overflow-hidden border-none"
           onClick={() => onNavigate?.('marketplace')}
         >
           <div 
-            className="absolute inset-0 bg-cover bg-center opacity-40"
+            className="absolute inset-0 bg-cover bg-center opacity-100"
             style={{ backgroundImage: `url(${animeNftBg})` }}
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-card/90 to-card-hover/90" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 to-slate-800/85" />
           <div className="space-y-1.5 relative z-10">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Sparkles className="w-4 h-4 text-primary" />
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <h3 className="font-semibold text-sm text-foreground">Discover NFTs</h3>
-            <p className="text-xs text-muted-foreground">Explore digital art</p>
+            <h3 className="font-semibold text-sm text-white">Discover NFTs</h3>
+            <p className="text-xs text-white/80">Explore digital art</p>
           </div>
         </Card>
         <Card 
-          className="p-3 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group rounded-2xl hover:scale-105 relative overflow-hidden"
+          className="p-3 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group rounded-2xl hover:scale-105 relative overflow-hidden border-none"
           onClick={() => onNavigate?.('earn')}
         >
           <div 
-            className="absolute inset-0 bg-cover bg-center opacity-40"
+            className="absolute inset-0 bg-cover bg-center opacity-100"
             style={{ backgroundImage: `url(${animeEarnBg})` }}
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-card/90 to-card-hover/90" />
+          <div className="absolute inset-0 bg-gradient-to-br from-green-900/80 to-emerald-800/85" />
           <div className="space-y-1.5 relative z-10">
-            <div className="w-9 h-9 rounded-xl bg-success/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <TrendingUp className="w-4 h-4 text-success" />
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <TrendingUp className="w-4 h-4 text-white" />
             </div>
-            <h3 className="font-semibold text-sm text-foreground">Start Earning</h3>
-            <p className="text-xs text-muted-foreground">Complete tasks & earn</p>
+            <h3 className="font-semibold text-sm text-white">Start Earning</h3>
+            <p className="text-xs text-white/80">Complete tasks & earn</p>
           </div>
         </Card>
       </div>
