@@ -24,11 +24,11 @@ serve(async (req) => {
       version: "1",
       imageUrl: imageUrl,
       button: {
-        title: "Open App",
+        title: "Launch UniqueHub",
         action: {
           type: "launch_frame",
           name: "UniqueHub",
-          url: url.href,
+          url: miniAppUrl,
           splashImageUrl: "https://uniqueehub.vercel.app/icon.png",
           splashBackgroundColor: "#1a4d8f"
         }
@@ -44,12 +44,14 @@ serve(async (req) => {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${title}</title>
     <meta name="description" content="${description}">
+    <link rel="canonical" href="${miniAppUrl}">
     
     <!-- Open Graph -->
     <meta property="og:title" content="${title}">
     <meta property="og:description" content="${description}">
     <meta property="og:image" content="${imageUrl}">
-    <meta property="og:url" content="${url.href}">
+    <meta property="og:url" content="${miniAppUrl}">
+    <meta property="og:site_name" content="UniqueHub">
     <meta property="og:type" content="website">
     
     <!-- Farcaster Mini App Embed -->

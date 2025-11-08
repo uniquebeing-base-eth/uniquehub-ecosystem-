@@ -157,7 +157,7 @@ export const MarketplaceSection = () => {
                       </Button>
                       <ShareToFarcaster
                         text={`Check out ${item.title} on @uniquehub marketplace! 🛍️ $${item.price_usdc} USDC`}
-                        embeds={['https://uniqueehub.vercel.app']}
+                        embeds={[`https://ucqcrhfcflrepsdlcvpq.supabase.co/functions/v1/farcaster-frame?title=${encodeURIComponent(item.title)}&description=${encodeURIComponent(item.description || '')}&image=${encodeURIComponent(item.image_url || 'https://uniqueehub.vercel.app/opengraph-image.png')}`]}
                         variant="ghost"
                         size="icon"
                         className="flex-shrink-0"
