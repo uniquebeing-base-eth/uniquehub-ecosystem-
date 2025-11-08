@@ -95,7 +95,7 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
           className="absolute inset-0 bg-cover bg-center opacity-100"
           style={{ backgroundImage: `url(${animeHeroBg})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/75 via-blue-500/70 to-purple-600/70" />
+        <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-black/20 to-black/30" />
         <div className="relative z-10">
           <h2 className="text-sm font-semibold text-white">
             Hi {userName}
