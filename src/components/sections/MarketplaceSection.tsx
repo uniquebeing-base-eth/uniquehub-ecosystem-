@@ -16,11 +16,11 @@ export const MarketplaceSection = () => {
   const [selectedFilter, setSelectedFilter] = useState("all");
 
   const filters = [
-    { value: "all", label: "All NFTs" },
-    { value: "recent", label: "Recent" },
-    { value: "trending", label: "Trending" },
+    { value: "all", label: "All Items" },
+    { value: "fashion", label: "Fashion" },
     { value: "art", label: "Art" },
-    { value: "gaming", label: "Gaming" },
+    { value: "collectibles", label: "Collectibles" },
+    { value: "electronics", label: "Electronics" },
   ];
 
   useEffect(() => {
@@ -71,7 +71,7 @@ export const MarketplaceSection = () => {
       <div className="relative">
         <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search NFTs..."
+          placeholder="Search items, NFTs, or products..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-12 h-12 rounded-full bg-card border-border"
