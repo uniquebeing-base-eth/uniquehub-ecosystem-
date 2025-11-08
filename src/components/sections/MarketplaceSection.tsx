@@ -3,10 +3,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Wallet } from "lucide-react";
+import { Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { NFTMarketplace } from "@/components/NFTMarketplace";
+import { MarketplaceItemDetail } from "@/components/MarketplaceItemDetail";
 
 export const MarketplaceSection = () => {
   const { user } = useAuth();
@@ -15,6 +16,8 @@ export const MarketplaceSection = () => {
   const [filteredItems, setFilteredItems] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const filters = [
     { value: "all", label: "All Items" },
@@ -139,7 +142,15 @@ export const MarketplaceSection = () => {
                       <span className="text-sm font-bold text-primary">${item.price_usdc} USDC</span>
                       <Badge variant="secondary" className="text-[10px]">{item.category}</Badge>
                     </div>
-                    <Button size="sm" className="w-full" variant="outline">
+                    <Button 
+                      size="sm" 
+                      className="w-full" 
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedItem(item);
+                        setIsDetailOpen(true);
+                      }}
+                    >
                       Buy Now
                     </Button>
                   </div>
@@ -157,6 +168,13 @@ export const MarketplaceSection = () => {
           <NFTMarketplace />
         </div>
       )}
+
+      {/* Marketplace Item Detail Dialog */}
+      <MarketplaceItemDetail
+        item={selectedItem}
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+      />
     </div>
   );
 };

@@ -327,6 +327,87 @@ export type Database = {
           },
         ]
       }
+      marketplace_item_comment_reactions: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          reaction: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          reaction: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          reaction?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      marketplace_item_comments: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          item_id: string
+          parent_comment_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          item_id: string
+          parent_comment_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          parent_comment_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      marketplace_item_ratings: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       marketplace_items: {
         Row: {
           category: string | null
@@ -335,6 +416,7 @@ export type Database = {
           id: string
           image_url: string | null
           price_usdc: number
+          rating: number | null
           status: string | null
           title: string
           updated_at: string
@@ -347,6 +429,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           price_usdc: number
+          rating?: number | null
           status?: string | null
           title: string
           updated_at?: string
@@ -359,6 +442,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           price_usdc?: number
+          rating?: number | null
           status?: string | null
           title?: string
           updated_at?: string
