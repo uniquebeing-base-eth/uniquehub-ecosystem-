@@ -18,8 +18,8 @@ const navItems = [
 
 export const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border z-50 shadow-2xl">
-      <div className="flex items-end justify-around px-1 py-2 max-w-2xl mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-card via-card/98 to-card/95 backdrop-blur-md border-t border-primary/20 z-50 shadow-[0_-10px_40px_-10px_hsl(var(--primary)/0.3)]">
+      <div className="flex items-center justify-around px-2 py-3 max-w-2xl mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -29,37 +29,35 @@ export const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationPro
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
+              aria-label={item.label}
               className={cn(
-                "flex flex-col items-center gap-1 transition-all min-w-0 flex-1 relative overflow-hidden active:scale-95 rounded-2xl p-1.5",
-                isUpload && "relative -top-3",
-                isActive && !isUpload && "bg-primary/10"
+                "relative flex items-center justify-center transition-all duration-300 group",
+                isUpload && "relative -top-4"
               )}
             >
-              {isActive && !isUpload && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-gradient-primary rounded-full" />
-              )}
               <div
                 className={cn(
-                  "flex items-center justify-center rounded-2xl transition-all",
+                  "flex items-center justify-center rounded-full transition-all duration-300",
                   isUpload
-                    ? "w-10 h-10 bg-gradient-primary shadow-glow"
-                    : "w-7 h-7",
-                  isActive && !isUpload && "text-primary scale-110"
+                    ? "w-16 h-16 bg-gradient-primary shadow-[0_0_30px_hsl(var(--primary)/0.6)] hover:shadow-[0_0_40px_hsl(var(--primary)/0.8)] hover:scale-110"
+                    : "w-12 h-12",
+                  isActive && !isUpload && "bg-gradient-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)] scale-110",
+                  !isActive && !isUpload && "hover:bg-primary/10 hover:scale-105 active:scale-95"
                 )}
               >
-                <Icon className={cn(
-                  "transition-all",
-                  isUpload ? "w-4 h-4 text-white" : "w-3.5 h-3.5"
-                )} strokeWidth={isActive ? 2.5 : 2} />
+                <Icon 
+                  className={cn(
+                    "transition-all duration-300",
+                    isUpload ? "w-7 h-7 text-white" : "w-6 h-6",
+                    isActive && !isUpload ? "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" : "text-muted-foreground group-hover:text-primary"
+                  )} 
+                  strokeWidth={isActive || isUpload ? 2.5 : 2} 
+                />
               </div>
-              <span
-                className={cn(
-                  "text-[9px] font-medium transition-all truncate w-full text-center",
-                  isActive ? "text-primary font-semibold" : "text-muted-foreground"
-                )}
-              >
-                {item.label}
-              </span>
+              
+              {isActive && !isUpload && (
+                <div className="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))] animate-pulse" />
+              )}
             </button>
           );
         })}
