@@ -51,7 +51,7 @@ export const TrendingCourseCard = ({ course }: TrendingCourseCardProps) => {
             </div>
             <ShareToFarcaster
               text={`Check out this course: ${course.title} on @uniquehub! 🎓 Learn now! 💎`}
-              embeds={course.thumbnail_url ? [course.thumbnail_url] : undefined}
+              embeds={['https://uniqueehub.vercel.app']}
               variant="ghost"
               size="icon"
             />

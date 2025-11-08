@@ -29,7 +29,7 @@ export const ShareToFarcaster = ({
       const encodedText = encodeURIComponent(text);
       let composerUrl = `https://warpcast.com/~/compose?text=${encodedText}`;
       
-      // Add embeds if provided
+      // Add embeds if provided (URLs that will show preview cards)
       if (embeds && embeds.length > 0) {
         const embedParams = embeds.map(embed => `&embeds[]=${encodeURIComponent(embed)}`).join('');
         composerUrl += embedParams;
