@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, MessageCircle, ExternalLink } from "lucide-react";
+import { Star, MessageCircle, ExternalLink, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -168,117 +168,149 @@ export const MarketplaceItemDetail = ({ item, open, onOpenChange }: MarketplaceI
     }
   };
 
-  if (!item) return null;
+  if (!open || !item) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">{item.title}</DialogTitle>
-        </DialogHeader>
-
-        {/* Item Image */}
-        {item.image_url && (
-          <img
-            src={item.image_url}
-            alt={item.title}
-            className="w-full h-64 object-cover rounded-lg"
-          />
-        )}
-
-        {/* Price and Category */}
-        <div className="flex items-center justify-between">
-          <span className="text-3xl font-bold text-primary">${item.price_usdc} USDC</span>
-          <Badge variant="secondary">{item.category}</Badge>
-        </div>
-
-        {/* Description */}
-        <p className="text-muted-foreground">{item.description}</p>
-
-        {/* Seller Info */}
-        <div className="border border-border rounded-lg p-4 space-y-3">
-          <h3 className="font-semibold text-lg">Seller Information</h3>
-          {seller && (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Avatar>
-                  <AvatarImage src={seller.avatar_url} />
-                  <AvatarFallback>{seller.display_name?.[0] || 'U'}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium">{seller.display_name}</p>
-                  {seller.farcaster_username && (
-                    <p className="text-sm text-muted-foreground">@{seller.farcaster_username}</p>
-                  )}
-                </div>
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end justify-center z-50 p-0 animate-fade-in" 
+      onClick={() => onOpenChange(false)}
+    >
+      <div 
+        className="w-full max-w-lg mb-14 max-h-[85vh] overflow-hidden animate-slide-in-bottom" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Card className="rounded-t-3xl overflow-hidden bg-card/95 backdrop-blur-xl border-primary/20">
+          {/* Header */}
+          <div className="p-4 border-b border-primary/20 flex items-center justify-between bg-gradient-to-r from-primary/10 to-secondary/10">
+            <div className="flex-1 min-w-0 pr-4">
+              <h3 className="text-lg font-bold text-foreground truncate">{item.title}</h3>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-2xl font-bold text-primary">${item.price_usdc} USDC</span>
+                <Badge variant="secondary" className="text-xs">{item.category}</Badge>
               </div>
-              <Button onClick={handleContactSeller} variant="default">
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Contact Seller
-              </Button>
             </div>
-          )}
-        </div>
-
-        {/* Rating Section */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-4">
-            <h3 className="font-semibold">Rating</h3>
-            <div className="flex items-center gap-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star
-                  key={star}
-                  className={`w-5 h-5 cursor-pointer transition-colors ${
-                    star <= (userRating || rating)
-                      ? 'fill-yellow-400 text-yellow-400'
-                      : 'text-muted-foreground'
-                  }`}
-                  onClick={() => handleRating(star)}
-                />
-              ))}
-              <span className="ml-2 text-sm text-muted-foreground">
-                ({rating.toFixed(1)})
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Comments Section */}
-        <div className="space-y-4">
-          <h3 className="font-semibold flex items-center gap-2">
-            <MessageCircle className="w-5 h-5" />
-            Comments ({comments.length})
-          </h3>
-
-          {/* New Comment */}
-          <div className="space-y-2">
-            <Textarea
-              placeholder="Write a comment..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              className="min-h-[80px]"
-            />
             <Button
-              onClick={handleSubmitComment}
-              disabled={isSubmitting || !newComment.trim()}
+              variant="ghost"
               size="sm"
+              onClick={() => onOpenChange(false)}
+              className="h-8 w-8 p-0 flex-shrink-0 hover:bg-primary/20"
             >
-              Post Comment
+              <X className="w-5 h-5" />
             </Button>
           </div>
 
-          {/* Comments List */}
-          <div className="space-y-3">
-            {comments.map((comment) => (
-              <MarketplaceCommentItem
-                key={comment.id}
-                comment={comment}
-                onReplyAdded={fetchComments}
+          {/* Item Image */}
+          {item.image_url && (
+            <div className="bg-black">
+              <img
+                src={item.image_url}
+                alt={item.title}
+                className="w-full aspect-video object-cover"
               />
-            ))}
+            </div>
+          )}
+
+          {/* Scrollable Content */}
+          <div className="max-h-[40vh] overflow-y-auto scrollbar-hide">
+            {/* Description */}
+            {item.description && (
+              <div className="p-4 border-b border-primary/10">
+                <p className="text-sm text-muted-foreground">{item.description}</p>
+              </div>
+            )}
+
+            {/* Seller Info */}
+            <div className="p-4 border-b border-primary/10 bg-gradient-to-br from-primary/5 to-secondary/5">
+              <h4 className="text-sm font-semibold text-foreground mb-3">Seller Information</h4>
+              {seller && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12 border-2 border-primary/30">
+                      <AvatarImage src={seller.avatar_url} />
+                      <AvatarFallback className="bg-primary/20">
+                        {seller.display_name?.[0]?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{seller.display_name}</p>
+                      {seller.farcaster_username && (
+                        <p className="text-xs text-muted-foreground">@{seller.farcaster_username}</p>
+                      )}
+                    </div>
+                  </div>
+                  <Button onClick={handleContactSeller} size="sm" className="flex-shrink-0">
+                    <ExternalLink className="w-4 h-4 mr-1" />
+                    Contact Seller
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Rating Section */}
+            <div className="p-4 border-b border-primary/10">
+              <h4 className="text-sm font-semibold text-foreground mb-2">Rating</h4>
+              <div className="flex items-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-5 h-5 cursor-pointer transition-all hover:scale-110 ${
+                      star <= (userRating || rating)
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-muted-foreground'
+                    }`}
+                    onClick={() => handleRating(star)}
+                  />
+                ))}
+                <span className="text-xs text-muted-foreground">
+                  ({rating.toFixed(1)})
+                </span>
+              </div>
+            </div>
+
+            {/* Comments Section */}
+            <div className="p-4 space-y-3">
+              <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <MessageCircle className="w-4 h-4" />
+                Comments ({comments.length})
+              </h4>
+
+              {/* New Comment */}
+              <div className="space-y-2">
+                <Textarea
+                  placeholder="Write a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="min-h-[60px] text-sm bg-background/50 border-primary/20 focus:border-primary/50 resize-none"
+                />
+                <Button
+                  onClick={handleSubmitComment}
+                  disabled={isSubmitting || !newComment.trim()}
+                  size="sm"
+                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                >
+                  Post Comment
+                </Button>
+              </div>
+
+              {/* Comments List */}
+              <div className="space-y-2 mt-3">
+                {comments.map((comment) => (
+                  <MarketplaceCommentItem
+                    key={comment.id}
+                    comment={comment}
+                    onReplyAdded={fetchComments}
+                  />
+                ))}
+                {comments.length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center py-4">
+                    No comments yet. Be the first to share your thoughts!
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </Card>
+      </div>
+    </div>
   );
 };
