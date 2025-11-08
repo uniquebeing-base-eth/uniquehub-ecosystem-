@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, TrendingUp, Wallet, BookOpen, Users, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import web3Bg from '@/assets/web3-bg.jpg';
 
 interface HomeSectionProps {
   onNavigate?: (tab: string) => void;
@@ -62,7 +63,7 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
     {
       type: 'web3',
       title: 'Learn Web3.0',
-      description: 'Master blockchain & decentralized apps',
+      description: 'Master blockchain technology, smart contracts, and decentralized applications',
       icon: '🔗',
       action: () => onNavigate?.('courses'),
     },
@@ -144,13 +145,20 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
           {slides.map((slide, index) => (
             <div key={index} className="w-full flex-shrink-0">
               {slide.type === 'web3' && (
-                <Card className="p-4 bg-gradient-primary text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 6s ease infinite' }}>
+                <Card className="p-4 text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col">
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ 
+                      backgroundImage: `url(${web3Bg})`,
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/80 to-primary/70" />
                   <div className="flex-1 relative z-10">
                     <div className="flex items-center gap-2 mb-2">
                       <Wallet className="w-5 h-5" />
                       <h3 className="text-base font-bold">{slide.title}</h3>
                     </div>
-                    <p className="text-sm text-white/80 mb-3">{slide.description}</p>
+                    <p className="text-sm text-white/90 leading-relaxed">{slide.description}</p>
                   </div>
                   <div className="flex items-center justify-between relative z-10">
                     <div className="flex gap-1.5">
