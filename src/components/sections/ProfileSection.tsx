@@ -7,6 +7,7 @@ import penguinAvatar from "@/assets/penguin-avatar.png";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
+import cardBgProfile from '@/assets/card-bg-profile.jpg';
 
 export const ProfileSection = () => {
   const { user } = useAuth();
@@ -77,8 +78,9 @@ export const ProfileSection = () => {
       <h1 className="text-2xl font-bold text-foreground">Profile</h1>
       
       {/* User Info */}
-      <Card className="p-4">
-        <div className="flex items-center gap-3">
+      <Card className="p-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-cover bg-center opacity-15" style={{ backgroundImage: `url(${cardBgProfile})` }} />
+        <div className="relative z-10 flex items-center gap-3">
           <img 
             src={profile?.avatar_url || penguinAvatar} 
             alt="Profile Avatar" 
@@ -103,26 +105,37 @@ export const ProfileSection = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-2">
-        <Card className="p-3 text-center">
+        <Card className="p-3 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${cardBgProfile})` }} />
+          <div className="relative z-10">
           <BookOpen className="w-6 h-6 text-primary mx-auto mb-1" />
           <div className="text-lg font-bold text-foreground">{enrollments.length}</div>
           <div className="text-[10px] text-muted-foreground">Enrolled</div>
+          </div>
         </Card>
-        <Card className="p-3 text-center">
+        <Card className="p-3 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${cardBgProfile})` }} />
+          <div className="relative z-10">
           <ShoppingBag className="w-6 h-6 text-success mx-auto mb-1" />
           <div className="text-lg font-bold text-foreground">{marketplaceItems.length}</div>
           <div className="text-[10px] text-muted-foreground">Listed</div>
+          </div>
         </Card>
-        <Card className="p-3 text-center">
+        <Card className="p-3 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${cardBgProfile})` }} />
+          <div className="relative z-10">
           <Trophy className="w-6 h-6 text-warning mx-auto mb-1" />
           <div className="text-lg font-bold text-foreground">{createdCourses.length}</div>
           <div className="text-[10px] text-muted-foreground">Created</div>
+          </div>
         </Card>
       </div>
 
       {/* Enrolled Courses - Compact */}
       {enrollments.length > 0 && (
-        <Card className="p-4">
+        <Card className="p-4 relative overflow-hidden">
+          <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${cardBgProfile})` }} />
+          <div className="relative z-10">
           <h3 className="text-base font-bold text-foreground mb-3">Enrolled Courses</h3>
           <div className="space-y-2">
             {enrollments.slice(0, 3).map((enrollment) => (
@@ -138,12 +151,15 @@ export const ProfileSection = () => {
               </div>
             ))}
           </div>
+          </div>
         </Card>
       )}
 
       {/* My Courses - Compact */}
       {createdCourses.length > 0 && (
-        <Card className="p-4">
+        <Card className="p-4 relative overflow-hidden">
+          <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${cardBgProfile})` }} />
+          <div className="relative z-10">
           <h3 className="text-base font-bold text-foreground mb-3">My Courses</h3>
           <div className="space-y-2">
             {createdCourses.slice(0, 4).map((course) => (
@@ -167,11 +183,14 @@ export const ProfileSection = () => {
               </div>
             ))}
           </div>
+          </div>
         </Card>
       )}
 
       {/* Achievements - Compact */}
-      <Card className="p-4">
+      <Card className="p-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${cardBgProfile})` }} />
+        <div className="relative z-10">
         <h3 className="text-base font-bold text-foreground mb-3">Achievements</h3>
         <div className="grid grid-cols-2 gap-2">
           <div className="flex items-center gap-2 p-2 bg-card-hover rounded-lg">
@@ -193,6 +212,7 @@ export const ProfileSection = () => {
               <p className="text-[10px] text-muted-foreground mt-0.5 truncate">Complete 5</p>
             </div>
           </div>
+        </div>
         </div>
       </Card>
     </div>
