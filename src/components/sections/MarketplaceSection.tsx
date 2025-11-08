@@ -20,7 +20,10 @@ export const MarketplaceSection = () => {
     { value: "fashion", label: "Fashion" },
     { value: "art", label: "Art" },
     { value: "collectibles", label: "Collectibles" },
+    { value: "clothes", label: "Clothes" },
     { value: "electronics", label: "Electronics" },
+    { value: "books", label: "Books" },
+    { value: "gaming", label: "Gaming" },
   ];
 
   useEffect(() => {
