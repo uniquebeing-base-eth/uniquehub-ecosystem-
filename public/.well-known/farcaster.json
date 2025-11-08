@@ -2,12 +2,12 @@
   "miniapp": {
     "version": "1",
     "name": "UniqueHub",
-    "iconUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=3",
+    "iconUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=5",
     "homeUrl": "https://uniqueehub.vercel.app",
-    "imageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=3",
+    "imageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=5",
     "buttonTitle": "🎓 Launch UniqueHub",
-    "splashImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=3",
-    "splashBackgroundColor": "#0a6cff",
+    "splashImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=5",
+    "splashBackgroundColor": "#1a4d8f",
     "description": "Web3-powered super app combining learning, earning, and digital asset trading with courses and marketplace for NFTs",
     "subtitle": "Web3 Learning & Trading Platform",
     "primaryCategory": "education",
@@ -22,6 +22,6 @@
     ],
     "ogTitle": "UniqueHub - Web3 Learning & Trading Platform",
     "ogDescription": "Web3-powered super app combining learning, earning, and digital asset trading",
-    "ogImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=3"
+    "ogImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=5"
   }
 }
