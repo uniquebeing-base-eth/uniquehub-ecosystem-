@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { NFTMarketplace } from "@/components/NFTMarketplace";
 import { MarketplaceItemDetail } from "@/components/MarketplaceItemDetail";
+import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 
 export const MarketplaceSection = () => {
   const { user } = useAuth();
@@ -142,17 +143,27 @@ export const MarketplaceSection = () => {
                       <span className="text-sm font-bold text-primary">${item.price_usdc} USDC</span>
                       <Badge variant="secondary" className="text-[10px]">{item.category}</Badge>
                     </div>
-                    <Button 
-                      size="sm" 
-                      className="w-full" 
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedItem(item);
-                        setIsDetailOpen(true);
-                      }}
-                    >
-                      Buy Now
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        className="flex-1" 
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedItem(item);
+                          setIsDetailOpen(true);
+                        }}
+                      >
+                        Buy Now
+                      </Button>
+                      <ShareToFarcaster
+                        text={`Check out ${item.title} on @uniquehub marketplace! 🛍️ $${item.price_usdc} USDC`}
+                        embeds={item.image_url ? [item.image_url] : undefined}
+                        buttonText="Share"
+                        variant="ghost"
+                        size="sm"
+                        className="flex-shrink-0"
+                      />
+                    </div>
                   </div>
                 </Card>
               ))}
