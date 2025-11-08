@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Share2, Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface ShareToFarcasterProps {
@@ -13,45 +12,36 @@ interface ShareToFarcasterProps {
   size?: "default" | "sm" | "lg" | "icon";
 }
 
-export const ShareToFarcaster = ({ text, embeds, className, buttonText = "Share to Farcaster", variant = "outline", size = "sm" }: ShareToFarcasterProps) => {
+export const ShareToFarcaster = ({ 
+  text, 
+  embeds, 
+  className, 
+  buttonText,
+  variant = "ghost", 
+  size = "icon" 
+}: ShareToFarcasterProps) => {
   const [isSharing, setIsSharing] = useState(false);
 
   const handleShare = async () => {
     setIsSharing(true);
     try {
-      // Get signer UUID from Farcaster SDK context
-      const { sdk } = await import('@farcaster/miniapp-sdk');
-      const context = await sdk.context;
+      // Build Farcaster composer URL with intent
+      const encodedText = encodeURIComponent(text);
+      let composerUrl = `https://warpcast.com/~/compose?text=${encodedText}`;
       
-      // Check if we have a signer UUID from the context
-      let signerUuid = null;
-      if (context && typeof context === 'object' && 'client' in context) {
-        const client = (context as any).client;
-        if (client && typeof client === 'object' && 'signerUuid' in client) {
-          signerUuid = client.signerUuid;
-        }
+      // Add embeds if provided
+      if (embeds && embeds.length > 0) {
+        const embedParams = embeds.map(embed => `&embeds[]=${encodeURIComponent(embed)}`).join('');
+        composerUrl += embedParams;
       }
       
-      if (!signerUuid) {
-        toast.error('Farcaster signer not available. Please open in Farcaster app.');
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke('share-to-farcaster', {
-        body: {
-          signerUuid,
-          text,
-          embeds: embeds || [],
-        }
-      });
+      // Open in new window/tab or in the current app
+      window.open(composerUrl, '_blank');
       
-      if (error) throw error;
-      if (data?.success) {
-        toast.success('Shared to Farcaster!');
-      }
+      toast.success('Opening Farcaster composer...');
     } catch (error) {
       console.error('Error sharing to Farcaster:', error);
-      toast.error('Failed to share to Farcaster. Make sure you have posting permissions.');
+      toast.error('Failed to open Farcaster composer');
     } finally {
       setIsSharing(false);
     }
@@ -64,13 +54,14 @@ export const ShareToFarcaster = ({ text, embeds, className, buttonText = "Share 
       onClick={handleShare}
       disabled={isSharing}
       className={className}
+      title={buttonText || "Share to Farcaster"}
     >
       {isSharing ? (
-        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+        <Loader2 className="w-4 h-4 animate-spin" />
       ) : (
-        <Share2 className="w-4 h-4 mr-2" />
+        <Share2 className="w-4 h-4" />
       )}
-      {buttonText}
+      {buttonText && size !== "icon" && <span className="ml-2">{buttonText}</span>}
     </Button>
   );
 };

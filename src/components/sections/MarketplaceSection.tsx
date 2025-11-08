@@ -158,9 +158,8 @@ export const MarketplaceSection = () => {
                       <ShareToFarcaster
                         text={`Check out ${item.title} on @uniquehub marketplace! 🛍️ $${item.price_usdc} USDC`}
                         embeds={item.image_url ? [item.image_url] : undefined}
-                        buttonText="Share"
                         variant="ghost"
-                        size="sm"
+                        size="icon"
                         className="flex-shrink-0"
                       />
                     </div>

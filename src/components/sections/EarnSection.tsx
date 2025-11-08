@@ -370,6 +370,8 @@ export const EarnSection = () => {
             <ShareToFarcaster
               text={`Just earned ${lastClaimedPoints} UP points on @uniquehub! 🎉 Join me and start earning rewards for completing tasks! 💎`}
               buttonText="Share on Farcaster"
+              variant="default"
+              size="sm"
               className="w-full"
             />
             <Button

@@ -52,9 +52,8 @@ export const LatestNFTCard = ({ nft }: LatestNFTCardProps) => {
             <ShareToFarcaster
               text={`Check out this NFT: ${nft.name || 'NFT'} on @uniquehub! 💎✨`}
               embeds={nft.image_url ? [nft.image_url] : undefined}
-              buttonText="Share"
               variant="ghost"
-              size="sm"
+              size="icon"
             />
           </div>
         </div>
