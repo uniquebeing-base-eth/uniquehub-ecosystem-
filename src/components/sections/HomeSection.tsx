@@ -145,32 +145,31 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
             <div key={index} className="w-full flex-shrink-0">
               {slide.type === 'web3' && (
                 <Card className="p-4 bg-gradient-primary text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 6s ease infinite' }}>
-                  <div className="flex items-start justify-between flex-1 relative z-10">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Wallet className="w-5 h-5" />
-                        <h3 className="text-base font-bold">{slide.title}</h3>
-                      </div>
-                      <p className="text-sm text-white/80 mb-3">{slide.description}</p>
-                      <Button 
-                        variant="secondary"
-                        className="bg-white/90 text-primary hover:bg-white hover:shadow-lg rounded-2xl px-4 py-1.5 h-auto text-xs transition-all duration-300 hover:scale-105"
-                        onClick={slide.action}
-                      >
-                        Start Now
-                      </Button>
+                  <div className="flex-1 relative z-10">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Wallet className="w-5 h-5" />
+                      <h3 className="text-base font-bold">{slide.title}</h3>
                     </div>
-                    <div className="text-3xl opacity-80">🔗</div>
+                    <p className="text-sm text-white/80 mb-3">{slide.description}</p>
                   </div>
-                  <div className="flex gap-1.5 mt-auto relative z-10">
-                    {slides.map((_, dotIndex) => (
-                      <div
-                        key={dotIndex}
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          dotIndex === currentSlide ? 'bg-white' : 'bg-white/40'
-                        }`}
-                      />
-                    ))}
+                  <div className="flex items-center justify-between relative z-10">
+                    <div className="flex gap-1.5">
+                      {slides.map((_, dotIndex) => (
+                        <div
+                          key={dotIndex}
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            dotIndex === currentSlide ? 'bg-white' : 'bg-white/40'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <Button 
+                      variant="secondary"
+                      className="bg-white/90 text-primary hover:bg-white hover:shadow-lg rounded-xl px-3 py-1 h-auto text-xs font-medium transition-all duration-300 hover:scale-105"
+                      onClick={slide.action}
+                    >
+                      Start Now
+                    </Button>
                   </div>
                 </Card>
               )}
@@ -203,7 +202,7 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
                 <Card className="p-4 bg-gradient-primary text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 6s ease infinite' }}>
                   <div className="flex gap-3 flex-1 relative z-10">
                     {slide.course.thumbnail_url && (
-                      <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-white/10">
+                      <div className="w-24 h-full rounded-xl overflow-hidden flex-shrink-0 bg-white/10">
                         <img 
                           src={slide.course.thumbnail_url} 
                           alt={slide.course.title}
@@ -211,7 +210,7 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
                         />
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 flex flex-col">
                       <div className="flex items-center gap-1.5 mb-1">
                         <BookOpen className="w-4 h-4" />
                         <span className="text-xs font-medium opacity-80">Trending</span>
@@ -227,24 +226,26 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
                           <span className="font-medium">{slide.course.enrollment_count}</span>
                         </div>
                       </div>
-                      <Button 
-                        variant="secondary"
-                        className="bg-white/90 text-primary hover:bg-white hover:shadow-lg rounded-2xl px-4 py-1.5 h-auto text-xs transition-all duration-300 hover:scale-105"
-                        onClick={() => onNavigate?.('courses')}
-                      >
-                        View Course
-                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-1.5 mt-auto relative z-10">
-                    {slides.map((_, dotIndex) => (
-                      <div
-                        key={dotIndex}
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          dotIndex === currentSlide ? 'bg-white' : 'bg-white/40'
-                        }`}
-                      />
-                    ))}
+                  <div className="flex items-center justify-between relative z-10 mt-2">
+                    <div className="flex gap-1.5">
+                      {slides.map((_, dotIndex) => (
+                        <div
+                          key={dotIndex}
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            dotIndex === currentSlide ? 'bg-white' : 'bg-white/40'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <Button 
+                      variant="secondary"
+                      className="bg-white/90 text-primary hover:bg-white hover:shadow-lg rounded-xl px-3 py-1 h-auto text-xs font-medium transition-all duration-300 hover:scale-105"
+                      onClick={() => onNavigate?.('courses')}
+                    >
+                      View Course
+                    </Button>
                   </div>
                 </Card>
               )}
