@@ -27,7 +27,7 @@ export const UploadSection = () => {
           className="p-6 cursor-pointer hover:border-primary transition-all group relative overflow-hidden"
           onClick={() => setShowCourseUpload(true)}
         >
-          <div className="absolute inset-0 bg-cover bg-center opacity-15" style={{ backgroundImage: `url(${cardBgUpload})` }} />
+          <div className="absolute inset-0 bg-cover bg-center opacity-30" style={{ backgroundImage: `url(${cardBgUpload})` }} />
           <div className="relative z-10 flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center group-hover:shadow-glow transition-all">
               <BookOpen className="w-7 h-7 text-white" />
@@ -45,7 +45,7 @@ export const UploadSection = () => {
           className="p-6 cursor-pointer hover:border-primary transition-all group relative overflow-hidden"
           onClick={() => setShowNFTUpload(true)}
         >
-          <div className="absolute inset-0 bg-cover bg-center opacity-15" style={{ backgroundImage: `url(${cardBgUpload})` }} />
+          <div className="absolute inset-0 bg-cover bg-center opacity-30" style={{ backgroundImage: `url(${cardBgUpload})` }} />
           <div className="relative z-10 flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center group-hover:shadow-glow transition-all">
               <Image className="w-7 h-7 text-white" />
@@ -63,7 +63,7 @@ export const UploadSection = () => {
           className="p-6 cursor-pointer hover:border-primary transition-all group relative overflow-hidden"
           onClick={() => setShowMarketItemUpload(true)}
         >
-          <div className="absolute inset-0 bg-cover bg-center opacity-15" style={{ backgroundImage: `url(${cardBgUpload})` }} />
+          <div className="absolute inset-0 bg-cover bg-center opacity-30" style={{ backgroundImage: `url(${cardBgUpload})` }} />
           <div className="relative z-10 flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center group-hover:shadow-glow transition-all">
               <ShoppingBag className="w-7 h-7 text-white" />

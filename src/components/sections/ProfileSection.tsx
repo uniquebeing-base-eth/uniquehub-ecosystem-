@@ -79,7 +79,7 @@ export const ProfileSection = () => {
       
       {/* User Info */}
       <Card className="p-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center opacity-15" style={{ backgroundImage: `url(${cardBgProfile})` }} />
+        <div className="absolute inset-0 bg-cover bg-center opacity-30" style={{ backgroundImage: `url(${cardBgProfile})` }} />
         <div className="relative z-10 flex items-center gap-3">
           <img 
             src={profile?.avatar_url || penguinAvatar} 
@@ -106,7 +106,7 @@ export const ProfileSection = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-2">
         <Card className="p-3 text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${cardBgProfile})` }} />
+          <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgProfile})` }} />
           <div className="relative z-10">
           <BookOpen className="w-6 h-6 text-primary mx-auto mb-1" />
           <div className="text-lg font-bold text-foreground">{enrollments.length}</div>
@@ -114,7 +114,7 @@ export const ProfileSection = () => {
           </div>
         </Card>
         <Card className="p-3 text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${cardBgProfile})` }} />
+          <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgProfile})` }} />
           <div className="relative z-10">
           <ShoppingBag className="w-6 h-6 text-success mx-auto mb-1" />
           <div className="text-lg font-bold text-foreground">{marketplaceItems.length}</div>
@@ -122,7 +122,7 @@ export const ProfileSection = () => {
           </div>
         </Card>
         <Card className="p-3 text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${cardBgProfile})` }} />
+          <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgProfile})` }} />
           <div className="relative z-10">
           <Trophy className="w-6 h-6 text-warning mx-auto mb-1" />
           <div className="text-lg font-bold text-foreground">{createdCourses.length}</div>
@@ -134,7 +134,7 @@ export const ProfileSection = () => {
       {/* Enrolled Courses - Compact */}
       {enrollments.length > 0 && (
         <Card className="p-4 relative overflow-hidden">
-          <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${cardBgProfile})` }} />
+          <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgProfile})` }} />
           <div className="relative z-10">
           <h3 className="text-base font-bold text-foreground mb-3">Enrolled Courses</h3>
           <div className="space-y-2">
@@ -158,7 +158,7 @@ export const ProfileSection = () => {
       {/* My Courses - Compact */}
       {createdCourses.length > 0 && (
         <Card className="p-4 relative overflow-hidden">
-          <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${cardBgProfile})` }} />
+          <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgProfile})` }} />
           <div className="relative z-10">
           <h3 className="text-base font-bold text-foreground mb-3">My Courses</h3>
           <div className="space-y-2">
@@ -189,7 +189,7 @@ export const ProfileSection = () => {
 
       {/* Achievements - Compact */}
       <Card className="p-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${cardBgProfile})` }} />
+        <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgProfile})` }} />
         <div className="relative z-10">
         <h3 className="text-base font-bold text-foreground mb-3">Achievements</h3>
         <div className="grid grid-cols-2 gap-2">

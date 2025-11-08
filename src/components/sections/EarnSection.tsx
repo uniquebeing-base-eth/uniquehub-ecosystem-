@@ -215,7 +215,7 @@ export const EarnSection = () => {
 
       {/* Affiliate Stats */}
       <Card className="p-3 bg-gradient-card relative overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: `url(${cardBgEarn})` }} />
+        <div className="absolute inset-0 bg-cover bg-center opacity-30" style={{ backgroundImage: `url(${cardBgEarn})` }} />
         <div className="relative z-10">
         <div className="flex items-center gap-2 mb-2">
           <Coins className="w-4 h-4 text-primary" />
@@ -247,7 +247,7 @@ export const EarnSection = () => {
           
           return (
             <Card key={task.id} className="p-3 relative overflow-hidden">
-              <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${cardBgEarn})` }} />
+              <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgEarn})` }} />
               <div className="relative z-10 flex items-start gap-2">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Icon className="w-4 h-4 text-primary" />
