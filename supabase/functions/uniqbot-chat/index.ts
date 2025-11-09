@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,14 +42,14 @@ Be polite and encouraging.
 Never give financial, medical, or legal advice.
 End some responses with warm, motivational lines like "Keep learning with UniqueHub 💙" or "You're doing great — stay curious!"`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           ...messages.map((msg: any) => ({ role: msg.role, content: msg.content }))
@@ -62,7 +62,7 @@ End some responses with warm, motivational lines like "Keep learning with Unique
     const data = await response.json();
     
     if (!response.ok) {
-      console.error('OpenAI API error:', data);
+      console.error('Lovable AI Gateway error:', data);
       throw new Error(data.error?.message || 'Failed to get response from AI');
     }
 
