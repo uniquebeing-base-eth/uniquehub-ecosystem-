@@ -173,19 +173,17 @@ export const UniqBot = () => {
 
       {/* Chat Interface */}
       {isOpen && (
-        <div className="fixed inset-x-0 bottom-0 z-50 md:right-4 md:bottom-4 md:left-auto md:w-96 md:h-[600px] h-full animate-slide-in-bottom">
+        <div className="fixed inset-x-0 bottom-0 z-[70] md:right-4 md:bottom-4 md:left-auto md:w-96 md:h-[600px] h-full animate-enter">
           <div className="bg-background rounded-t-3xl md:rounded-2xl shadow-2xl border border-border h-full flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-primary to-crypto-blue p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center">
-                  <span className="text-xl font-bold text-primary">U</span>
+              <div className="bg-gradient-to-r from-primary to-crypto-blue p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <img src={uniqbotAvatar} alt="UniqBot" className="w-10 h-10 rounded-full object-cover bg-background" />
+                  <div>
+                    <h3 className="font-semibold text-white">UniqBot</h3>
+                    <p className="text-xs text-white/80">AI Assistant</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-white">UniqBot</h3>
-                  <p className="text-xs text-white/80">AI Assistant</p>
-                </div>
-              </div>
               <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
@@ -249,7 +247,7 @@ export const UniqBot = () => {
             </ScrollArea>
 
             {/* Input */}
-            <div className="p-4 border-t border-border">
+            <div className="p-4 pb-[max(env(safe-area-inset-bottom),0.5rem)] border-t border-border">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
