@@ -12,6 +12,7 @@ import { TutorSection } from "@/components/sections/TutorSection";
 import { UploadSection } from "@/components/sections/UploadSection";
 import { WalletSection } from "@/components/sections/WalletSection";
 import { EarnSection } from "@/components/sections/EarnSection";
+import { BlogSection } from "@/components/sections/BlogSection";
 import { MiniAppPrompt } from "@/components/MiniAppPrompt";
 import cubeLogo from "@/assets/uniquehub-cube.png";
 import { useAuth } from "@/hooks/useAuth";
@@ -97,6 +98,8 @@ const Dashboard = () => {
         return <WalletSection />;
       case "earn":
         return <EarnSection />;
+      case "blog":
+        return <BlogSection />;
       case "about":
         return (
           <div className="space-y-4 pb-24 animate-fade-in">

@@ -13,13 +13,11 @@ export const WalletSection = () => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [ethBalance, setEthBalance] = useState('0.00');
   const [usdcBalance, setUsdcBalance] = useState('0.00');
-  const [upPoints, setUpPoints] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
       fetchWalletData();
-      fetchPoints();
     }
   }, [user]);
 
@@ -55,23 +53,6 @@ export const WalletSection = () => {
     }
   };
 
-  const fetchPoints = async () => {
-    if (!user) return;
-
-    try {
-      const { data } = await supabase
-        .from('user_points')
-        .select('total_points')
-        .eq('user_id', user.id)
-        .single();
-
-      if (data) {
-        setUpPoints(data.total_points);
-      }
-    } catch (error) {
-      console.error('Error fetching points:', error);
-    }
-  };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -128,21 +109,26 @@ export const WalletSection = () => {
 
       {/* Balances */}
       <div className="space-y-2">
+        <WalletCard type="uniq" amount="Coming Soon" symbol="UNIQ" />
         <WalletCard type="eth" amount={ethBalance} symbol="ETH" />
         <WalletCard type="usdc" amount={usdcBalance} symbol="USDC" />
-        <WalletCard type="points" amount={upPoints.toString()} symbol="UP" />
       </div>
 
-      {/* Quick Actions */}
-      <Card className="p-3">
+      {/* Quick Actions - Blurred Coming Soon */}
+      <Card className="p-3 relative">
         <h3 className="text-sm font-semibold mb-2">Quick Actions</h3>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2 blur-sm pointer-events-none">
           <Button variant="outline" size="sm" className="h-8 text-xs">
             Send
           </Button>
           <Button variant="outline" size="sm" className="h-8 text-xs">
             Receive
           </Button>
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-sm font-semibold text-primary bg-card/80 px-4 py-2 rounded-full border border-primary/50">
+            Coming Soon
+          </span>
         </div>
       </Card>
     </div>

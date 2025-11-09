@@ -171,13 +171,6 @@ export const MarketplaceSection = () => {
         </div>
       )}
 
-      {/* NFT Marketplace Component */}
-      {(selectedFilter === "all" || selectedFilter === "nfts") && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold">NFTs</h3>
-          <NFTMarketplace />
-        </div>
-      )}
 
       {/* Marketplace Item Detail Dialog */}
       <MarketplaceItemDetail

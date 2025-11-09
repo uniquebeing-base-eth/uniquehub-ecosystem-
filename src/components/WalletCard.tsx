@@ -1,7 +1,7 @@
 import { DollarSign, Star } from 'lucide-react';
 
 interface WalletCardProps {
-  type: 'usdc' | 'eth' | 'points';
+  type: 'usdc' | 'eth' | 'uniq';
   amount: string;
   symbol: string;
 }
@@ -13,8 +13,8 @@ export const WalletCard = ({ type, amount, symbol }: WalletCardProps) => {
         return <DollarSign className="w-6 h-6 text-crypto-usdc" />;
       case 'eth':
         return <div className="w-6 h-6 bg-crypto-eth rounded-full flex items-center justify-center text-xs font-bold text-background">Ξ</div>;
-      case 'points':
-        return <Star className="w-6 h-6 text-success" fill="currentColor" />;
+      case 'uniq':
+        return <Star className="w-6 h-6 text-primary" fill="currentColor" />;
       default:
         return null;
     }
