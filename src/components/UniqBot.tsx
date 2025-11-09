@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Send, Trash2, Minimize2 } from "lucide-react";
+import { Send, Minimize2, Mic } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
@@ -24,23 +24,33 @@ export const UniqBot = () => {
 
   // Load chat history from localStorage
   useEffect(() => {
-    const savedMessages = localStorage.getItem("uniqbot-messages");
-    if (savedMessages) {
-      setMessages(JSON.parse(savedMessages));
+    const savedNew = localStorage.getItem("uniqbot_chat_history");
+    const savedOld = localStorage.getItem("uniqbot-messages");
+    if (savedNew) {
+      setMessages(JSON.parse(savedNew));
+    } else if (savedOld) {
+      try {
+        const parsed = JSON.parse(savedOld);
+        setMessages(parsed);
+        localStorage.setItem("uniqbot_chat_history", savedOld);
+        localStorage.removeItem("uniqbot-messages");
+      } catch {
+        // ignore parsing errors
+      }
     }
   }, []);
 
   // Save messages to localStorage
   useEffect(() => {
     if (messages.length > 0) {
-      localStorage.setItem("uniqbot-messages", JSON.stringify(messages));
+      localStorage.setItem("uniqbot_chat_history", JSON.stringify(messages));
     }
   }, [messages]);
 
   // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
 
@@ -81,6 +91,7 @@ export const UniqBot = () => {
 
   const clearChat = () => {
     setMessages([]);
+    localStorage.removeItem("uniqbot_chat_history");
     localStorage.removeItem("uniqbot-messages");
     toast.success("Chat history cleared");
   };
@@ -178,11 +189,10 @@ export const UniqBot = () => {
               <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
-                  size="icon"
                   onClick={clearChat}
-                  className="text-white hover:bg-white/20"
+                  className="text-white hover:bg-white/20 text-xs sm:text-sm"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  🗑 Clear Chat
                 </Button>
                 <Button
                   variant="ghost"
@@ -196,11 +206,10 @@ export const UniqBot = () => {
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+            <ScrollArea className="flex-1 p-4">
               {messages.length === 0 && (
                 <div className="text-center text-muted-foreground py-8">
-                  <p className="mb-2">👋 Hi! I'm UniqBot</p>
-                  <p className="text-sm">Ask me anything about UniqueHub or learning!</p>
+                  <p className="text-sm">Hi! I’m UniqBot 👋 Ask me anything about UniqueHub or learning!</p>
                 </div>
               )}
               {messages.map((msg, idx) => (
@@ -236,6 +245,7 @@ export const UniqBot = () => {
                   </div>
                 </div>
               )}
+              <div ref={scrollRef} />
             </ScrollArea>
 
             {/* Input */}
@@ -254,6 +264,9 @@ export const UniqBot = () => {
                   disabled={isLoading}
                   className="flex-1"
                 />
+                <Button type="button" variant="ghost" size="icon" disabled className="opacity-60 cursor-not-allowed" aria-label="Microphone (coming soon)">
+                  <Mic className="h-4 w-4" />
+                </Button>
                 <Button type="submit" disabled={isLoading || !input.trim()} size="icon">
                   <Send className="h-4 w-4" />
                 </Button>
