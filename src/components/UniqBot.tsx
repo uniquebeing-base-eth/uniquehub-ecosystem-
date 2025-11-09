@@ -5,7 +5,7 @@ import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
+import uniqbotAvatar from "@/assets/uniqbot-avatar.png";
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -17,7 +17,7 @@ export const UniqBot = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [position, setPosition] = useState({ x: 20, y: 20 });
+  const [position, setPosition] = useState({ x: 20, y: 100 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -95,10 +95,18 @@ export const UniqBot = () => {
     });
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (isOpen) return;
+    setIsDragging(true);
+    const rect = e.currentTarget.getBoundingClientRect();
+    const t = e.touches[0];
+    setDragOffset({ x: t.clientX - rect.left, y: t.clientY - rect.top });
+  };
+
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDragging) return;
     const newX = Math.max(0, Math.min(window.innerWidth - 80, e.clientX - dragOffset.x));
-    const newY = Math.max(0, Math.min(window.innerHeight - 80, e.clientY - dragOffset.y));
+    const newY = Math.max(0, Math.min(window.innerHeight - 140, e.clientY - dragOffset.y));
     setPosition({ x: newX, y: newY });
   };
 
@@ -108,11 +116,23 @@ export const UniqBot = () => {
 
   useEffect(() => {
     if (isDragging) {
+      const onTouchMove = (e: TouchEvent) => {
+        const t = e.touches[0];
+        const newX = Math.max(0, Math.min(window.innerWidth - 80, t.clientX - dragOffset.x));
+        const newY = Math.max(0, Math.min(window.innerHeight - 140, t.clientY - dragOffset.y));
+        setPosition({ x: newX, y: newY });
+      };
+      const onTouchEnd = () => setIsDragging(false);
+
       window.addEventListener("mousemove", handleMouseMove);
       window.addEventListener("mouseup", handleMouseUp);
+      window.addEventListener("touchmove", onTouchMove);
+      window.addEventListener("touchend", onTouchEnd);
       return () => {
         window.removeEventListener("mousemove", handleMouseMove);
         window.removeEventListener("mouseup", handleMouseUp);
+        window.removeEventListener("touchmove", onTouchMove);
+        window.removeEventListener("touchend", onTouchEnd);
       };
     }
   }, [isDragging, dragOffset]);
@@ -125,16 +145,15 @@ export const UniqBot = () => {
           className="fixed z-50 cursor-move select-none"
           style={{
             right: `${position.x}px`,
-            bottom: `${position.y}px`,
+            bottom: `calc(${position.y}px + env(safe-area-inset-bottom))`,
           }}
           onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
           onClick={() => !isDragging && setIsOpen(true)}
         >
           <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-crypto-blue flex items-center justify-center shadow-lg animate-pulse cursor-pointer hover:scale-110 transition-transform">
-              <div className="w-12 h-12 rounded-full bg-background flex items-center justify-center">
-                <span className="text-2xl font-bold text-primary">U</span>
-              </div>
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-crypto-blue p-1 flex items-center justify-center shadow-lg pulse cursor-pointer hover:scale-110 transition-transform">
+              <img src={uniqbotAvatar} alt="UniqBot avatar" className="w-14 h-14 rounded-full object-cover" />
             </div>
             <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background animate-pulse" />
           </div>
@@ -198,9 +217,7 @@ export const UniqBot = () => {
                   >
                     {msg.role === "assistant" && (
                       <div className="flex items-center gap-2 mb-1">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary to-crypto-blue flex items-center justify-center">
-                          <span className="text-xs font-bold text-white">U</span>
-                        </div>
+                        <img src={uniqbotAvatar} alt="UniqBot" className="w-6 h-6 rounded-full object-cover" />
                         <span className="text-xs font-semibold">UniqBot</span>
                       </div>
                     )}
