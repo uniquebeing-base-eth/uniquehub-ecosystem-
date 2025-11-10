@@ -327,6 +327,33 @@ export type Database = {
           },
         ]
       }
+      farcaster_notifications: {
+        Row: {
+          created_at: string
+          fid: number
+          id: string
+          notification_token: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          fid: number
+          id?: string
+          notification_token: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          fid?: number
+          id?: string
+          notification_token?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       marketplace_item_comment_reactions: {
         Row: {
           comment_id: string
