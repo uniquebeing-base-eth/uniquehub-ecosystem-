@@ -14,18 +14,21 @@
     "splashImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=6",
     "splashBackgroundColor": "#1a4d8f",
     "webhookUrl": "https://ucqcrhfcflrepsdlcvpq.supabase.co/functions/v1/miniapp-webhook",
-    "description": "Web3 powered super app for learning earning and digital asset trading with courses and NFT marketplace",
-    "subtitle": "Web3 Learning and Trading",
+    "description": "Learn Web3 earn rewards and trade digital assets with blockchain courses NFT marketplace and social features on Base",
+    "subtitle": "Learn Earn and Trade on Base",
     "primaryCategory": "education",
     "tags": [
       "web3",
-      "learning",
-      "courses",
-      "nft",
-      "marketplace"
+      "education",
+      "blockchain",
+      "base",
+      "learning"
     ],
-    "ogTitle": "UniqueHub Learning Platform",
-    "ogDescription": "Web3 powered super app for learning earning and trading",
+    "ogTitle": "UniqueHub Web3 Learning Platform",
+    "ogDescription": "Learn blockchain earn rewards trade NFTs on Base",
     "ogImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=6"
+  },
+  "baseBuilder": {
+    "ownerAddress": "0x170c5a413136F094421fad8Dd20285b5e05Fff5e"
   }
 }

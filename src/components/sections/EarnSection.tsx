@@ -51,6 +51,22 @@ export const EarnSection = () => {
       followUrl: 'https://farcaster.xyz/uniquebeing404',
     },
     {
+      id: "read-blog-web3",
+      title: "Read What is Web3",
+      description: "Learn about Web3 fundamentals",
+      points: 100,
+      icon: BookOpen,
+      type: 'app',
+    },
+    {
+      id: "read-blog-education",
+      title: "Read Education in Web3",
+      description: "Understand Web3 education importance",
+      points: 100,
+      icon: BookOpen,
+      type: 'app',
+    },
+    {
       id: "finish-1-course",
       title: "Finish 1 Course",
       description: "Complete your first course",

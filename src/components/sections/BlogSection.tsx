@@ -1,10 +1,14 @@
+import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, User } from "lucide-react";
+import { Calendar, User, CheckCircle2 } from "lucide-react";
 import cubeLogo from "@/assets/uniquehub-cube.png";
 import blogWeb3Image from "@/assets/blog-web3.jpg";
 import blogEducationImage from "@/assets/blog-education-web3.jpg";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface BlogArticle {
   id: string;
@@ -67,6 +71,48 @@ References:
 ];
 
 export const BlogSection = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const handleArticleRead = async (articleId: string) => {
+    if (!user) return;
+
+    // Map article IDs to task IDs
+    const taskIdMap: { [key: string]: string } = {
+      'what-is-web3': 'read-blog-web3',
+      'education-in-web3': 'read-blog-education',
+    };
+
+    const taskId = taskIdMap[articleId];
+    if (!taskId) return;
+
+    try {
+      // Check if task already completed
+      const { data: existing } = await supabase
+        .from('task_completions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('task_id', taskId)
+        .maybeSingle();
+
+      if (existing) return; // Already completed
+
+      // Mark as completed automatically
+      const { error } = await supabase.functions.invoke('complete-task', {
+        body: { taskId },
+      });
+
+      if (!error) {
+        toast({
+          title: "Task completed!",
+          description: "You earned points for reading this article",
+        });
+      }
+    } catch (error) {
+      console.error('Error completing blog task:', error);
+    }
+  };
+
   return (
     <div className="space-y-6 pb-24">
       <div className="text-center space-y-2">
@@ -111,7 +157,15 @@ export const BlogSection = () => {
                 </div>
               </div>
 
-              <details className="pt-2">
+              <details 
+                className="pt-2"
+                onToggle={(e) => {
+                  const isOpen = (e.target as HTMLDetailsElement).open;
+                  if (isOpen) {
+                    handleArticleRead(article.id);
+                  }
+                }}
+              >
                 <summary className="text-sm font-semibold text-primary cursor-pointer hover:underline">
                   Read full article
                 </summary>

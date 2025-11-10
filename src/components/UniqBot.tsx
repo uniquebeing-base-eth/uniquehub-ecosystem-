@@ -98,20 +98,23 @@ export const UniqBot = () => {
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isOpen) return;
+    e.preventDefault();
     setIsDragging(true);
-    const rect = e.currentTarget.getBoundingClientRect();
     setDragOffset({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
     });
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isOpen) return;
+    e.preventDefault();
     setIsDragging(true);
-    const rect = e.currentTarget.getBoundingClientRect();
     const t = e.touches[0];
-    setDragOffset({ x: t.clientX - rect.left, y: t.clientY - rect.top });
+    setDragOffset({ 
+      x: t.clientX - position.x, 
+      y: t.clientY - position.y 
+    });
   };
 
   const handleMouseMove = (e: MouseEvent) => {
