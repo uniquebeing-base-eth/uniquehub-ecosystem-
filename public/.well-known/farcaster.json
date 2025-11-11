@@ -13,7 +13,7 @@
     "buttonTitle": "Launch UniqueHub",
     "splashImageUrl": "https://uniqueehub.vercel.app/icon.png",
     "splashBackgroundColor": "#1a4d8f",
-    "webhookUrl": "https://ucqcrhfcflrepsdlcvpq.supabase.co/functions/v1/miniapp-webhook",
+    "webhookUrl": "https://api.neynar.com/f/app/916259b6-b248-4d47-b5e2-28d9e4bcb1c6/event",
     "description": "Learn Web3 earn rewards and trade NFTs on Base",
     "subtitle": "Learn Earn and Trade on Base",
     "primaryCategory": "education",
@@ -25,7 +25,7 @@
       "learning"
     ],
     "ogTitle": "UniqueHub",
-    "ogDescription": "Learn blockchain earn rewards and trade NFTs on Base network",
+    "ogDescription": "Web3 learning and NFT trading",
     "ogImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png"
   },
   "frame": {
@@ -35,7 +35,7 @@
     "homeUrl": "https://uniqueehub.vercel.app",
     "splashImageUrl": "https://uniqueehub.vercel.app/icon.png",
     "splashBackgroundColor": "#1a4d8f",
-    "webhookUrl": "https://ucqcrhfcflrepsdlcvpq.supabase.co/functions/v1/miniapp-webhook",
+    "webhookUrl": "https://api.neynar.com/f/app/916259b6-b248-4d47-b5e2-28d9e4bcb1c6/event",
     "subtitle": "Learn Earn and Trade on Base",
     "description": "Learn Web3 earn rewards and trade NFTs on Base",
     "primaryCategory": "education",
@@ -47,7 +47,7 @@
       "learning"
     ],
     "ogTitle": "UniqueHub",
-    "ogDescription": "Learn blockchain earn rewards and trade NFTs on Base network",
+    "ogDescription": "Web3 learning and NFT trading",
     "ogImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png"
   },
   "baseBuilder": {
