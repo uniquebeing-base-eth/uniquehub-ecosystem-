@@ -1,12 +1,13 @@
 import { createConfig, http } from 'wagmi';
 import { base } from 'wagmi/chains';
-import { injected } from 'wagmi/connectors';
+import { fallback } from 'viem';
+import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
 
 export const wagmiConfig = createConfig({
   chains: [base],
-  connectors: [injected()],
+  connectors: [farcasterMiniApp()],
   transports: {
-    [base.id]: http(),
+    [base.id]: fallback([http('https://mainnet.base.org')]),
   },
   ssr: false,
 });
