@@ -160,6 +160,24 @@ export const EarnSection = () => {
       return;
     }
 
+    // Handle blog reading tasks - navigate to blog section
+    if (task.id === 'read-blog-web3' || task.id === 'read-blog-education') {
+      // Navigate to blog section
+      const event = new CustomEvent('navigateToSection', { detail: 'blog' });
+      window.dispatchEvent(event);
+      
+      toast({
+        title: "Opening blog section",
+        description: "Read the article, then come back to claim points",
+      });
+      
+      // Mark as ready to claim after user returns
+      setTimeout(() => {
+        setVerifiedTasks(prev => [...prev, task.id]);
+      }, 2000);
+      return;
+    }
+
     // Handle follow tasks
     if (task.type === 'follow') {
       // First click - open the link
@@ -227,7 +245,7 @@ export const EarnSection = () => {
       return;
     }
 
-    // Handle app-based tasks (blog reading, courses, listings, etc.)
+    // Handle other app-based tasks (courses, listings, etc.)
     // These can be verified and claimed directly
     setVerifiedTasks(prev => [...prev, task.id]);
     toast({

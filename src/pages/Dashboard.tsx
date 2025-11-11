@@ -13,6 +13,7 @@ import { UploadSection } from "@/components/sections/UploadSection";
 import { WalletSection } from "@/components/sections/WalletSection";
 import { EarnSection } from "@/components/sections/EarnSection";
 import { BlogSection } from "@/components/sections/BlogSection";
+import { Leaderboard } from "@/components/Leaderboard";
 import { MiniAppPrompt } from "@/components/MiniAppPrompt";
 import { UniqBot } from "@/components/UniqBot";
 import cubeLogo from "@/assets/uniquehub-cube.png";
@@ -60,14 +61,25 @@ const Dashboard = () => {
     setActiveTab(tab);
   };
 
-  // Listen for global navigation events (e.g., after successful uploads)
+  // Listen for global navigation events (e.g., after successful uploads, earn section blog navigation)
   useEffect(() => {
     const handler = ((e: any) => {
       const detail = (e as CustomEvent)?.detail as { tab?: string } | undefined;
       if (detail?.tab) setActiveTab(detail.tab);
     }) as EventListener;
+    
+    const navigateHandler = ((e: any) => {
+      const section = (e as CustomEvent)?.detail;
+      if (section) setActiveTab(section);
+    }) as EventListener;
+    
     window.addEventListener('navigate', handler);
-    return () => window.removeEventListener('navigate', handler);
+    window.addEventListener('navigateToSection', navigateHandler);
+    
+    return () => {
+      window.removeEventListener('navigate', handler);
+      window.removeEventListener('navigateToSection', navigateHandler);
+    };
   }, []);
 
   if (loading) {
@@ -99,6 +111,8 @@ const Dashboard = () => {
         return <WalletSection />;
       case "earn":
         return <EarnSection />;
+      case "leaderboard":
+        return <Leaderboard />;
       case "blog":
         return <BlogSection />;
       case "about":

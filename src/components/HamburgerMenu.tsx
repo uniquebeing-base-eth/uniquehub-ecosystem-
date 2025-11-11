@@ -1,4 +1,4 @@
-import { Menu, Wallet, GraduationCap, Info, Mail, BookOpen } from "lucide-react";
+import { Menu, Wallet, GraduationCap, Info, Mail, BookOpen, Trophy } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -12,6 +12,7 @@ interface HamburgerMenuProps {
 export const HamburgerMenu = ({ onNavigate }: HamburgerMenuProps) => {
   const menuItems = [
     { id: "wallet", icon: Wallet, label: "Wallet" },
+    { id: "leaderboard", icon: Trophy, label: "Leaderboard" },
     { id: "tutor", icon: GraduationCap, label: "Tutor Dashboard" },
     { id: "blog", icon: BookOpen, label: "Blog" },
     { id: "about", icon: Info, label: "About" },

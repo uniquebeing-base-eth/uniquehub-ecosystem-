@@ -15,6 +15,8 @@ interface LeaderboardEntry {
   weekly_streak: number;
   monthly_streak: number;
   rank: number;
+  total_eth_earned?: number;
+  total_usdc_earned?: number;
 }
 
 export const Leaderboard = () => {
@@ -33,7 +35,36 @@ export const Leaderboard = () => {
         .limit(10);
 
       if (error) throw error;
-      setLeaders(data || []);
+      
+      // Fetch earnings for each user
+      const leadersWithEarnings = await Promise.all(
+        (data || []).map(async (leader) => {
+          const { data: payments } = await supabase
+            .from('course_payments')
+            .select('amount, currency, status')
+            .eq('seller_user_id', leader.user_id)
+            .eq('status', 'completed');
+          
+          let total_eth_earned = 0;
+          let total_usdc_earned = 0;
+          
+          payments?.forEach(payment => {
+            if (payment.currency === 'ETH') {
+              total_eth_earned += Number(payment.amount);
+            } else if (payment.currency === 'USDC') {
+              total_usdc_earned += Number(payment.amount);
+            }
+          });
+          
+          return {
+            ...leader,
+            total_eth_earned,
+            total_usdc_earned,
+          };
+        })
+      );
+      
+      setLeaders(leadersWithEarnings);
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
     } finally {
@@ -100,18 +131,29 @@ export const Leaderboard = () => {
               </Avatar>
 
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-foreground truncate">
-                  {leader.display_name || leader.farcaster_username || 'Anonymous'}
-                </p>
-                <div className="flex gap-3 text-xs text-muted-foreground">
+                {leader.farcaster_username ? (
+                  <a 
+                    href={`https://warpcast.com/${leader.farcaster_username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-primary hover:underline truncate block"
+                  >
+                    @{leader.farcaster_username}
+                  </a>
+                ) : (
+                  <p className="font-semibold text-foreground truncate">
+                    {leader.display_name || 'Anonymous'}
+                  </p>
+                )}
+                <div className="flex gap-2 text-xs text-muted-foreground">
                   {leader.daily_streak > 0 && (
                     <span>🔥 {leader.daily_streak}d</span>
                   )}
-                  {leader.weekly_streak > 0 && (
-                    <span>📊 {leader.weekly_streak}w</span>
+                  {(leader.total_eth_earned && leader.total_eth_earned > 0) && (
+                    <span>Ξ {leader.total_eth_earned.toFixed(4)}</span>
                   )}
-                  {leader.monthly_streak > 0 && (
-                    <span>🏆 {leader.monthly_streak}m</span>
+                  {(leader.total_usdc_earned && leader.total_usdc_earned > 0) && (
+                    <span>${leader.total_usdc_earned.toFixed(2)}</span>
                   )}
                 </div>
               </div>

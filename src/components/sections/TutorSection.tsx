@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, BookOpen, Users, Star, DollarSign } from "lucide-react";
+import { Plus, BookOpen, Users, Star, DollarSign, Coins } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { CourseUpload } from "@/components/CourseUpload";
@@ -15,6 +15,8 @@ export const TutorSection = () => {
     totalCourses: 0,
     totalStudents: 0,
     totalEarnings: 0,
+    ethEarned: 0,
+    usdcEarned: 0,
   });
 
   useEffect(() => {
@@ -46,10 +48,31 @@ export const TutorSection = () => {
     const totalCourses = coursesData?.length || 0;
     const totalStudents = coursesData?.reduce((sum, course) => sum + (course.enrollment_count || 0), 0) || 0;
     
+    // Fetch earnings by currency
+    const { data: payments } = await supabase
+      .from('course_payments')
+      .select('amount, currency')
+      .eq('seller_user_id', user.id)
+      .eq('status', 'completed');
+    
+    let ethEarned = 0;
+    let usdcEarned = 0;
+    
+    payments?.forEach(payment => {
+      const amount = Number(payment.amount);
+      if (payment.currency === 'ETH') {
+        ethEarned += amount;
+      } else if (payment.currency === 'USDC') {
+        usdcEarned += amount;
+      }
+    });
+    
     setStats({
       totalCourses,
       totalStudents,
-      totalEarnings: 0, // This would be calculated based on actual purchases
+      totalEarnings: ethEarned + usdcEarned,
+      ethEarned,
+      usdcEarned,
     });
   };
 
@@ -81,13 +104,13 @@ export const TutorSection = () => {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 mb-3">
         <Card className="p-3 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgTutor})` }} />
           <div className="relative z-10">
           <BookOpen className="w-7 h-7 text-primary mx-auto mb-1.5" />
           <div className="text-xl font-bold text-foreground">{stats.totalCourses}</div>
-          <div className="text-xs text-muted-foreground">Courses Created</div>
+          <div className="text-xs text-muted-foreground">Courses</div>
           </div>
         </Card>
         <Card className="p-3 text-center relative overflow-hidden">
@@ -95,17 +118,32 @@ export const TutorSection = () => {
           <div className="relative z-10">
           <Users className="w-7 h-7 text-success mx-auto mb-1.5" />
           <div className="text-xl font-bold text-foreground">{stats.totalStudents}</div>
-          <div className="text-xs text-muted-foreground">Total Students</div>
+          <div className="text-xs text-muted-foreground">Students</div>
           </div>
         </Card>
-        <Card className="p-3 text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgTutor})` }} />
-          <div className="relative z-10">
-          <DollarSign className="w-7 h-7 text-warning mx-auto mb-1.5" />
-          <div className="text-xl font-bold text-foreground">{stats.totalEarnings}</div>
-          <div className="text-xs text-muted-foreground">USDC Earned</div>
-          </div>
-        </Card>
+      </div>
+
+      {/* Earnings Section */}
+      <div className="mb-3">
+        <h3 className="text-sm font-semibold mb-2 px-1">Your Earnings</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="p-3 text-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgTutor})` }} />
+            <div className="relative z-10">
+            <Coins className="w-6 h-6 text-primary mx-auto mb-1.5" />
+            <div className="text-lg font-bold text-foreground">Ξ {stats.ethEarned.toFixed(4)}</div>
+            <div className="text-xs text-muted-foreground">ETH Earned</div>
+            </div>
+          </Card>
+          <Card className="p-3 text-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgTutor})` }} />
+            <div className="relative z-10">
+            <DollarSign className="w-6 h-6 text-warning mx-auto mb-1.5" />
+            <div className="text-lg font-bold text-foreground">${stats.usdcEarned.toFixed(2)}</div>
+            <div className="text-xs text-muted-foreground">USDC Earned</div>
+            </div>
+          </Card>
+        </div>
       </div>
 
       {/* Create Course Form */}
