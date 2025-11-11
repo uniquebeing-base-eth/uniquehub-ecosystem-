@@ -95,11 +95,12 @@ export const WalletSection = () => {
 
   return (
     <div className="space-y-4 pb-20">
+      {/* Total Balance Header */}
       <div className="text-center space-y-1 mb-4">
-        <h2 className="text-xl font-bold">My Wallet</h2>
-        <p className="text-xs text-muted-foreground">
-          Manage your crypto assets
-        </p>
+        <div className="text-3xl font-bold text-foreground">${totalBalance}</div>
+        <div className="text-sm text-muted-foreground">
+          {ethBalance} ETH + {usdcBalance} USDC
+        </div>
       </div>
 
       {/* Wallet Address */}
@@ -137,17 +138,6 @@ export const WalletSection = () => {
           </div>
         </Card>
       )}
-
-      {/* Total Balance */}
-      <Card className="p-4 bg-gradient-card border-primary/50">
-        <div className="text-center space-y-1">
-          <div className="text-xs text-muted-foreground">Total Balance</div>
-          <div className="text-3xl font-bold text-foreground">${totalBalance}</div>
-          <div className="text-xs text-muted-foreground">
-            {ethBalance} ETH + {usdcBalance} USDC
-          </div>
-        </div>
-      </Card>
 
       {/* Individual Balances */}
       <div className="space-y-2">
