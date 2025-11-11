@@ -9,12 +9,12 @@
     "name": "UniqueHub",
     "iconUrl": "https://uniqueehub.vercel.app/icon.png",
     "homeUrl": "https://uniqueehub.vercel.app",
-    "imageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=6",
+    "imageUrl": "https://uniqueehub.vercel.app/opengraph-image.png",
     "buttonTitle": "Launch UniqueHub",
-    "splashImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=6",
+    "splashImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png",
     "splashBackgroundColor": "#1a4d8f",
     "webhookUrl": "https://ucqcrhfcflrepsdlcvpq.supabase.co/functions/v1/miniapp-webhook",
-    "description": "Learn Web3 earn rewards and trade digital assets with blockchain courses NFT marketplace and social features on Base",
+    "description": "Learn Web3 and blockchain fundamentals with interactive courses, earn rewards, and trade digital collectibles on Base network",
     "subtitle": "Learn Earn and Trade on Base",
     "primaryCategory": "education",
     "tags": [
@@ -24,9 +24,9 @@
       "base",
       "learning"
     ],
-    "ogTitle": "UniqueHub Web3 Learning Platform",
-    "ogDescription": "Learn blockchain earn rewards trade NFTs on Base",
-    "ogImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png?v=6"
+    "ogTitle": "UniqueHub - Web3 Learning Platform",
+    "ogDescription": "Learn blockchain, earn rewards and trade NFTs on Base network",
+    "ogImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png"
   },
   "baseBuilder": {
     "ownerAddress": "0x170c5a413136F094421fad8Dd20285b5e05Fff5e"
