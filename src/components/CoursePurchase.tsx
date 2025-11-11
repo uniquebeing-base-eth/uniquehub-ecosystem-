@@ -1,14 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useFarcasterWallet } from '@/hooks/useFarcasterWallet';
+import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
+import { parseUnits, formatUnits } from 'viem';
+import { base } from 'wagmi/chains';
 import { toast } from 'sonner';
-import { DollarSign, Zap, BookOpen } from 'lucide-react';
+import { DollarSign, Zap, BookOpen, Loader2 } from 'lucide-react';
+import { 
+  COURSE_CONTRACT_ADDRESS, 
+  USDC_ADDRESS, 
+  COURSE_CONTRACT_ABI, 
+  USDC_ABI, 
+  FREE_COURSE_FEE 
+} from '@/config/wagmi';
 
-/**
- * Course Purchase Component
- * Handles course purchase via transaction frames on Base L2
- */
 interface CoursePurchaseProps {
   course: any;
   onPurchaseComplete?: () => void;
@@ -16,89 +23,55 @@ interface CoursePurchaseProps {
 
 export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchaseProps) => {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const { address } = useFarcasterWallet();
   const [selectedCurrency, setSelectedCurrency] = useState<'USDC' | 'ETH'>('USDC');
-
-  const handlePurchase = async () => {
-    if (!user) {
-      toast.error('Please sign in with Farcaster to purchase courses');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // Create transaction frame for purchase
-      const { data, error } = await supabase.functions.invoke('create-course-payment-frame', {
-        body: {
-          courseId: course.id,
-          currency: selectedCurrency,
-        },
-      });
-
-      if (error) throw error;
-
-      if (data?.success) {
-        toast.success('Transaction frame created! Complete payment in your wallet.');
-        console.log('Transaction frame:', data.frameMetadata);
-        // In a real Farcaster miniapp, this would trigger the transaction frame
-        // For now, we'll simulate the payment verification
-        
-        // Simulate transaction completion (in production, this happens via frame callback)
-        setTimeout(async () => {
-          toast.info('Simulating payment completion...');
-          
-          // Award UP points for purchase
-          try {
-            const { data: pointsData } = await supabase.functions.invoke('process-transaction-with-fees', {
-              body: {
-                transactionType: 'buy',
-                amountUsd: priceInUSDC,
-                transactionHash: data.paymentId, // Using payment ID as simulated tx hash
-              },
-            });
-
-            if (pointsData?.success) {
-              toast.success(`🎉 ${pointsData.message}`, { duration: 5000 });
-            }
-          } catch (error) {
-            console.error('Error awarding points:', error);
-          }
-          
-          onPurchaseComplete?.();
-        }, 2000);
-      }
-    } catch (error: any) {
-      console.error('Error creating payment frame:', error);
-      toast.error(error.message || 'Failed to create payment transaction');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [approvalStep, setApprovalStep] = useState<'idle' | 'approving' | 'approved'>('idle');
+  
+  const { writeContractAsync } = useWriteContract();
+  const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
+  
+  const { isLoading: isTxConfirming, isSuccess: isTxSuccess } = useWaitForTransactionReceipt({
+    hash: txHash,
+  });
 
   const priceInUSDC = parseFloat(course.price_usdc) || 0;
-
   const isFree = priceInUSDC === 0;
 
-  const handleEnroll = async () => {
-    if (!user) {
-      toast.error('Please sign in with Farcaster to enroll');
-      return;
-    }
+  // Check USDC allowance
+  const { data: allowance, refetch: refetchAllowance } = useReadContract({
+    address: USDC_ADDRESS,
+    abi: USDC_ABI,
+    functionName: 'allowance',
+    args: address ? [address, COURSE_CONTRACT_ADDRESS] : undefined,
+    query: { enabled: !!address && !isFree && selectedCurrency === 'USDC' },
+  });
 
-    setLoading(true);
+  // Calculate required ETH for course
+  const { data: requiredETH } = useReadContract({
+    address: COURSE_CONTRACT_ADDRESS,
+    abi: COURSE_CONTRACT_ABI,
+    functionName: 'calculateETHAmount',
+    args: [BigInt(priceInUSDC * 1_000_000)],
+    query: { enabled: !isFree && selectedCurrency === 'ETH' },
+  });
+
+  // Handle enrollment after transaction success
+  useEffect(() => {
+    if (isTxSuccess && txHash) {
+      handleEnrollmentInDB();
+    }
+  }, [isTxSuccess, txHash]);
+
+  const handleEnrollmentInDB = async () => {
+    if (!user) return;
+    
     try {
-      // Check if already enrolled
-      const { data: existingEnrollment, error: checkError } = await supabase
+      const { data: existingEnrollment } = await supabase
         .from('enrollments')
         .select('id')
         .eq('user_id', user.id)
         .eq('course_id', course.id)
         .maybeSingle();
-
-      if (checkError) {
-        console.error('Error checking enrollment:', checkError);
-        throw checkError;
-      }
 
       if (existingEnrollment) {
         toast.success('You are already enrolled in this course!');
@@ -106,51 +79,183 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
         return;
       }
 
-      // Create enrollment for free course
-      const { error: enrollError } = await supabase
-        .from('enrollments')
-        .insert({
-          user_id: user.id,
-          course_id: course.id,
-        });
+      await supabase.from('enrollments').insert({
+        user_id: user.id,
+        course_id: course.id,
+      });
 
-      if (enrollError) {
-        console.error('Error creating enrollment:', enrollError);
-        throw enrollError;
-      }
-
-      // Get current enrollment count
-      const { data: courseData, error: courseError } = await supabase
+      const { data: courseData } = await supabase
         .from('courses')
         .select('enrollment_count')
         .eq('id', course.id)
         .single();
 
-      if (courseError) {
-        console.error('Error fetching course:', courseError);
-      }
-
-      // Update enrollment count
-      const { error: updateError } = await supabase
+      await supabase
         .from('courses')
-        .update({ 
-          enrollment_count: (courseData?.enrollment_count || 0) + 1 
-        })
+        .update({ enrollment_count: (courseData?.enrollment_count || 0) + 1 })
         .eq('id', course.id);
 
-      if (updateError) {
-        console.error('Error updating enrollment count:', updateError);
-      }
-
       toast.success('Successfully enrolled! You can now access the course.');
+      setTxHash(undefined);
+      setApprovalStep('idle');
       onPurchaseComplete?.();
     } catch (error: any) {
-      console.error('Error enrolling:', error);
-      toast.error(error.message || 'Failed to enroll in course');
-    } finally {
-      setLoading(false);
+      console.error('Error creating enrollment:', error);
+      toast.error('Enrollment created on-chain but database update failed');
     }
   };
+
+  const handleApproveUSDC = async () => {
+    if (!address) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
+    setApprovalStep('approving');
+    try {
+      const amountToApprove = parseUnits(priceInUSDC.toString(), 6);
+      
+      const hash = await writeContractAsync({
+        address: USDC_ADDRESS,
+        abi: USDC_ABI,
+        functionName: 'approve',
+        args: [COURSE_CONTRACT_ADDRESS, amountToApprove],
+        account: address,
+        chain: base,
+      });
+
+      toast.info('Approval transaction submitted. Waiting for confirmation...');
+      
+      // Wait for approval confirmation
+      await new Promise((resolve) => {
+        const interval = setInterval(async () => {
+          await refetchAllowance();
+          const currentAllowance = allowance as bigint | undefined;
+          if (currentAllowance && currentAllowance >= amountToApprove) {
+            clearInterval(interval);
+            resolve(true);
+          }
+        }, 2000);
+      });
+
+      setApprovalStep('approved');
+      toast.success('USDC approved! Now enrolling in course...');
+      
+      // Auto-proceed to enrollment
+      setTimeout(() => handleEnrollWithUSDC(), 1000);
+    } catch (error: any) {
+      console.error('Approval error:', error);
+      toast.error(error.message || 'Failed to approve USDC');
+      setApprovalStep('idle');
+    }
+  };
+
+  const handleEnrollWithUSDC = async () => {
+    if (!address) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
+    try {
+      const hash = await writeContractAsync({
+        address: COURSE_CONTRACT_ADDRESS,
+        abi: COURSE_CONTRACT_ABI,
+        functionName: 'enrollWithUSDC',
+        args: [course.id],
+        account: address,
+        chain: base,
+      });
+
+      setTxHash(hash);
+      toast.info('Enrollment transaction submitted!');
+    } catch (error: any) {
+      console.error('Enrollment error:', error);
+      toast.error(error.message || 'Failed to enroll');
+      setApprovalStep('idle');
+    }
+  };
+
+  const handleEnrollWithETH = async () => {
+    if (!address) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
+    if (!requiredETH) {
+      toast.error('Unable to calculate ETH price');
+      return;
+    }
+
+    try {
+      const hash = await writeContractAsync({
+        address: COURSE_CONTRACT_ADDRESS,
+        abi: COURSE_CONTRACT_ABI,
+        functionName: 'enrollWithETH',
+        args: [course.id],
+        value: requiredETH as bigint,
+        account: address,
+        chain: base,
+      });
+
+      setTxHash(hash);
+      toast.info('Enrollment transaction submitted!');
+    } catch (error: any) {
+      console.error('Enrollment error:', error);
+      toast.error(error.message || 'Failed to enroll with ETH');
+    }
+  };
+
+  const handleEnrollFree = async () => {
+    if (!address) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
+    try {
+      const hash = await writeContractAsync({
+        address: COURSE_CONTRACT_ADDRESS,
+        abi: COURSE_CONTRACT_ABI,
+        functionName: 'enrollFreeCourse',
+        args: [course.id],
+        value: FREE_COURSE_FEE,
+        account: address,
+        chain: base,
+      });
+
+      setTxHash(hash);
+      toast.info('Enrollment transaction submitted!');
+    } catch (error: any) {
+      console.error('Free enrollment error:', error);
+      toast.error(error.message || 'Failed to enroll in free course');
+    }
+  };
+
+  const handlePurchase = async () => {
+    if (!user) {
+      toast.error('Please sign in with Farcaster to purchase courses');
+      return;
+    }
+
+    if (!address) {
+      toast.error('Connecting to your Farcaster wallet...');
+      return;
+    }
+
+    if (selectedCurrency === 'USDC') {
+      const amountNeeded = parseUnits(priceInUSDC.toString(), 6);
+      const currentAllowance = (allowance as bigint | undefined) || 0n;
+      
+      if (currentAllowance < amountNeeded) {
+        await handleApproveUSDC();
+      } else {
+        await handleEnrollWithUSDC();
+      }
+    } else {
+      await handleEnrollWithETH();
+    }
+  };
+
+  const isProcessing = approvalStep !== 'idle' || isTxConfirming;
 
   return (
     <div className="space-y-3">
@@ -159,18 +264,27 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
           <div className="flex items-center justify-center p-4 bg-success/10 rounded-lg border border-success/20">
             <div className="text-center">
               <p className="text-sm font-bold text-success mb-0.5">Free Course</p>
-              <p className="text-xs text-muted-foreground">Enroll now to get instant access</p>
+              <p className="text-xs text-muted-foreground">Pay 0.0000001 ETH enrollment fee</p>
             </div>
           </div>
 
           <Button
-            onClick={handleEnroll}
-            disabled={loading || !user}
+            onClick={handleEnrollFree}
+            disabled={isProcessing || !user || !address}
             className="w-full gap-2"
             size="default"
           >
-            <BookOpen className="w-3.5 h-3.5" />
-            {loading ? 'Enrolling...' : 'Enroll Now'}
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <BookOpen className="w-3.5 h-3.5" />
+                Enroll Now
+              </>
+            )}
           </Button>
 
           {!user && (
@@ -197,6 +311,7 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
               <Button
                 variant={selectedCurrency === 'USDC' ? 'default' : 'outline'}
                 onClick={() => setSelectedCurrency('USDC')}
+                disabled={isProcessing}
                 className="w-full text-xs h-9"
               >
                 USDC
@@ -204,24 +319,36 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
               <Button
                 variant={selectedCurrency === 'ETH' ? 'default' : 'outline'}
                 onClick={() => setSelectedCurrency('ETH')}
+                disabled={isProcessing}
                 className="w-full text-xs h-9"
               >
                 ETH
               </Button>
             </div>
-            <p className="text-[10px] text-muted-foreground">
-              Pay with {selectedCurrency} on Base L2
-            </p>
+            {selectedCurrency === 'ETH' && requiredETH && (
+              <p className="text-[10px] text-muted-foreground">
+                ≈ {formatUnits(requiredETH as bigint, 18)} ETH
+              </p>
+            )}
           </div>
 
           <Button
             onClick={handlePurchase}
-            disabled={loading || !user}
+            disabled={isProcessing || !user || !address}
             className="w-full gap-2 text-sm"
             size="default"
           >
-            <Zap className="w-3.5 h-3.5" />
-            {loading ? 'Creating...' : `Buy with ${selectedCurrency}`}
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                {approvalStep === 'approving' ? 'Approving USDC...' : 'Processing...'}
+              </>
+            ) : (
+              <>
+                <Zap className="w-3.5 h-3.5" />
+                Buy with {selectedCurrency}
+              </>
+            )}
           </Button>
 
           {!user && (

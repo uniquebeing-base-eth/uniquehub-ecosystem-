@@ -4,10 +4,21 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Upload, DollarSign, Video, Image } from 'lucide-react';
+import { Upload, DollarSign, Video, Image, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useFarcasterWallet } from '@/hooks/useFarcasterWallet';
+import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
+import { parseUnits } from 'viem';
+import { base } from 'wagmi/chains';
 import { toast } from 'sonner';
+import { 
+  COURSE_CONTRACT_ADDRESS, 
+  USDC_ADDRESS, 
+  COURSE_CONTRACT_ABI, 
+  USDC_ABI, 
+  LISTING_FEE 
+} from '@/config/wagmi';
 
 interface CourseUploadProps {
   onSuccess?: () => void;
@@ -16,6 +27,7 @@ interface CourseUploadProps {
 
 export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
   const { user } = useAuth();
+  const { address } = useFarcasterWallet();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -27,6 +39,25 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
   const [thumbPreview, setThumbPreview] = useState<string | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'uploaded'>('idle');
+  const [listingStep, setListingStep] = useState<'idle' | 'approving' | 'listing'>('idle');
+  
+  const { writeContractAsync } = useWriteContract();
+  const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
+  
+  const { isLoading: isTxConfirming, isSuccess: isTxSuccess } = useWaitForTransactionReceipt({
+    hash: txHash,
+  });
+
+  const isPaidCourse = parseFloat(formData.price_usdc) > 0;
+
+  // Check USDC allowance for listing fee
+  const { data: allowance, refetch: refetchAllowance } = useReadContract({
+    address: USDC_ADDRESS,
+    abi: USDC_ABI,
+    functionName: 'allowance',
+    args: address ? [address, COURSE_CONTRACT_ADDRESS] : undefined,
+    query: { enabled: !!address && isPaidCourse },
+  });
 
   React.useEffect(() => {
     return () => {
@@ -34,18 +65,15 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
     };
   }, [thumbPreview]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-
-    // Validate price is set for paid courses
-    if (formData.price_usdc && parseFloat(formData.price_usdc) <= 0) {
-      toast.error('Please set a valid price for your course');
-      return;
+  React.useEffect(() => {
+    if (isTxSuccess && txHash) {
+      handleDatabaseCreation();
     }
+  }, [isTxSuccess, txHash]);
 
-    setLoading(true);
-    setUploadStatus('uploading');
+  const handleDatabaseCreation = async () => {
+    if (!user) return;
+    
     try {
       let thumbnail_url: string | null = null;
       let video_url: string | null = null;
@@ -80,41 +108,215 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
         video_url = videoUrlData.publicUrl;
       }
 
-      // Create course
-      const { error } = await supabase.from('courses').insert({
-        user_id: user.id,
-        title: formData.title,
-        description: formData.description,
-        price_usdc: parseFloat(formData.price_usdc) || 0,
-        category: formData.category,
-        thumbnail_url,
-        video_url,
-        status: 'published',
-      });
+      // Create course in database (using course.id as blockchain courseId)
+      const { data: newCourse, error } = await supabase
+        .from('courses')
+        .insert({
+          user_id: user.id,
+          title: formData.title,
+          description: formData.description,
+          price_usdc: parseFloat(formData.price_usdc) || 0,
+          category: formData.category,
+          thumbnail_url,
+          video_url,
+          status: 'published',
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
       setUploadStatus('uploaded');
-      toast.success('Course uploaded successfully!');
+      toast.success('Course listed on-chain and published!');
 
-      // Reset form and preview
+      // Reset form
       setFormData({ title: '', description: '', price_usdc: '', category: 'web3-basics' });
       setThumbnailFile(null);
       if (thumbPreview) URL.revokeObjectURL(thumbPreview);
       setThumbPreview(null);
       setVideoFile(null);
+      setTxHash(undefined);
+      setListingStep('idle');
 
-      // Close dialog and navigate to Courses
       onSuccess?.();
       window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'courses' } }));
     } catch (error) {
-      console.error('Error uploading course:', error);
-      toast.error('Failed to upload course');
-      setUploadStatus('idle');
+      console.error('Error creating course in database:', error);
+      toast.error('Course listed on-chain but failed to create database entry');
     } finally {
       setLoading(false);
     }
   };
+
+  const handleApproveUSDC = async () => {
+    if (!address) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
+    setListingStep('approving');
+    try {
+      const hash = await writeContractAsync({
+        address: USDC_ADDRESS,
+        abi: USDC_ABI,
+        functionName: 'approve',
+        args: [COURSE_CONTRACT_ADDRESS, LISTING_FEE],
+        account: address,
+        chain: base,
+      });
+
+      toast.info('Approval transaction submitted. Waiting for confirmation...');
+      
+      await new Promise((resolve) => {
+        const interval = setInterval(async () => {
+          await refetchAllowance();
+          const currentAllowance = allowance as bigint | undefined;
+          if (currentAllowance && currentAllowance >= LISTING_FEE) {
+            clearInterval(interval);
+            resolve(true);
+          }
+        }, 2000);
+      });
+
+      toast.success('USDC approved! Now listing course on-chain...');
+      setTimeout(() => handleListCourse(), 1000);
+    } catch (error: any) {
+      console.error('Approval error:', error);
+      toast.error(error.message || 'Failed to approve USDC');
+      setListingStep('idle');
+      setLoading(false);
+    }
+  };
+
+  const handleListCourse = async () => {
+    if (!address) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
+    setListingStep('listing');
+    try {
+      const priceInUSDC = BigInt(parseFloat(formData.price_usdc) * 1_000_000);
+      
+      // Use a temporary ID (will be replaced with actual DB id later)
+      const tempCourseId = `temp-${Date.now()}-${address.slice(2, 10)}`;
+      
+      const hash = await writeContractAsync({
+        address: COURSE_CONTRACT_ADDRESS,
+        abi: COURSE_CONTRACT_ABI,
+        functionName: 'listCourse',
+        args: [tempCourseId, priceInUSDC],
+        account: address,
+        chain: base,
+      });
+
+      setTxHash(hash);
+      toast.info('Listing transaction submitted!');
+    } catch (error: any) {
+      console.error('Listing error:', error);
+      toast.error(error.message || 'Failed to list course on-chain');
+      setListingStep('idle');
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    if (formData.price_usdc && parseFloat(formData.price_usdc) <= 0) {
+      toast.error('Please set a valid price for your course');
+      return;
+    }
+
+    if (!address) {
+      toast.error('Connecting to your Farcaster wallet...');
+      return;
+    }
+
+    setLoading(true);
+    setUploadStatus('uploading');
+
+    const isPaid = parseFloat(formData.price_usdc) > 0;
+
+    if (isPaid) {
+      // Paid course: check allowance and approve if needed
+      const currentAllowance = (allowance as bigint | undefined) || 0n;
+      
+      if (currentAllowance < LISTING_FEE) {
+        await handleApproveUSDC();
+      } else {
+        await handleListCourse();
+      }
+    } else {
+      // Free course: no listing fee, directly create in database
+      try {
+        let thumbnail_url: string | null = null;
+        let video_url: string | null = null;
+
+        if (thumbnailFile) {
+          const thumbnailPath = `course-thumbnails/${user.id}/${Date.now()}-${thumbnailFile.name}`;
+          const { error: thumbnailError } = await supabase.storage
+            .from('avatars')
+            .upload(thumbnailPath, thumbnailFile);
+
+          if (thumbnailError) throw thumbnailError;
+
+          const { data: thumbnailUrlData } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(thumbnailPath);
+          thumbnail_url = thumbnailUrlData.publicUrl;
+        }
+
+        if (videoFile) {
+          const videoPath = `course-videos/${user.id}/${Date.now()}-${videoFile.name}`;
+          const { error: videoError } = await supabase.storage
+            .from('avatars')
+            .upload(videoPath, videoFile);
+
+          if (videoError) throw videoError;
+
+          const { data: videoUrlData } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(videoPath);
+          video_url = videoUrlData.publicUrl;
+        }
+
+        const { error } = await supabase.from('courses').insert({
+          user_id: user.id,
+          title: formData.title,
+          description: formData.description,
+          price_usdc: 0,
+          category: formData.category,
+          thumbnail_url,
+          video_url,
+          status: 'published',
+        });
+
+        if (error) throw error;
+
+        setUploadStatus('uploaded');
+        toast.success('Free course uploaded successfully!');
+
+        setFormData({ title: '', description: '', price_usdc: '', category: 'web3-basics' });
+        setThumbnailFile(null);
+        if (thumbPreview) URL.revokeObjectURL(thumbPreview);
+        setThumbPreview(null);
+        setVideoFile(null);
+
+        onSuccess?.();
+        window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'courses' } }));
+      } catch (error) {
+        console.error('Error uploading free course:', error);
+        toast.error('Failed to upload course');
+        setUploadStatus('idle');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const isProcessing = loading || listingStep !== 'idle' || isTxConfirming;
 
   return (
     <Card className="p-6">
@@ -174,10 +376,15 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
               step="0.01"
               value={formData.price_usdc}
               onChange={(e) => setFormData({ ...formData, price_usdc: e.target.value })}
-              placeholder="0.00"
+              placeholder="0.00 (leave 0 for free)"
               className="pl-8"
             />
           </div>
+          {isPaidCourse && (
+            <p className="text-xs text-muted-foreground">
+              📝 0.1 USDC listing fee required for paid courses
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -240,17 +447,21 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
         </div>
 
         <div className="flex gap-3 pt-4 items-center">
-          <Button type="submit" disabled={loading} className="bg-primary hover:bg-primary/90">
-            {loading && (
+          <Button type="submit" disabled={isProcessing} className="bg-primary hover:bg-primary/90">
+            {isProcessing ? (
               <span className="inline-flex items-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
-                Uploading...
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                {listingStep === 'approving' ? 'Approving...' : 
+                 listingStep === 'listing' ? 'Listing...' : 
+                 isTxConfirming ? 'Confirming...' : 'Uploading...'}
               </span>
+            ) : uploadStatus === 'uploaded' ? (
+              'Uploaded ✅'
+            ) : (
+              'Upload Course'
             )}
-            {!loading && uploadStatus === 'uploaded' && 'Uploaded ✅'}
-            {!loading && uploadStatus !== 'uploaded' && 'Upload Course'}
           </Button>
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isProcessing}>
             Cancel
           </Button>
           {uploadStatus === 'uploaded' && (
