@@ -255,9 +255,12 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
             {course.video_url ? (
               <video
                 controls
+                controlsList="nodownload"
+                disablePictureInPicture
                 className="w-full aspect-video"
                 src={course.video_url}
                 poster={course.thumbnail_url}
+                onContextMenu={(e) => e.preventDefault()}
               >
                 Your browser does not support the video tag.
               </video>
