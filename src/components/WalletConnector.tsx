@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
 
 export const WalletConnector = () => {
   const { user, signOut } = useAuth();
+  const { walletAddress, isConnected } = useFarcasterWallet();
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
@@ -50,9 +52,9 @@ export const WalletConnector = () => {
                   <div className="font-medium text-foreground">
                     {profile?.display_name || 'Farcaster User'}
                   </div>
-                  {profile?.farcaster_username && (
-                    <div className="text-muted-foreground">
-                      @{profile.farcaster_username}
+                  {walletAddress && (
+                    <div className="text-muted-foreground text-xs">
+                      {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
                     </div>
                   )}
                 </div>

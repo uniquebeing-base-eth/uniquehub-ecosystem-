@@ -5,9 +5,10 @@ import { injected } from 'wagmi/connectors';
 export const wagmiConfig = createConfig({
   chains: [base],
   connectors: [
-    injected(),
+    injected({ target: 'metaMask' }),
   ],
   transports: {
     [base.id]: http(),
   },
+  ssr: false,
 });
