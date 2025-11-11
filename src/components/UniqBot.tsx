@@ -23,7 +23,7 @@ export const UniqBot = () => {
     // Default to bottom right corner
     return { 
       x: window.innerWidth - 84, // 64px avatar + 20px margin
-      y: window.innerHeight - 150 // Above bottom nav + margin
+      y: window.innerHeight - 200 // Above bottom nav + more clearance
     };
   });
   const [isDragging, setIsDragging] = useState(false);
