@@ -2,7 +2,7 @@
   "accountAssociation": {
     "header": "eyJmaWQiOjg0OTExNiwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweGQzRDViRmMyOGJjMjA5OTg4NGEzNmVkNDE2NTY4NzRCQ2RENDYzMTUifQ",
     "payload": "eyJkb21haW4iOiJ1bmlxdWVlaHViLnZlcmNlbC5hcHAifQ",
-    "signature": "mCE5f8HlN/IZpSJqO8VLfw+MU9Zvng/I44zQuRaMJQMDbc8ltK/h6m8kX6OTGe9p73IlpAUOPT0du0w+unYfBxw="
+    "signature": "mCE5f8HlN/IZpSJqO8VLfw+MU9Zvng/I44zQuRaMJQMDbc8ltK/h6m8kX6OTGe9p73llpAUOPT0du0w+unYfBxw="
   },
   "miniapp": {
     "version": "1",
@@ -11,7 +11,7 @@
     "homeUrl": "https://uniqueehub.vercel.app",
     "imageUrl": "https://uniqueehub.vercel.app/opengraph-image.png",
     "buttonTitle": "Launch UniqueHub",
-    "splashImageUrl": "https://uniqueehub.vercel.app/icon.png",
+    "splashImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png",
     "splashBackgroundColor": "#1a4d8f",
     "webhookUrl": "https://api.neynar.com/f/app/916259b6-b248-4d47-b5e2-28d9e4bcb1c6/event",
     "subtitle": "Learn Earn and Trade on Base",
@@ -24,30 +24,8 @@
       "base",
       "learning"
     ],
-    "ogTitle": "UniqueHub",
-    "ogDescription": "Web3 learning and NFT trading",
-    "ogImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png"
-  },
-  "frame": {
-    "version": "1",
-    "name": "UniqueHub",
-    "iconUrl": "https://uniqueehub.vercel.app/icon.png",
-    "homeUrl": "https://uniqueehub.vercel.app",
-    "imageUrl": "https://uniqueehub.vercel.app/opengraph-image.png",
-    "buttonTitle": "Launch UniqueHub",
-    "splashImageUrl": "https://uniqueehub.vercel.app/icon.png",
-    "splashBackgroundColor": "#1a4d8f",
-    "webhookUrl": "https://api.neynar.com/f/app/916259b6-b248-4d47-b5e2-28d9e4bcb1c6/event",
-    "subtitle": "Learn Earn and Trade on Base",
-    "description": "Learn Web3 earn rewards and trade NFTs on Base",
-    "primaryCategory": "education",
-    "tags": [
-      "web3",
-      "education",
-      "blockchain",
-      "base",
-      "learning"
-    ],
+    "heroImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png",
+    "tagline": "Learn Earn and Trade on Base",
     "ogTitle": "UniqueHub",
     "ogDescription": "Web3 learning and NFT trading",
     "ogImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png"
