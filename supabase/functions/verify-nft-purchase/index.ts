@@ -48,6 +48,46 @@ serve(async (req) => {
 
     console.log(`NFT listing ${listingId} marked as sold to user ${buyerUserId}`);
 
+    // Award points for NFT purchase (10 UP per $1 spent, max 1000 UP)
+    const pointsToAward = Math.min(Math.floor(listing.price_amount * 10), 1000);
+    
+    // Get or create user points record for buyer
+    let { data: userPoints } = await supabase
+      .from('user_points')
+      .select('*')
+      .eq('user_id', buyerUserId)
+      .single();
+
+    if (!userPoints) {
+      const { data: newPoints } = await supabase
+        .from('user_points')
+        .insert({ user_id: buyerUserId, total_points: 0 })
+        .select()
+        .single();
+      userPoints = newPoints;
+    }
+
+    // Update total points
+    if (userPoints) {
+      await supabase
+        .from('user_points')
+        .update({ total_points: (userPoints.total_points || 0) + pointsToAward })
+        .eq('user_id', buyerUserId);
+
+      // Record point event
+      await supabase
+        .from('point_events')
+        .insert({
+          user_id: buyerUserId,
+          event_type: 'buy_volume',
+          points_earned: pointsToAward,
+          transaction_amount: listing.price_amount,
+          transaction_hash: transactionHash,
+        });
+
+      console.log(`Awarded ${pointsToAward} UP to user ${buyerUserId} for NFT purchase`);
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true,

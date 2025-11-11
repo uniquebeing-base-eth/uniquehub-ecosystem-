@@ -155,12 +155,12 @@ Deno.serve(async (req) => {
       throw taskError;
     }
 
-    // Create point event - use 'purchase' as a valid event_type
+    // Create point event for task completion
     const { error: pointEventError } = await supabase
       .from('point_events')
       .insert({
         user_id: user.id,
-        event_type: 'purchase',
+        event_type: 'task_completion',
         points_earned: pointsToAward,
       });
 

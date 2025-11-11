@@ -69,6 +69,46 @@ serve(async (req) => {
       // Don't fail the payment verification if enrollment count update fails
     }
 
+    // Award points for course purchase (10 UP per $1 spent, max 1000 UP)
+    const pointsToAward = Math.min(Math.floor(payment.amount * 10), 1000);
+    
+    // Get or create user points record
+    let { data: userPoints } = await supabase
+      .from('user_points')
+      .select('*')
+      .eq('user_id', payment.buyer_user_id)
+      .single();
+
+    if (!userPoints) {
+      const { data: newPoints } = await supabase
+        .from('user_points')
+        .insert({ user_id: payment.buyer_user_id, total_points: 0 })
+        .select()
+        .single();
+      userPoints = newPoints;
+    }
+
+    // Update total points
+    if (userPoints) {
+      await supabase
+        .from('user_points')
+        .update({ total_points: (userPoints.total_points || 0) + pointsToAward })
+        .eq('user_id', payment.buyer_user_id);
+
+      // Record point event
+      await supabase
+        .from('point_events')
+        .insert({
+          user_id: payment.buyer_user_id,
+          event_type: 'course_purchase',
+          points_earned: pointsToAward,
+          transaction_amount: payment.amount,
+          transaction_hash: transactionHash,
+        });
+
+      console.log(`Awarded ${pointsToAward} UP to user ${payment.buyer_user_id} for course purchase`);
+    }
+
     console.log(`Payment verified and enrollment created for payment ${paymentId}`);
 
     return new Response(

@@ -785,6 +785,9 @@ export type Database = {
         | "monthly_checkin"
         | "buy_volume"
         | "trade_volume"
+        | "task_completion"
+        | "course_completion"
+        | "course_purchase"
       reaction_type: "blue_heart" | "sparkles" | "fire"
     }
     CompositeTypes: {
@@ -919,6 +922,9 @@ export const Constants = {
         "monthly_checkin",
         "buy_volume",
         "trade_volume",
+        "task_completion",
+        "course_completion",
+        "course_purchase",
       ],
       reaction_type: ["blue_heart", "sparkles", "fire"],
     },
