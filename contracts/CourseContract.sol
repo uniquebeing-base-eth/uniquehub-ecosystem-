@@ -45,9 +45,8 @@ contract CourseContract is Ownable, ReentrancyGuard {
     /**
      * @notice Initialize contract with Chainlink price feed
      * @param _priceFeed Chainlink ETH/USD price feed address on Base
-     * @param initialOwner Address that will own the contract
      */
-    constructor(address _priceFeed, address initialOwner) Ownable(initialOwner) {
+    constructor(address _priceFeed) Ownable(msg.sender) {
         priceFeed = AggregatorV3Interface(_priceFeed);
     }
     

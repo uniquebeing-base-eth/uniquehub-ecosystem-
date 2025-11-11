@@ -49,9 +49,8 @@ contract CourseContract is Ownable, ReentrancyGuard {
     /**
      * @notice Initialize contract with Chainlink price feed
      * @param _priceFeed Chainlink ETH/USD price feed address on Base
-     * @param initialOwner Address that will own the contract
      */
-    constructor(address _priceFeed, address initialOwner) Ownable(initialOwner) {
+    constructor(address _priceFeed) Ownable(msg.sender) {
         priceFeed = AggregatorV3Interface(_priceFeed);
     }
     
@@ -242,14 +241,14 @@ async function main() {
   // Chainlink ETH/USD price feed on Base mainnet
   const PRICE_FEED_ADDRESS = "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70";
   
-  // Get deployer address
+  // Get deployer address (will automatically become owner)
   const [deployer] = await hre.ethers.getSigners();
   console.log("Deploying with account:", deployer.address);
   
   console.log("Deploying CourseContract...");
   
   const CourseContract = await hre.ethers.getContractFactory("CourseContract");
-  const courseContract = await CourseContract.deploy(PRICE_FEED_ADDRESS, deployer.address);
+  const courseContract = await CourseContract.deploy(PRICE_FEED_ADDRESS);
   
   await courseContract.deployed();
   
@@ -257,7 +256,7 @@ async function main() {
   console.log("Owner:", deployer.address);
   console.log("Price Feed:", PRICE_FEED_ADDRESS);
   console.log("\nVerify with:");
-  console.log(`npx hardhat verify --network base ${courseContract.address} ${PRICE_FEED_ADDRESS} ${deployer.address}`);
+  console.log(`npx hardhat verify --network base ${courseContract.address} ${PRICE_FEED_ADDRESS}`);
 }
 
 main()
@@ -306,25 +305,17 @@ module.exports = {
 
 ## Deployment on Remix IDE
 
-### ⚠️ IMPORTANT: Constructor Parameters
+### ⚠️ IMPORTANT: Constructor Parameter
 
-The contract requires **TWO parameters** in this exact order:
+The contract requires **ONE parameter**:
 
-1. **Price Feed Address**: `0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70`
-2. **Your Wallet Address**: Use the checksummed version of your address
+**Price Feed Address**: `0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70`
 
-### Get Checksummed Address
-Your address must use correct capitalization. Get it from:
-- https://etherscan.io/address-checksum
-- Or copy directly from your wallet (MetaMask shows checksummed addresses)
+The deploying wallet will automatically become the contract owner (no need to specify it).
 
-### Deployment Example
-If your wallet is `0x0f58a320f46899f60342f995d683ab1fcc696ceb`, the checksummed version is:
-`0x0F58A320F46899f60342F995d683Ab1FCC696CeB` (note the capital letters)
-
-**Constructor parameters to enter in Remix:**
+**Constructor parameter to enter in Remix:**
 ```
-0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70,0x0F58A320F46899f60342F995d683Ab1FCC696CeB
+0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70
 ```
 
 ### Deployment Steps:
