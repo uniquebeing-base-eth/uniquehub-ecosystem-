@@ -3,9 +3,8 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useFarcasterWallet } from '@/hooks/useFarcasterWallet';
-import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
+import { useViemClients } from '@/hooks/useViemClients';
 import { parseUnits, formatUnits } from 'viem';
-import { base } from 'wagmi/chains';
 import { toast } from 'sonner';
 import { DollarSign, Zap, BookOpen, Loader2 } from 'lucide-react';
 import { 
@@ -24,43 +23,57 @@ interface CoursePurchaseProps {
 export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchaseProps) => {
   const { user } = useAuth();
   const { address, isLoading: isWalletLoading } = useFarcasterWallet();
+  const { publicClient, walletClient } = useViemClients(address);
   const [selectedCurrency, setSelectedCurrency] = useState<'USDC' | 'ETH'>('USDC');
   const [approvalStep, setApprovalStep] = useState<'idle' | 'approving' | 'approved'>('idle');
-  
-  const { writeContractAsync } = useWriteContract();
-  const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
-  
-  const { isLoading: isTxConfirming, isSuccess: isTxSuccess } = useWaitForTransactionReceipt({
-    hash: txHash,
-  });
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [allowance, setAllowance] = useState<bigint>(0n);
+  const [requiredETH, setRequiredETH] = useState<bigint>(0n);
 
   const priceInUSDC = parseFloat(course.price_usdc) || 0;
   const isFree = priceInUSDC === 0;
 
-  // Check USDC allowance
-  const { data: allowance, refetch: refetchAllowance } = useReadContract({
-    address: USDC_ADDRESS,
-    abi: USDC_ABI,
-    functionName: 'allowance',
-    args: address ? [address, COURSE_CONTRACT_ADDRESS] : undefined,
-    query: { enabled: !!address && !isFree && selectedCurrency === 'USDC' },
-  });
-
-  // Calculate required ETH for course
-  const { data: requiredETH } = useReadContract({
-    address: COURSE_CONTRACT_ADDRESS,
-    abi: COURSE_CONTRACT_ABI,
-    functionName: 'calculateETHAmount',
-    args: [BigInt(priceInUSDC * 1_000_000)],
-    query: { enabled: !isFree && selectedCurrency === 'ETH' },
-  });
-
-  // Handle enrollment after transaction success
+  // Fetch USDC allowance
   useEffect(() => {
-    if (isTxSuccess && txHash) {
-      handleEnrollmentInDB();
-    }
-  }, [isTxSuccess, txHash]);
+    const fetchAllowance = async () => {
+      if (!address || isFree || selectedCurrency !== 'USDC' || !publicClient) return;
+      
+      try {
+        const result = await publicClient.readContract({
+          address: USDC_ADDRESS,
+          abi: USDC_ABI,
+          functionName: 'allowance',
+          args: [address, COURSE_CONTRACT_ADDRESS],
+        } as any);
+        setAllowance(result as bigint);
+      } catch (error) {
+        console.error('Error fetching allowance:', error);
+      }
+    };
+
+    fetchAllowance();
+  }, [address, isFree, selectedCurrency, publicClient]);
+
+  // Calculate required ETH
+  useEffect(() => {
+    const calculateETH = async () => {
+      if (!publicClient || isFree || selectedCurrency !== 'ETH') return;
+      
+      try {
+        const result = await publicClient.readContract({
+          address: COURSE_CONTRACT_ADDRESS,
+          abi: COURSE_CONTRACT_ABI,
+          functionName: 'calculateETHAmount',
+          args: [BigInt(priceInUSDC * 1_000_000)],
+        } as any);
+        setRequiredETH(result as bigint);
+      } catch (error) {
+        console.error('Error calculating ETH:', error);
+      }
+    };
+
+    calculateETH();
+  }, [publicClient, isFree, selectedCurrency, priceInUSDC]);
 
   const handleEnrollmentInDB = async () => {
     if (!user) return;
@@ -96,48 +109,49 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
         .eq('id', course.id);
 
       toast.success('Successfully enrolled! You can now access the course.');
-      setTxHash(undefined);
+      setIsProcessing(false);
       setApprovalStep('idle');
       onPurchaseComplete?.();
     } catch (error: any) {
       console.error('Error creating enrollment:', error);
       toast.error('Enrollment created on-chain but database update failed');
+      setIsProcessing(false);
     }
   };
 
   const handleApproveUSDC = async () => {
-    if (!address) {
+    if (!address || !walletClient) {
       toast.error('Wallet not connected');
       return;
     }
 
     setApprovalStep('approving');
+    setIsProcessing(true);
+    
     try {
       const amountToApprove = parseUnits(priceInUSDC.toString(), 6);
       
-      const hash = await writeContractAsync({
+      const hash = await walletClient.writeContract({
         address: USDC_ADDRESS,
         abi: USDC_ABI,
         functionName: 'approve',
         args: [COURSE_CONTRACT_ADDRESS, amountToApprove],
-        account: address,
-        chain: base,
-      });
+      } as any);
 
       toast.info('Approval transaction submitted. Waiting for confirmation...');
       
-      // Wait for approval confirmation
-      await new Promise((resolve) => {
-        const interval = setInterval(async () => {
-          await refetchAllowance();
-          const currentAllowance = allowance as bigint | undefined;
-          if (currentAllowance && currentAllowance >= amountToApprove) {
-            clearInterval(interval);
-            resolve(true);
-          }
-        }, 2000);
-      });
-
+      // Wait for transaction confirmation
+      await publicClient!.waitForTransactionReceipt({ hash });
+      
+      // Refetch allowance
+      const newAllowance = await publicClient!.readContract({
+        address: USDC_ADDRESS,
+        abi: USDC_ABI,
+        functionName: 'allowance',
+        args: [address, COURSE_CONTRACT_ADDRESS],
+      } as any) as bigint;
+      
+      setAllowance(newAllowance);
       setApprovalStep('approved');
       toast.success('USDC approved! Now enrolling in course...');
       
@@ -147,36 +161,43 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
       console.error('Approval error:', error);
       toast.error(error.message || 'Failed to approve USDC');
       setApprovalStep('idle');
+      setIsProcessing(false);
     }
   };
 
   const handleEnrollWithUSDC = async () => {
-    if (!address) {
+    if (!address || !walletClient) {
       toast.error('Wallet not connected');
       return;
     }
 
+    setIsProcessing(true);
+    
     try {
-      const hash = await writeContractAsync({
+      const hash = await walletClient.writeContract({
         address: COURSE_CONTRACT_ADDRESS,
         abi: COURSE_CONTRACT_ABI,
         functionName: 'enrollWithUSDC',
         args: [course.id],
-        account: address,
-        chain: base,
-      });
+      } as any);
 
-      setTxHash(hash);
       toast.info('Enrollment transaction submitted!');
+      
+      // Wait for confirmation
+      await publicClient!.waitForTransactionReceipt({ hash });
+      
+      toast.success('Transaction confirmed!');
+      await handleEnrollmentInDB();
     } catch (error: any) {
       console.error('Enrollment error:', error);
       toast.error(error.message || 'Failed to enroll');
       setApprovalStep('idle');
+      setIsProcessing(false);
     }
   };
 
   const handleEnrollWithETH = async () => {
-    if (!address) {
+    if (!address || !walletClient) {
       toast.error('Wallet not connected');
       return;
     }
@@ -186,47 +207,59 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
       return;
     }
 
+    setIsProcessing(true);
+    
     try {
-      const hash = await writeContractAsync({
+      const hash = await walletClient.writeContract({
         address: COURSE_CONTRACT_ADDRESS,
         abi: COURSE_CONTRACT_ABI,
         functionName: 'enrollWithETH',
         args: [course.id],
-        value: requiredETH as bigint,
-        account: address,
-        chain: base,
-      });
+        value: requiredETH,
+      } as any);
 
-      setTxHash(hash);
       toast.info('Enrollment transaction submitted!');
+      
+      // Wait for confirmation
+      await publicClient!.waitForTransactionReceipt({ hash });
+      
+      toast.success('Transaction confirmed!');
+      await handleEnrollmentInDB();
     } catch (error: any) {
       console.error('Enrollment error:', error);
       toast.error(error.message || 'Failed to enroll with ETH');
+      setIsProcessing(false);
     }
   };
 
   const handleEnrollFree = async () => {
-    if (!address) {
+    if (!address || !walletClient) {
       toast.error('Wallet not connected');
       return;
     }
 
+    setIsProcessing(true);
+    
     try {
-      const hash = await writeContractAsync({
+      const hash = await walletClient.writeContract({
         address: COURSE_CONTRACT_ADDRESS,
         abi: COURSE_CONTRACT_ABI,
         functionName: 'enrollFreeCourse',
         args: [course.id],
         value: FREE_COURSE_FEE,
-        account: address,
-        chain: base,
-      });
+      } as any);
 
-      setTxHash(hash);
       toast.info('Enrollment transaction submitted!');
+      
+      // Wait for confirmation
+      await publicClient!.waitForTransactionReceipt({ hash });
+      
+      toast.success('Transaction confirmed!');
+      await handleEnrollmentInDB();
     } catch (error: any) {
       console.error('Free enrollment error:', error);
       toast.error(error.message || 'Failed to enroll in free course');
+      setIsProcessing(false);
     }
   };
 
@@ -248,9 +281,8 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
 
     if (selectedCurrency === 'USDC') {
       const amountNeeded = parseUnits(priceInUSDC.toString(), 6);
-      const currentAllowance = (allowance as bigint | undefined) || 0n;
       
-      if (currentAllowance < amountNeeded) {
+      if (allowance < amountNeeded) {
         await handleApproveUSDC();
       } else {
         await handleEnrollWithUSDC();
@@ -259,8 +291,6 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
       await handleEnrollWithETH();
     }
   };
-
-  const isProcessing = approvalStep !== 'idle' || isTxConfirming || isWalletLoading;
 
   return (
     <div className="space-y-3">
@@ -275,7 +305,7 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
 
           <Button
             onClick={handleEnrollFree}
-            disabled={isProcessing || !user || !address}
+            disabled={isProcessing || !user || !address || isWalletLoading}
             className="w-full gap-2"
             size="default"
           >
@@ -335,16 +365,16 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
                 ETH
               </Button>
             </div>
-            {selectedCurrency === 'ETH' && requiredETH && (
+            {selectedCurrency === 'ETH' && requiredETH > 0n && (
               <p className="text-[10px] text-muted-foreground">
-                ≈ {formatUnits(requiredETH as bigint, 18)} ETH
+                ≈ {formatUnits(requiredETH, 18)} ETH
               </p>
             )}
           </div>
 
           <Button
             onClick={handlePurchase}
-            disabled={isProcessing || !user || !address}
+            disabled={isProcessing || !user || !address || isWalletLoading}
             className="w-full gap-2 text-sm"
             size="default"
           >
