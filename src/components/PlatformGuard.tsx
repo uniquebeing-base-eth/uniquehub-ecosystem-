@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk';
+import { Button } from '@/components/ui/button';
+import { ExternalLink } from 'lucide-react';
 
 export const PlatformGuard = ({ children }: { children: React.ReactNode }) => {
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -47,11 +49,19 @@ export const PlatformGuard = ({ children }: { children: React.ReactNode }) => {
             UniqueHub is only accessible through Farcaster or Base mini apps. 
             Please open this application from within the Farcaster or Base ecosystem.
           </p>
-          <div className="bg-muted p-4 rounded-lg">
+          <div className="bg-muted p-4 rounded-lg mb-6">
             <p className="text-sm">
               Find us on <span className="font-semibold">Farcaster</span> or <span className="font-semibold">Base</span> to get started.
             </p>
           </div>
+          <Button
+            onClick={() => window.open('https://farcaster.xyz/miniapps/lQoakVUKSjUV/uniquehub', '_blank')}
+            className="w-full"
+            size="lg"
+          >
+            <ExternalLink className="w-5 h-5 mr-2" />
+            Open Farcaster
+          </Button>
         </div>
       </div>
     );
