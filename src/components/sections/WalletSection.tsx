@@ -1,57 +1,39 @@
-import { useEffect, useState } from "react";
 import { WalletCard } from "@/components/WalletCard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Copy, ExternalLink } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
+import { useBalance } from "wagmi";
+import { formatUnits } from "viem";
+import { base } from "wagmi/chains";
+
+const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
 
 export const WalletSection = () => {
-  const { user } = useAuth();
   const { toast } = useToast();
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [ethBalance, setEthBalance] = useState('0.00');
-  const [usdcBalance, setUsdcBalance] = useState('0.00');
-  const [loading, setLoading] = useState(true);
+  const { address, isLoading } = useFarcasterWallet();
 
-  useEffect(() => {
-    if (user) {
-      fetchWalletData();
-    }
-  }, [user]);
+  // Fetch ETH balance
+  const { data: ethBalanceData } = useBalance({
+    address,
+    chainId: base.id,
+  });
 
-  const fetchWalletData = async () => {
-    if (!user) return;
-    
-    setLoading(true);
-    try {
-      // Fetch wallet from Farcaster via FID
-      const { data, error } = await supabase.functions.invoke('fetch-farcaster-wallet');
+  // Fetch USDC balance
+  const { data: usdcBalanceData } = useBalance({
+    address,
+    token: USDC_ADDRESS,
+    chainId: base.id,
+  });
 
-      if (error) {
-        console.error('Error fetching Farcaster wallet:', error);
-        // Fallback to profile wallet_address
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('wallet_address')
-          .eq('user_id', user.id)
-          .single();
+  const ethBalance = ethBalanceData 
+    ? parseFloat(formatUnits(ethBalanceData.value, ethBalanceData.decimals)).toFixed(4)
+    : '0.00';
 
-        if (profile?.wallet_address) {
-          setWalletAddress(profile.wallet_address);
-        }
-      } else if (data) {
-        setWalletAddress(data.walletAddress);
-        setEthBalance(data.ethBalance || '0.00');
-        setUsdcBalance(data.usdcBalance || '0.00');
-      }
-    } catch (error) {
-      console.error('Error fetching wallet data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const usdcBalance = usdcBalanceData
+    ? parseFloat(formatUnits(usdcBalanceData.value, usdcBalanceData.decimals)).toFixed(2)
+    : '0.00';
 
 
   const copyToClipboard = (text: string) => {
@@ -76,13 +58,13 @@ export const WalletSection = () => {
       </div>
 
       {/* Wallet Address */}
-      {walletAddress && (
+      {address && (
         <Card className="p-3 bg-gradient-card">
           <div className="flex items-center justify-between gap-2">
             <div className="flex-1 min-w-0">
               <div className="text-xs text-muted-foreground mb-1">Wallet Address</div>
               <div className="text-sm font-mono font-medium truncate">
-                {formatAddress(walletAddress)}
+                {formatAddress(address)}
               </div>
             </div>
             <div className="flex gap-1">
@@ -90,7 +72,7 @@ export const WalletSection = () => {
                 size="sm"
                 variant="outline"
                 className="h-7 w-7 p-0"
-                onClick={() => copyToClipboard(walletAddress)}
+                onClick={() => copyToClipboard(address)}
               >
                 <Copy className="w-3 h-3" />
               </Button>
@@ -98,7 +80,7 @@ export const WalletSection = () => {
                 size="sm"
                 variant="outline"
                 className="h-7 w-7 p-0"
-                onClick={() => window.open(`https://basescan.org/address/${walletAddress}`, '_blank')}
+                onClick={() => window.open(`https://basescan.org/address/${address}`, '_blank')}
               >
                 <ExternalLink className="w-3 h-3" />
               </Button>
