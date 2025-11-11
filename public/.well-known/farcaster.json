@@ -14,7 +14,7 @@
     "splashImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png",
     "splashBackgroundColor": "#1a4d8f",
     "webhookUrl": "https://ucqcrhfcflrepsdlcvpq.supabase.co/functions/v1/miniapp-webhook",
-    "description": "Learn Web3 and blockchain fundamentals with courses and earn rewards trading digital collectibles on Base network",
+    "description": "Learn Web3 earn rewards and trade NFTs on Base",
     "subtitle": "Learn Earn and Trade on Base",
     "primaryCategory": "education",
     "tags": [
