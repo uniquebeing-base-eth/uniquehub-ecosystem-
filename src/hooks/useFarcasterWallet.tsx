@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 
 export const useFarcasterWallet = () => {
-  const { user } = useAuth();
   const [address, setAddress] = useState<`0x${string}` | undefined>();
+  const [ethBalance, setEthBalance] = useState<string>('0.00');
+  const [usdcBalance, setUsdcBalance] = useState<string>('0.00');
   const [isLoading, setIsLoading] = useState(false);
+  const [fid, setFid] = useState<number | undefined>();
 
   useEffect(() => {
     let cancelled = false;
@@ -43,19 +44,34 @@ export const useFarcasterWallet = () => {
     const fetchWallet = async () => {
       try {
         setIsLoading(true);
-        // Try provider first (works inside Farcaster Mini App without Supabase auth)
-        const gotFromProvider = await fromProvider();
-        if (gotFromProvider) return;
+        
+        // Get FID from Farcaster context
+        let fcFid: number | undefined;
+        try {
+          const mod = await import('@farcaster/miniapp-sdk');
+          const context = await mod?.sdk?.context;
+          fcFid = context?.user?.fid;
+          if (!cancelled && fcFid) setFid(fcFid);
+        } catch {}
 
-        // If not found via provider, try fetching via edge function when logged in
-        if (user) {
-          const { data, error } = await supabase.functions.invoke('fetch-farcaster-wallet');
+        // Fetch wallet data from Neynar via FID (no auth required)
+        if (fcFid) {
+          const { data, error } = await supabase.functions.invoke('fetch-farcaster-wallet', {
+            body: { fid: fcFid }
+          });
           if (!cancelled && data?.walletAddress) {
             setAddress(data.walletAddress as `0x${string}`);
+            setEthBalance(data.ethBalance || '0.00');
+            setUsdcBalance(data.usdcBalance || '0.00');
+            // Also try to get provider for signing
+            await fromProvider();
             return;
           }
-          if (error) console.error('Error fetching wallet:', error);
+          if (error) console.error('Error fetching wallet via FID:', error);
         }
+
+        // Fallback to provider detection
+        await fromProvider();
       } catch (error) {
         console.error('Failed to fetch wallet:', error);
       } finally {
@@ -76,10 +92,13 @@ export const useFarcasterWallet = () => {
       cancelled = true;
       eth?.removeListener?.('accountsChanged', onAccountsChanged);
     };
-  }, [user]);
+  }, []);
 
   return {
     address,
+    ethBalance,
+    usdcBalance,
+    fid,
     isConnected: !!address,
     isLoading,
   };

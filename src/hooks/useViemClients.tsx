@@ -11,14 +11,16 @@ export const useViemClients = (address?: `0x${string}`) => {
   }, []);
 
   const walletClient = useMemo(() => {
-    if (!address || typeof window === 'undefined' || !window.ethereum) {
-      return null;
-    }
+    if (!address) return null;
+    
+    // Use Farcaster provider if available, fallback to window.ethereum
+    const provider = (window as any).__fcProvider || (window as any).ethereum;
+    if (typeof window === 'undefined' || !provider) return null;
 
     return createWalletClient({
       account: address,
       chain: base,
-      transport: custom(window.ethereum),
+      transport: custom(provider),
     });
   }, [address]);
 

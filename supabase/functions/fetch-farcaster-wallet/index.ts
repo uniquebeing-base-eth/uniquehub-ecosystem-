@@ -13,41 +13,48 @@ Deno.serve(async (req) => {
   try {
     console.log('Fetch Farcaster wallet function called');
     
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('No authorization header');
-    }
+    // Accept FID from request body or fallback to auth
+    const { fid: requestFid } = await req.json().catch(() => ({}));
+    let fid = requestFid;
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // If no FID provided, try to get from authenticated user
+    if (!fid) {
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader) {
+        throw new Error('No FID provided and no authorization header');
+      }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
 
-    if (authError || !user) {
-      throw new Error('Unauthorized');
-    }
-
-    console.log('User authenticated:', user.id);
-
-    // Get user's Farcaster FID from profile
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('farcaster_fid')
-      .eq('user_id', user.id)
-      .single();
-
-    if (profileError || !profile?.farcaster_fid) {
-      console.log('No Farcaster FID found for user');
-      return new Response(
-        JSON.stringify({ error: 'No Farcaster account linked' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+      const { data: { user }, error: authError } = await supabase.auth.getUser(
+        authHeader.replace('Bearer ', '')
       );
-    }
 
-    const fid = profile.farcaster_fid;
+      if (authError || !user) {
+        throw new Error('Unauthorized');
+      }
+
+      console.log('User authenticated:', user.id);
+
+      // Get user's Farcaster FID from profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('farcaster_fid')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError || !profile?.farcaster_fid) {
+        console.log('No Farcaster FID found for user');
+        return new Response(
+          JSON.stringify({ error: 'No Farcaster account linked' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+        );
+      }
+
+      fid = profile.farcaster_fid;
+    }
     console.log('Fetching wallet for FID:', fid);
 
     const neynarApiKey = Deno.env.get('NEYNAR_API_KEY');
