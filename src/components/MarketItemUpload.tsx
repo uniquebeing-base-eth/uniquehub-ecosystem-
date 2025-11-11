@@ -9,6 +9,17 @@ import { toast } from 'sonner';
 import { Loader2, Plus, X, Upload, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
+import { useViemClients } from '@/hooks/useViemClients';
+import { useFarcasterWallet } from '@/hooks/useFarcasterWallet';
+import { parseUnits } from 'viem';
+import { base } from 'wagmi/chains';
+import { 
+  MARKETPLACE_CONTRACT_ABI, 
+  MARKETPLACE_CONTRACT_ADDRESS, 
+  USDC_ABI, 
+  USDC_ADDRESS, 
+  MARKETPLACE_LISTING_FEE 
+} from '@/config/wagmi';
 
 interface MarketItemUploadProps {
   onSuccess?: () => void;
@@ -26,6 +37,8 @@ interface CatalogItem {
 
 export const MarketItemUpload = ({ onSuccess, onCancel }: MarketItemUploadProps) => {
   const { user } = useAuth();
+  const { address } = useFarcasterWallet();
+  const { publicClient, walletClient } = useViemClients(address);
   const [catalogItems, setCatalogItems] = useState<CatalogItem[]>([
     { title: '', description: '', price_usdc: '', image_url: '', category: 'general' }
   ]);
@@ -102,6 +115,11 @@ export const MarketItemUpload = ({ onSuccess, onCancel }: MarketItemUploadProps)
       return;
     }
 
+    if (!address || !walletClient || !publicClient) {
+      toast.error('Please connect your wallet');
+      return;
+    }
+
     // Validate all items
     for (let i = 0; i < catalogItems.length; i++) {
       const item = catalogItems[i];
@@ -122,7 +140,34 @@ export const MarketItemUpload = ({ onSuccess, onCancel }: MarketItemUploadProps)
     setUploading(true);
 
     try {
-      // Insert all catalog items
+      // Calculate total USDC needed (listing fee per item)
+      const totalFeeNeeded = MARKETPLACE_LISTING_FEE * BigInt(catalogItems.length);
+
+      // Step 1: Check USDC allowance
+      const currentAllowance = (await publicClient.readContract({
+        address: USDC_ADDRESS,
+        abi: USDC_ABI,
+        functionName: 'allowance',
+        args: [address, MARKETPLACE_CONTRACT_ADDRESS],
+      } as any)) as bigint;
+
+      // Step 2: Approve USDC if needed
+      if (currentAllowance < totalFeeNeeded) {
+        toast.info('Approving USDC for listing fees...');
+        const approveHash = await walletClient.writeContract({
+          address: USDC_ADDRESS,
+          abi: USDC_ABI,
+          functionName: 'approve',
+          args: [MARKETPLACE_CONTRACT_ADDRESS, totalFeeNeeded],
+          chain: base,
+          account: address,
+        });
+
+        await publicClient.waitForTransactionReceipt({ hash: approveHash });
+        toast.success('USDC approved!');
+      }
+
+      // Step 3: Insert items into database first to get IDs
       const itemsToInsert = catalogItems.map(item => ({
         user_id: user.id,
         title: item.title,
@@ -133,13 +178,39 @@ export const MarketItemUpload = ({ onSuccess, onCancel }: MarketItemUploadProps)
         status: 'active',
       }));
 
-      const { error } = await supabase
+      const { data: insertedItems, error: insertError } = await supabase
         .from('marketplace_items')
-        .insert(itemsToInsert);
+        .insert(itemsToInsert)
+        .select('id, title, description, price_usdc');
 
-      if (error) throw error;
+      if (insertError) throw insertError;
+      if (!insertedItems || insertedItems.length === 0) throw new Error('Failed to create items');
 
-      toast.success(`Successfully listed ${catalogItems.length} item(s)!`);
+      // Step 4: List each item on-chain
+      for (let i = 0; i < insertedItems.length; i++) {
+        const item = insertedItems[i];
+        const priceInUSDC = parseUnits(item.price_usdc.toString(), 6); // USDC has 6 decimals
+
+        toast.info(`Listing item ${i + 1}/${insertedItems.length} on-chain...`);
+
+        const listHash = await walletClient.writeContract({
+          address: MARKETPLACE_CONTRACT_ADDRESS,
+          abi: MARKETPLACE_CONTRACT_ABI,
+          functionName: 'listItem',
+          args: [
+            item.id, // Use database UUID as itemId
+            item.title,
+            item.description,
+            priceInUSDC,
+          ],
+          chain: base,
+          account: address,
+        });
+
+        await publicClient.waitForTransactionReceipt({ hash: listHash });
+      }
+
+      toast.success(`Successfully listed ${catalogItems.length} item(s) on-chain!`);
       onSuccess?.();
     } catch (error: any) {
       console.error('Error listing items:', error);

@@ -76,8 +76,54 @@ export const USDC_ABI = [
   },
 ] as const;
 
+// Marketplace Contract ABI
+export const MARKETPLACE_CONTRACT_ABI = [
+  {
+    inputs: [
+      { name: 'itemId', type: 'string' },
+      { name: 'title', type: 'string' },
+      { name: 'description', type: 'string' },
+      { name: 'priceUSDC', type: 'uint256' }
+    ],
+    name: 'listItem',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'itemId', type: 'string' }],
+    name: 'delistItem',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'itemId', type: 'string' }],
+    name: 'getItem',
+    outputs: [
+      {
+        components: [
+          { name: 'seller', type: 'address' },
+          { name: 'itemId', type: 'string' },
+          { name: 'title', type: 'string' },
+          { name: 'description', type: 'string' },
+          { name: 'priceUSDC', type: 'uint256' },
+          { name: 'isActive', type: 'bool' },
+          { name: 'listedAt', type: 'uint256' }
+        ],
+        name: '',
+        type: 'tuple'
+      }
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
 // Contract Addresses on Base Mainnet
 export const COURSE_CONTRACT_ADDRESS = '0x237b0cdC89A75B329f1b650D844F20497698a48A' as const;
+export const MARKETPLACE_CONTRACT_ADDRESS = '0x08A8A1E3E9E74005f764f449C62FCEdC5f3E9421' as const;
 export const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
 export const LISTING_FEE = 100000n; // 0.1 USDC (6 decimals)
 export const FREE_COURSE_FEE = 100000000000n; // 0.0000001 ETH
+export const MARKETPLACE_LISTING_FEE = 100000n; // 0.1 USDC (6 decimals)
