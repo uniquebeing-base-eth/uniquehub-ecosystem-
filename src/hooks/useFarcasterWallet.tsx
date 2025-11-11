@@ -12,8 +12,16 @@ export const useFarcasterWallet = () => {
 
     const fromProvider = async (): Promise<boolean> => {
       try {
-        const eth = (window as any)?.ethereum;
+        // Prefer Farcaster Mini App provider if available
+        let eth: any = undefined;
+        try {
+          const mod = await import('@farcaster/miniapp-sdk');
+          eth = mod?.sdk?.wallet?.getEthereumProvider?.();
+        } catch {}
+        if (!eth) eth = (window as any)?.ethereum;
         if (!eth) return false;
+        // Save provider globally for viem wallet client
+        (window as any).__fcProvider = eth;
         // Try silent accounts fetch first
         const accounts: string[] = await eth.request?.({ method: 'eth_accounts' });
         if (accounts && accounts[0]) {
