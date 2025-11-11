@@ -119,8 +119,8 @@ export const UniqBot = () => {
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDragging) return;
-    const newX = Math.max(0, Math.min(window.innerWidth - 80, e.clientX - dragOffset.x));
-    const newY = Math.max(0, Math.min(window.innerHeight - 140, e.clientY - dragOffset.y));
+    const newX = Math.max(0, Math.min(window.innerWidth - 64, e.clientX - dragOffset.x));
+    const newY = Math.max(0, Math.min(window.innerHeight - 64, e.clientY - dragOffset.y));
     setPosition({ x: newX, y: newY });
   };
 
@@ -132,8 +132,8 @@ export const UniqBot = () => {
     if (isDragging) {
       const onTouchMove = (e: TouchEvent) => {
         const t = e.touches[0];
-        const newX = Math.max(0, Math.min(window.innerWidth - 80, t.clientX - dragOffset.x));
-        const newY = Math.max(0, Math.min(window.innerHeight - 140, t.clientY - dragOffset.y));
+        const newX = Math.max(0, Math.min(window.innerWidth - 64, t.clientX - dragOffset.x));
+        const newY = Math.max(0, Math.min(window.innerHeight - 64, t.clientY - dragOffset.y));
         setPosition({ x: newX, y: newY });
       };
       const onTouchEnd = () => setIsDragging(false);
@@ -158,8 +158,8 @@ export const UniqBot = () => {
         <div
           className="fixed z-50 cursor-move select-none"
           style={{
-            right: `${position.x}px`,
-            bottom: `calc(${position.y}px + env(safe-area-inset-bottom))`,
+            left: `${position.x}px`,
+            top: `${position.y}px`,
           }}
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}

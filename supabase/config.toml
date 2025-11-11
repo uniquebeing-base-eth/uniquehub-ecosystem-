@@ -42,3 +42,6 @@ verify_jwt = false
 [functions.uniqbot-chat]
 verify_jwt = false
 
+[functions.miniapp-webhook]
+verify_jwt = false
+
