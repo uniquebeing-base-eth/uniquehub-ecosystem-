@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Menu, Wallet, GraduationCap, Info, Mail, BookOpen, Trophy } from "lucide-react";
 import {
   Sheet,
@@ -10,6 +11,8 @@ interface HamburgerMenuProps {
 }
 
 export const HamburgerMenu = ({ onNavigate }: HamburgerMenuProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
   const menuItems = [
     { id: "wallet", icon: Wallet, label: "Wallet" },
     { id: "leaderboard", icon: Trophy, label: "Leaderboard" },
@@ -19,8 +22,13 @@ export const HamburgerMenu = ({ onNavigate }: HamburgerMenuProps) => {
     { id: "contact", icon: Mail, label: "Contact Us" },
   ];
 
+  const handleMenuItemClick = (sectionId: string) => {
+    onNavigate(sectionId);
+    setIsOpen(false); // Close the menu after navigation
+  };
+
   return (
-    <Sheet>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <button className="p-2 hover:bg-card rounded-lg transition-colors">
           <Menu className="w-6 h-6 text-primary" />
@@ -33,9 +41,7 @@ export const HamburgerMenu = ({ onNavigate }: HamburgerMenuProps) => {
             return (
               <button
                 key={item.id}
-                onClick={() => {
-                  onNavigate(item.id);
-                }}
+                onClick={() => handleMenuItemClick(item.id)}
                 className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-card-hover transition-colors text-left"
               >
                 <Icon className="w-5 h-5 text-primary" />
