@@ -285,13 +285,8 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
       return;
     }
 
-    if (isWalletLoading) {
-      toast.info('Loading your wallet...');
-      return;
-    }
-
     if (!address || !walletClient || !publicClient) {
-      toast.error('Wallet not ready. Please try again in a moment.');
+      toast.info('Connecting wallet...');
       return;
     }
 
@@ -321,14 +316,14 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
 
           <Button
             onClick={handleEnrollFree}
-            disabled={isProcessing || !user || !address || isWalletLoading}
+            disabled={isProcessing || !user || !address || !walletClient || !publicClient}
             className="w-full gap-2"
             size="default"
           >
-            {isWalletLoading ? (
+            {!address || !walletClient || !publicClient ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Loading wallet...
+                Connecting wallet...
               </>
             ) : isProcessing ? (
               <>
@@ -390,14 +385,14 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
 
           <Button
             onClick={handlePurchase}
-            disabled={isProcessing || !user || !address || isWalletLoading}
+            disabled={isProcessing || !user || !address || !walletClient || !publicClient}
             className="w-full gap-2 text-sm"
             size="default"
           >
-            {isWalletLoading ? (
+            {!address || !walletClient || !publicClient ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Loading wallet...
+                Connecting wallet...
               </>
             ) : isProcessing ? (
               <>

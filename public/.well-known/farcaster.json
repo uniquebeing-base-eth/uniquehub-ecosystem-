@@ -15,7 +15,7 @@
     "splashBackgroundColor": "#1a4d8f",
     "webhookUrl": "https://api.neynar.com/f/app/916259b6-b248-4d47-b5e2-28d9e4bcb1c6/event",
     "subtitle": "Learn Earn and Trade on Base",
-    "description": "Learn Web3 earn rewards and trade NFTs on Base",
+    "description": "Learn blockchain earn rewards and trade on Base",
     "primaryCategory": "education",
     "tags": [
       "web3",
@@ -27,7 +27,7 @@
     "heroImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png",
     "tagline": "Learn Earn and Trade on Base",
     "ogTitle": "UniqueHub",
-    "ogDescription": "Web3 learning and NFT trading",
+    "ogDescription": "Blockchain learning and digital trading",
     "ogImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png"
   },
   "baseBuilder": {
