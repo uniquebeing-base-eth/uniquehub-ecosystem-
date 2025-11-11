@@ -160,24 +160,25 @@ export const EarnSection = () => {
       return;
     }
 
-    // First click - open the link
-    if (!clickedTasks.includes(task.id)) {
-      if (task.type === 'follow' && task.followUrl) {
-        window.open(task.followUrl, '_blank');
-        setClickedTasks(prev => [...prev, task.id]);
-        toast({
-          title: "Follow the account",
-          description: "After following, come back and click Complete again",
-        });
+    // Handle follow tasks
+    if (task.type === 'follow') {
+      // First click - open the link
+      if (!clickedTasks.includes(task.id)) {
+        if (task.followUrl) {
+          window.open(task.followUrl, '_blank');
+          setClickedTasks(prev => [...prev, task.id]);
+          toast({
+            title: "Follow the account",
+            description: "After following, come back and click Complete again",
+          });
+        }
+        return;
       }
-      return;
-    }
 
-    // Second click - verify
-    setLoading(task.id);
+      // Second click - verify follow status
+      setLoading(task.id);
 
-    try {
-      if (task.type === 'follow') {
+      try {
         const username = task.id === 'follow-uniquehub' ? 'uniquehub' : 'uniquebeing404';
         
         toast({
@@ -203,17 +204,36 @@ export const EarnSection = () => {
           title: "Verified! ✓",
           description: "Click 'Claim Points' to receive your reward",
         });
+      } catch (error: any) {
+        console.error('Error verifying task:', error);
+        
+        // Check if error is due to no Farcaster account
+        if (error.message && error.message.includes('No Farcaster account linked')) {
+          toast({
+            title: "Farcaster account required",
+            description: "Please connect your Farcaster account to verify follow tasks",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Verification failed",
+            description: "Unable to verify. Please try again.",
+            variant: "destructive",
+          });
+        }
+      } finally {
+        setLoading(null);
       }
-    } catch (error: any) {
-      console.error('Error verifying task:', error);
-      toast({
-        title: "Verification failed",
-        description: "Unable to verify. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(null);
+      return;
     }
+
+    // Handle app-based tasks (blog reading, courses, listings, etc.)
+    // These can be verified and claimed directly
+    setVerifiedTasks(prev => [...prev, task.id]);
+    toast({
+      title: "Task ready!",
+      description: "Click 'Claim Points' to receive your reward",
+    });
   };
 
   const handleClaimPoints = async (task: Task) => {
@@ -222,11 +242,18 @@ export const EarnSection = () => {
     setLoading(task.id);
 
     try {
+      console.log(`Claiming points for task: ${task.id}`);
+      
       const { data, error } = await supabase.functions.invoke('complete-task', {
         body: { taskId: task.id },
       });
 
-      if (error) throw error;
+      console.log('Complete task response:', data, error);
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
 
       if (data?.success) {
         setCompletedTasks(prev => [...prev, task.id]);
@@ -249,6 +276,7 @@ export const EarnSection = () => {
         // Show share dialog
         setShowShareDialog(true);
       } else {
+        console.error('Claim failed:', data?.message);
         toast({
           title: "Failed to claim",
           description: data?.message || "Unable to claim points",
@@ -257,9 +285,25 @@ export const EarnSection = () => {
       }
     } catch (error: any) {
       console.error('Error claiming points:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = "Failed to claim points. Please try again.";
+      
+      if (error.message) {
+        if (error.message.includes('already completed')) {
+          errorMessage = "You've already completed this task.";
+        } else if (error.message.includes('not completed yet')) {
+          errorMessage = "Please complete the task requirements first.";
+        } else if (error.message.includes('Invalid task')) {
+          errorMessage = "Task verification failed. Please try again.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: error.message || "Failed to claim points. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

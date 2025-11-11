@@ -49,50 +49,91 @@ Deno.serve(async (req) => {
     let isCompleted = false;
     let pointsToAward = 1000;
 
+    console.log(`Verifying task: ${taskId} for user: ${user.id}`);
+
     switch (taskId) {
+      case 'read-blog-web3':
+      case 'read-blog-education':
+        // For blog reading tasks, trust client-side verification
+        isCompleted = true;
+        pointsToAward = 100;
+        console.log(`Blog task ${taskId} marked as completed`);
+        break;
       case 'finish-1-course': {
-        const { data: enrollments } = await supabase
+        const { data: enrollments, error: enrollError } = await supabase
           .from('enrollments')
           .select('completed_at')
           .eq('user_id', user.id)
           .not('completed_at', 'is', null);
+        
+        if (enrollError) {
+          console.error('Error checking course enrollments:', enrollError);
+          throw enrollError;
+        }
+        
         isCompleted = (enrollments?.length || 0) >= 1;
+        console.log(`User has ${enrollments?.length || 0} completed courses`);
         break;
       }
       case 'finish-5-courses': {
-        const { data: enrollments } = await supabase
+        const { data: enrollments, error: enrollError } = await supabase
           .from('enrollments')
           .select('completed_at')
           .eq('user_id', user.id)
           .not('completed_at', 'is', null);
+        
+        if (enrollError) {
+          console.error('Error checking course enrollments:', enrollError);
+          throw enrollError;
+        }
+        
         isCompleted = (enrollments?.length || 0) >= 5;
+        console.log(`User has ${enrollments?.length || 0} completed courses`);
         break;
       }
       case 'list-item': {
-        const { data: items } = await supabase
+        const { data: items, error: itemError } = await supabase
           .from('marketplace_items')
           .select('id')
           .eq('user_id', user.id);
+        
+        if (itemError) {
+          console.error('Error checking marketplace items:', itemError);
+          throw itemError;
+        }
+        
         isCompleted = (items?.length || 0) >= 1;
+        console.log(`User has ${items?.length || 0} marketplace items`);
         break;
       }
       case 'list-nft': {
-        const { data: nfts } = await supabase
+        const { data: nfts, error: nftError } = await supabase
           .from('nft_listings')
           .select('id')
           .eq('user_id', user.id);
+        
+        if (nftError) {
+          console.error('Error checking NFT listings:', nftError);
+          throw nftError;
+        }
+        
         isCompleted = (nfts?.length || 0) >= 1;
+        console.log(`User has ${nfts?.length || 0} NFT listings`);
         break;
       }
       case 'follow-uniquehub':
       case 'follow-uniquebeing404':
-        // For follow tasks, assume verification was done client-side
+        // For follow tasks, verification was done client-side via Neynar API
         isCompleted = true;
         pointsToAward = 50;
+        console.log(`Follow task ${taskId} marked as completed`);
         break;
       default:
-        throw new Error('Invalid task ID');
+        console.error(`Unknown task ID: ${taskId}`);
+        throw new Error(`Invalid task ID: ${taskId}`);
     }
+
+    console.log(`Task ${taskId} verification result: ${isCompleted}`);
 
     if (!isCompleted) {
       return new Response(
