@@ -14,11 +14,6 @@ contract MarketplaceContract is Ownable, ReentrancyGuard {
     // Base USDC token address on Base mainnet
     IERC20 public constant USDC = IERC20(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
     
-    /**
-     * @notice Constructor sets deployer as owner
-     */
-    constructor() Ownable(msg.sender) {}
-    
     // Listing fee constant
     uint256 public constant LISTING_FEE = 100000; // 0.1 USDC (6 decimals)
     

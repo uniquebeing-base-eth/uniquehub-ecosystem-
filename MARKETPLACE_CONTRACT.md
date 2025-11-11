@@ -1,8 +1,5 @@
 # UniqueHub Marketplace Contract
 
-**Status**: Ready for deployment
-**Constructor**: `constructor() Ownable(msg.sender)` - No parameters needed, deployer becomes owner
-
 ## MarketplaceContract.sol
 
 ```solidity
@@ -194,21 +191,7 @@ contract MarketplaceContract is Ownable, ReentrancyGuard {
 
 ## Deployment Instructions
 
-### Using Remix IDE (Easiest Method)
-
-1. **Open Remix**: Go to https://remix.ethereum.org
-2. **Create Contract**: Copy the MarketplaceContract.sol code above into a new file
-3. **Compile**: 
-   - Select Solidity Compiler (0.8.20)
-   - Click "Compile MarketplaceContract.sol"
-4. **Deploy**:
-   - Switch to "Deploy & Run Transactions"
-   - Set Environment to "Injected Provider - MetaMask"
-   - Ensure your wallet is connected to Base Mainnet
-   - **Constructor Parameters**: None (contract automatically sets you as owner)
-   - Click "Deploy" and confirm transaction
-
-### Prerequisites (For Hardhat)
+### Prerequisites
 ```bash
 npm install --save-dev hardhat @openzeppelin/contracts
 ```
