@@ -26,7 +26,7 @@ serve(async (req) => {
       button: {
         title: "Launch UniqueHub",
         action: {
-          type: "launch_frame",
+          type: "launch_miniapp",
           name: "UniqueHub",
           url: miniAppUrl,
           splashImageUrl: "https://uniqueehub.vercel.app/icon.png",
