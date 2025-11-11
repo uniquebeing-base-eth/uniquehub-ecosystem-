@@ -19,7 +19,12 @@ export const UniqBot = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [position, setPosition] = useState(() => {
     const saved = localStorage.getItem('uniqbot_position');
-    return saved ? JSON.parse(saved) : { x: 20, y: 100 };
+    if (saved) return JSON.parse(saved);
+    // Default to bottom right corner
+    return { 
+      x: window.innerWidth - 84, // 64px avatar + 20px margin
+      y: window.innerHeight - 150 // Above bottom nav + margin
+    };
   });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
