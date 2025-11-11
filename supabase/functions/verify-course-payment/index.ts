@@ -59,6 +59,16 @@ serve(async (req) => {
       // Don't fail the payment verification if enrollment creation fails
     }
 
+    // Increment enrollment count on the course
+    const { error: updateCourseError } = await supabase.rpc('increment_enrollment_count', {
+      course_id: payment.course_id
+    });
+
+    if (updateCourseError) {
+      console.error('Failed to increment enrollment count:', updateCourseError);
+      // Don't fail the payment verification if enrollment count update fails
+    }
+
     console.log(`Payment verified and enrollment created for payment ${paymentId}`);
 
     return new Response(

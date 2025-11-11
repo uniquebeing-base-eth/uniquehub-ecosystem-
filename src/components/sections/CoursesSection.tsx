@@ -23,6 +23,7 @@ export const CoursesSection = () => {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showCourseViewer, setShowCourseViewer] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [ratingCounts, setRatingCounts] = useState<Record<string, number>>({});
 
   const categories = [
     { value: "all", label: "All Categories" },
@@ -53,6 +54,20 @@ export const CoursesSection = () => {
     
     if (!error && data) {
       setCourses(data);
+      
+      // Fetch rating counts for all courses
+      const courseIds = data.map(c => c.id);
+      const { data: ratingsData } = await supabase
+        .from('course_ratings')
+        .select('course_id')
+        .in('course_id', courseIds);
+      
+      // Count ratings per course
+      const counts: Record<string, number> = {};
+      ratingsData?.forEach(rating => {
+        counts[rating.course_id] = (counts[rating.course_id] || 0) + 1;
+      });
+      setRatingCounts(counts);
       
       // Calculate trending courses based on rating and enrollment
       const trending = [...data]
@@ -213,6 +228,9 @@ export const CoursesSection = () => {
                       <div className="flex items-center gap-1">
                         <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                         <span>{course.rating?.toFixed(1) || '0.0'}</span>
+                        {ratingCounts[course.id] > 0 && (
+                          <span className="text-[10px]">({ratingCounts[course.id]})</span>
+                        )}
                       </div>
                       <div className="flex items-center gap-1">
                         <BookOpen className="w-3 h-3" />
@@ -276,6 +294,9 @@ export const CoursesSection = () => {
                   <div className="flex items-center gap-0.5">
                     <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
                     <span>{course.rating?.toFixed(1) || '0.0'}</span>
+                    {ratingCounts[course.id] > 0 && (
+                      <span className="text-[9px]">({ratingCounts[course.id]})</span>
+                    )}
                   </div>
                   <div className="flex items-center gap-0.5">
                     <BookOpen className="w-2.5 h-2.5" />

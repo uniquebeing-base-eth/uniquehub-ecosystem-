@@ -145,15 +145,15 @@ export const Leaderboard = () => {
                     {leader.display_name || 'Anonymous'}
                   </p>
                 )}
-                <div className="flex gap-2 text-xs text-muted-foreground">
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                   {leader.daily_streak > 0 && (
                     <span>🔥 {leader.daily_streak}d</span>
                   )}
                   {(leader.total_eth_earned && leader.total_eth_earned > 0) && (
-                    <span>Ξ {leader.total_eth_earned.toFixed(4)}</span>
+                    <span className="font-medium">Ξ {leader.total_eth_earned.toFixed(4)}</span>
                   )}
                   {(leader.total_usdc_earned && leader.total_usdc_earned > 0) && (
-                    <span>${leader.total_usdc_earned.toFixed(2)}</span>
+                    <span className="font-medium">${leader.total_usdc_earned.toFixed(2)} USDC</span>
                   )}
                 </div>
               </div>
