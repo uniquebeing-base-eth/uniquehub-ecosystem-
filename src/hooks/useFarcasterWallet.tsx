@@ -10,41 +10,46 @@ export const useFarcasterWallet = () => {
   useEffect(() => {
     let cancelled = false;
 
-    const fromProvider = async () => {
+    const fromProvider = async (): Promise<boolean> => {
       try {
         const eth = (window as any)?.ethereum;
-        if (!eth) return;
+        if (!eth) return false;
         // Try silent accounts fetch first
         const accounts: string[] = await eth.request?.({ method: 'eth_accounts' });
         if (accounts && accounts[0]) {
           if (!cancelled) setAddress(accounts[0] as `0x${string}`);
-          return;
+          return true;
         }
         // As fallback, request accounts (may show prompt inside mini app)
         const reqAccounts: string[] = await eth.request?.({ method: 'eth_requestAccounts' });
-        if (reqAccounts && reqAccounts[0] && !cancelled) {
-          setAddress(reqAccounts[0] as `0x${string}`);
+        if (reqAccounts && reqAccounts[0]) {
+          if (!cancelled) setAddress(reqAccounts[0] as `0x${string}`);
+          return true;
         }
       } catch (e) {
         console.warn('Provider accounts fetch failed:', e);
       }
+      return false;
     };
 
     const fetchWallet = async () => {
-      if (!user) { setAddress(undefined); return; }
       try {
         setIsLoading(true);
-        const { data, error } = await supabase.functions.invoke('fetch-farcaster-wallet');
-        if (!cancelled && data?.walletAddress) {
-          setAddress(data.walletAddress as `0x${string}`);
-          return;
+        // Try provider first (works inside Farcaster Mini App without Supabase auth)
+        const gotFromProvider = await fromProvider();
+        if (gotFromProvider) return;
+
+        // If not found via provider, try fetching via edge function when logged in
+        if (user) {
+          const { data, error } = await supabase.functions.invoke('fetch-farcaster-wallet');
+          if (!cancelled && data?.walletAddress) {
+            setAddress(data.walletAddress as `0x${string}`);
+            return;
+          }
+          if (error) console.error('Error fetching wallet:', error);
         }
-        if (error) console.error('Error fetching wallet:', error);
-        // Fallback to provider if edge function didn't return address
-        await fromProvider();
       } catch (error) {
         console.error('Failed to fetch wallet:', error);
-        await fromProvider();
       } finally {
         if (!cancelled) setIsLoading(false);
       }
