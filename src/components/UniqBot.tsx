@@ -17,7 +17,10 @@ export const UniqBot = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [position, setPosition] = useState({ x: 20, y: 100 });
+  const [position, setPosition] = useState(() => {
+    const saved = localStorage.getItem('uniqbot_position');
+    return saved ? JSON.parse(saved) : { x: 20, y: 100 };
+  });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -126,6 +129,7 @@ export const UniqBot = () => {
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    localStorage.setItem('uniqbot_position', JSON.stringify(position));
   };
 
   useEffect(() => {
@@ -136,7 +140,10 @@ export const UniqBot = () => {
         const newY = Math.max(0, Math.min(window.innerHeight - 64, t.clientY - dragOffset.y));
         setPosition({ x: newX, y: newY });
       };
-      const onTouchEnd = () => setIsDragging(false);
+      const onTouchEnd = () => {
+        setIsDragging(false);
+        localStorage.setItem('uniqbot_position', JSON.stringify(position));
+      };
 
       window.addEventListener("mousemove", handleMouseMove);
       window.addEventListener("mouseup", handleMouseUp);
@@ -149,7 +156,7 @@ export const UniqBot = () => {
         window.removeEventListener("touchend", onTouchEnd);
       };
     }
-  }, [isDragging, dragOffset]);
+  }, [isDragging, dragOffset, position]);
 
   return (
     <>
