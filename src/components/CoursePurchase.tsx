@@ -120,7 +120,7 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
   };
 
   const handleApproveUSDC = async () => {
-    if (!address || !walletClient) {
+    if (!address || !walletClient || !publicClient) {
       toast.error('Wallet not connected');
       return;
     }
@@ -131,11 +131,15 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
     try {
       const amountToApprove = parseUnits(priceInUSDC.toString(), 6);
       
+      toast.info('Please approve the transaction in your wallet...');
+      
       const hash = await walletClient.writeContract({
         address: USDC_ADDRESS,
         abi: USDC_ABI,
         functionName: 'approve',
         args: [COURSE_CONTRACT_ADDRESS, amountToApprove],
+        account: address,
+        chain: walletClient.chain,
       } as any);
 
       toast.info('Approval transaction submitted. Waiting for confirmation...');
@@ -166,7 +170,7 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
   };
 
   const handleEnrollWithUSDC = async () => {
-    if (!address || !walletClient) {
+    if (!address || !walletClient || !publicClient) {
       toast.error('Wallet not connected');
       return;
     }
@@ -174,11 +178,15 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
     setIsProcessing(true);
     
     try {
+      toast.info('Please confirm the enrollment in your wallet...');
+      
       const hash = await walletClient.writeContract({
         address: COURSE_CONTRACT_ADDRESS,
         abi: COURSE_CONTRACT_ABI,
         functionName: 'enrollWithUSDC',
         args: [course.id],
+        account: address,
+        chain: walletClient.chain,
       } as any);
 
       toast.info('Enrollment transaction submitted!');
@@ -197,7 +205,7 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
   };
 
   const handleEnrollWithETH = async () => {
-    if (!address || !walletClient) {
+    if (!address || !walletClient || !publicClient) {
       toast.error('Wallet not connected');
       return;
     }
@@ -210,12 +218,16 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
     setIsProcessing(true);
     
     try {
+      toast.info('Please confirm the payment in your wallet...');
+      
       const hash = await walletClient.writeContract({
         address: COURSE_CONTRACT_ADDRESS,
         abi: COURSE_CONTRACT_ABI,
         functionName: 'enrollWithETH',
         args: [course.id],
         value: requiredETH,
+        account: address,
+        chain: walletClient.chain,
       } as any);
 
       toast.info('Enrollment transaction submitted!');
@@ -233,7 +245,7 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
   };
 
   const handleEnrollFree = async () => {
-    if (!address || !walletClient) {
+    if (!address || !walletClient || !publicClient) {
       toast.error('Wallet not connected');
       return;
     }
@@ -241,12 +253,16 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
     setIsProcessing(true);
     
     try {
+      toast.info('Please confirm the enrollment fee in your wallet...');
+      
       const hash = await walletClient.writeContract({
         address: COURSE_CONTRACT_ADDRESS,
         abi: COURSE_CONTRACT_ABI,
         functionName: 'enrollFreeCourse',
         args: [course.id],
         value: FREE_COURSE_FEE,
+        account: address,
+        chain: walletClient.chain,
       } as any);
 
       toast.info('Enrollment transaction submitted!');

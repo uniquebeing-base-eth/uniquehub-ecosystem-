@@ -53,6 +53,11 @@ export const WalletSection = () => {
     ? parseFloat(formatUnits(usdcBalanceData.value, usdcBalanceData.decimals)).toFixed(2)
     : serverUsdc ?? '0.00';
 
+  // Calculate total balance (ETH at ~$2500 + USDC)
+  const ethValue = parseFloat(ethBalance) * 2500;
+  const usdcValue = parseFloat(usdcBalance);
+  const totalBalance = (ethValue + usdcValue).toFixed(2);
+
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -133,9 +138,19 @@ export const WalletSection = () => {
         </Card>
       )}
 
-      {/* Balances */}
+      {/* Total Balance */}
+      <Card className="p-4 bg-gradient-card border-primary/50">
+        <div className="text-center space-y-1">
+          <div className="text-xs text-muted-foreground">Total Balance</div>
+          <div className="text-3xl font-bold text-foreground">${totalBalance}</div>
+          <div className="text-xs text-muted-foreground">
+            {ethBalance} ETH + {usdcBalance} USDC
+          </div>
+        </div>
+      </Card>
+
+      {/* Individual Balances */}
       <div className="space-y-2">
-        <WalletCard type="uniq" amount="Coming Soon" symbol="UNIQ" />
         <WalletCard type="eth" amount={ethBalance} symbol="ETH" />
         <WalletCard type="usdc" amount={usdcBalance} symbol="USDC" />
       </div>
