@@ -1,32 +1,14 @@
 import { useMemo } from 'react';
-import { createPublicClient, createWalletClient, custom, http } from 'viem';
-import { base } from 'viem/chains';
-
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-}
+import { usePublicClient, useWalletClient } from 'wagmi';
 
 export const useViemClients = (address?: `0x${string}`) => {
-  const publicClient = useMemo(() => {
-    return createPublicClient({
-      chain: base,
-      transport: http(),
-    });
-  }, []);
+  const publicClient = usePublicClient();
+  const { data: wc } = useWalletClient();
 
   const walletClient = useMemo(() => {
-    if (!address || typeof window === 'undefined' || !window.ethereum) {
-      return null;
-    }
-
-    return createWalletClient({
-      account: address,
-      chain: base,
-      transport: custom(window.ethereum),
-    });
-  }, [address]);
+    if (!address || !wc) return null;
+    return wc;
+  }, [address, wc]);
 
   return { publicClient, walletClient };
 };

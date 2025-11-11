@@ -9,7 +9,7 @@ export const wagmiConfig = createConfig({
   transports: {
     [base.id]: fallback([http('https://mainnet.base.org')]),
   },
-  ssr: false,
+  ssr: true,
 });
 
 // Course Contract ABI
