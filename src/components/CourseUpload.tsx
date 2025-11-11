@@ -27,7 +27,7 @@ interface CourseUploadProps {
 
 export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
   const { user } = useAuth();
-  const { address } = useFarcasterWallet();
+  const { address, isLoading: isWalletLoading } = useFarcasterWallet();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -229,8 +229,13 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
       return;
     }
 
+    if (isWalletLoading) {
+      toast.info('Loading your wallet...');
+      return;
+    }
+
     if (!address) {
-      toast.error('Connecting to your Farcaster wallet...');
+      toast.error('Could not fetch your Farcaster wallet address');
       return;
     }
 
@@ -316,7 +321,7 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
     }
   };
 
-  const isProcessing = loading || listingStep !== 'idle' || isTxConfirming;
+  const isProcessing = loading || listingStep !== 'idle' || isTxConfirming || isWalletLoading;
 
   return (
     <Card className="p-6">
@@ -447,8 +452,13 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
         </div>
 
         <div className="flex gap-3 pt-4 items-center">
-          <Button type="submit" disabled={isProcessing} className="bg-primary hover:bg-primary/90">
-            {isProcessing ? (
+          <Button type="submit" disabled={isProcessing || !address} className="bg-primary hover:bg-primary/90">
+            {isWalletLoading ? (
+              <span className="inline-flex items-center gap-2">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Loading wallet...
+              </span>
+            ) : isProcessing ? (
               <span className="inline-flex items-center gap-2">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 {listingStep === 'approving' ? 'Approving...' : 

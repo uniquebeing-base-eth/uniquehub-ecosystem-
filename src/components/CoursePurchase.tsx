@@ -23,7 +23,7 @@ interface CoursePurchaseProps {
 
 export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchaseProps) => {
   const { user } = useAuth();
-  const { address } = useFarcasterWallet();
+  const { address, isLoading: isWalletLoading } = useFarcasterWallet();
   const [selectedCurrency, setSelectedCurrency] = useState<'USDC' | 'ETH'>('USDC');
   const [approvalStep, setApprovalStep] = useState<'idle' | 'approving' | 'approved'>('idle');
   
@@ -236,8 +236,13 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
       return;
     }
 
+    if (isWalletLoading) {
+      toast.info('Loading your wallet...');
+      return;
+    }
+
     if (!address) {
-      toast.error('Connecting to your Farcaster wallet...');
+      toast.error('Could not fetch your Farcaster wallet address');
       return;
     }
 
@@ -255,7 +260,7 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
     }
   };
 
-  const isProcessing = approvalStep !== 'idle' || isTxConfirming;
+  const isProcessing = approvalStep !== 'idle' || isTxConfirming || isWalletLoading;
 
   return (
     <div className="space-y-3">
@@ -274,7 +279,12 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
             className="w-full gap-2"
             size="default"
           >
-            {isProcessing ? (
+            {isWalletLoading ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Loading wallet...
+              </>
+            ) : isProcessing ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 Processing...
@@ -338,7 +348,12 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
             className="w-full gap-2 text-sm"
             size="default"
           >
-            {isProcessing ? (
+            {isWalletLoading ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Loading wallet...
+              </>
+            ) : isProcessing ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 {approvalStep === 'approving' ? 'Approving USDC...' : 'Processing...'}
