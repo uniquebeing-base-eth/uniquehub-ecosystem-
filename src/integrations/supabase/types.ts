@@ -773,7 +773,10 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      increment_enrollment_count: {
+        Args: { course_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       point_event_type:
