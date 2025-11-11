@@ -17,6 +17,10 @@ contract MarketplaceContract is Ownable, ReentrancyGuard {
     // Listing fee constant
     uint256 public constant LISTING_FEE = 100000; // 0.1 USDC (6 decimals)
     
+    constructor() Ownable(msg.sender) {
+        // msg.sender is automatically set as the owner
+    }
+    
     struct MarketItem {
         address seller;
         string itemId; // Off-chain item ID reference
