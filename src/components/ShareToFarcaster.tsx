@@ -30,15 +30,19 @@ export const ShareToFarcaster = ({
       // Farcaster embeds support max 2 URLs
       const embedsToShare = embeds?.slice(0, 2) as [] | [string] | [string, string] | undefined;
       
-      await sdk.actions.composeCast({
+      const result = await sdk.actions.composeCast({
         text,
-        embeds: embedsToShare || [],
+        embeds: embedsToShare,
       });
       
-      toast.success('Opening Farcaster composer...');
-    } catch (error) {
+      // Only show success if cast was actually created (not cancelled)
+      console.log('Compose cast result:', result);
+    } catch (error: any) {
       console.error('Error sharing to Farcaster:', error);
-      toast.error('Failed to share cast');
+      // Only show error if it's not a user cancellation
+      if (error?.message && !error.message.includes('cancel')) {
+        toast.error('Failed to share cast');
+      }
     } finally {
       setIsSharing(false);
     }

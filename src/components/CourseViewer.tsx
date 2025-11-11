@@ -343,7 +343,7 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
                   <p className="text-xs text-muted-foreground">Share your achievement with others</p>
                   <ShareToFarcaster
                     text={`I just completed "${course.title}"! 🎓 Learn now!`}
-                    embeds={course.thumbnail_url ? [`https://uniqueehub.vercel.app/opengraph-image.png`, `https://uniqueehub.vercel.app/#courses`] : [`https://uniqueehub.vercel.app/#courses`]}
+                    embeds={['https://uniqueehub.vercel.app']}
                     buttonText="Share Achievement"
                     variant="default"
                     size="sm"
