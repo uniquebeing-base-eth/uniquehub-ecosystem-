@@ -147,7 +147,7 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
   };
 
   const handleApproveUSDC = async () => {
-    if (!address || !walletClient) {
+    if (!address || !walletClient || !publicClient) {
       toast.error('Wallet not connected');
       return;
     }
@@ -156,20 +156,24 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
     setLoading(true);
     
     try {
+      toast.info('Please approve USDC in your wallet...');
+      
       const hash = await walletClient.writeContract({
         address: USDC_ADDRESS,
         abi: USDC_ABI,
         functionName: 'approve',
         args: [COURSE_CONTRACT_ADDRESS, LISTING_FEE],
+        account: address,
+        chain: walletClient.chain,
       } as any);
 
       toast.info('Approval transaction submitted. Waiting for confirmation...');
       
       // Wait for confirmation
-      await publicClient!.waitForTransactionReceipt({ hash });
+      await publicClient.waitForTransactionReceipt({ hash });
       
       // Refetch allowance
-      const newAllowance = await publicClient!.readContract({
+      const newAllowance = await publicClient.readContract({
         address: USDC_ADDRESS,
         abi: USDC_ABI,
         functionName: 'allowance',
@@ -189,7 +193,7 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
   };
 
   const handleListCourse = async () => {
-    if (!address || !walletClient) {
+    if (!address || !walletClient || !publicClient) {
       toast.error('Wallet not connected');
       return;
     }
@@ -203,23 +207,66 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
       // Use a temporary ID (will be replaced with actual DB id later)
       const tempCourseId = `temp-${Date.now()}-${address.slice(2, 10)}`;
       
+      toast.info('Please confirm the listing transaction in your wallet...');
+      
       const hash = await walletClient.writeContract({
         address: COURSE_CONTRACT_ADDRESS,
         abi: COURSE_CONTRACT_ABI,
         functionName: 'listCourse',
         args: [tempCourseId, priceInUSDC],
+        account: address,
+        chain: walletClient.chain,
       } as any);
 
       toast.info('Listing transaction submitted!');
       
       // Wait for confirmation
-      await publicClient!.waitForTransactionReceipt({ hash });
+      await publicClient.waitForTransactionReceipt({ hash });
       
       toast.success('Course listed on-chain!');
       await handleDatabaseCreation();
     } catch (error: any) {
       console.error('Listing error:', error);
       toast.error(error.message || 'Failed to list course on-chain');
+      setListingStep('idle');
+      setLoading(false);
+    }
+  };
+
+  const handleListFreeCourse = async () => {
+    if (!address || !walletClient || !publicClient) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
+    setListingStep('listing');
+    setLoading(true);
+    
+    try {
+      // Use a temporary ID (will be replaced with actual DB id later)
+      const tempCourseId = `temp-${Date.now()}-${address.slice(2, 10)}`;
+      
+      toast.info('Listing free course on-chain...');
+      
+      const hash = await walletClient.writeContract({
+        address: COURSE_CONTRACT_ADDRESS,
+        abi: COURSE_CONTRACT_ABI,
+        functionName: 'listCourse',
+        args: [tempCourseId, 0n],
+        account: address,
+        chain: walletClient.chain,
+      } as any);
+
+      toast.info('Listing transaction submitted!');
+      
+      // Wait for confirmation
+      await publicClient.waitForTransactionReceipt({ hash });
+      
+      toast.success('Free course listed on-chain!');
+      await handleDatabaseCreation();
+    } catch (error: any) {
+      console.error('Listing error:', error);
+      toast.error(error.message || 'Failed to list free course on-chain');
       setListingStep('idle');
       setLoading(false);
     }
@@ -257,75 +304,8 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
         await handleListCourse();
       }
     } else {
-      // Free course: no listing fee, directly create in database
-      try {
-        let thumbnail_url: string | null = null;
-        let video_url: string | null = null;
-
-        if (thumbnailFile) {
-          const thumbnailPath = `course-thumbnails/${user.id}/${Date.now()}-${thumbnailFile.name}`;
-          const { error: thumbnailError } = await supabase.storage
-            .from('avatars')
-            .upload(thumbnailPath, thumbnailFile);
-
-          if (thumbnailError) throw thumbnailError;
-
-          const { data: thumbnailUrlData } = supabase.storage
-            .from('avatars')
-            .getPublicUrl(thumbnailPath);
-          thumbnail_url = thumbnailUrlData.publicUrl;
-        }
-
-        if (videoFile) {
-          const videoPath = `course-videos/${user.id}/${Date.now()}-${videoFile.name}`;
-          const { error: videoError } = await supabase.storage
-            .from('avatars')
-            .upload(videoPath, videoFile);
-
-          if (videoError) throw videoError;
-
-          const { data: videoUrlData } = supabase.storage
-            .from('avatars')
-            .getPublicUrl(videoPath);
-          video_url = videoUrlData.publicUrl;
-        }
-
-        const { data: newCourse, error } = await supabase
-          .from('courses')
-          .insert({
-            user_id: user.id,
-            title: formData.title,
-            description: formData.description,
-            price_usdc: 0,
-            category: formData.category,
-            thumbnail_url,
-            video_url,
-            status: 'published',
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        setUploadStatus('uploaded');
-        toast.success('Free course uploaded successfully!');
-
-        // Reset form
-        setFormData({ title: '', description: '', price_usdc: '', category: 'web3-basics' });
-        setThumbnailFile(null);
-        if (thumbPreview) URL.revokeObjectURL(thumbPreview);
-        setThumbPreview(null);
-        setVideoFile(null);
-
-        onSuccess?.();
-        window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'courses' } }));
-      } catch (error: any) {
-        console.error('Error uploading free course:', error);
-        toast.error('Failed to upload course');
-        setUploadStatus('idle');
-      } finally {
-        setLoading(false);
-      }
+      // Free course: must also be listed on-chain (with price 0)
+      await handleListFreeCourse();
     }
   };
 
