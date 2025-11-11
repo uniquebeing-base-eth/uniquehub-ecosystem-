@@ -1,13 +1,57 @@
+import { useEffect, useState } from "react";
 import { WalletCard } from "@/components/WalletCard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Copy, ExternalLink } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
+import { supabase } from "@/integrations/supabase/client";
 
 export const WalletSection = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
-  const { address, ethBalance, usdcBalance, isLoading } = useFarcasterWallet();
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [ethBalance, setEthBalance] = useState('0.00');
+  const [usdcBalance, setUsdcBalance] = useState('0.00');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchWalletData();
+    }
+  }, [user]);
+
+  const fetchWalletData = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      // Fetch wallet from Farcaster via FID
+      const { data, error } = await supabase.functions.invoke('fetch-farcaster-wallet');
+
+      if (error) {
+        console.error('Error fetching Farcaster wallet:', error);
+        // Fallback to profile wallet_address
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('wallet_address')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile?.wallet_address) {
+          setWalletAddress(profile.wallet_address);
+        }
+      } else if (data) {
+        setWalletAddress(data.walletAddress);
+        setEthBalance(data.ethBalance || '0.00');
+        setUsdcBalance(data.usdcBalance || '0.00');
+      }
+    } catch (error) {
+      console.error('Error fetching wallet data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   const copyToClipboard = (text: string) => {
@@ -32,13 +76,13 @@ export const WalletSection = () => {
       </div>
 
       {/* Wallet Address */}
-      {address && (
+      {walletAddress && (
         <Card className="p-3 bg-gradient-card">
           <div className="flex items-center justify-between gap-2">
             <div className="flex-1 min-w-0">
               <div className="text-xs text-muted-foreground mb-1">Wallet Address</div>
               <div className="text-sm font-mono font-medium truncate">
-                {formatAddress(address)}
+                {formatAddress(walletAddress)}
               </div>
             </div>
             <div className="flex gap-1">
@@ -46,7 +90,7 @@ export const WalletSection = () => {
                 size="sm"
                 variant="outline"
                 className="h-7 w-7 p-0"
-                onClick={() => copyToClipboard(address)}
+                onClick={() => copyToClipboard(walletAddress)}
               >
                 <Copy className="w-3 h-3" />
               </Button>
@@ -54,7 +98,7 @@ export const WalletSection = () => {
                 size="sm"
                 variant="outline"
                 className="h-7 w-7 p-0"
-                onClick={() => window.open(`https://basescan.org/address/${address}`, '_blank')}
+                onClick={() => window.open(`https://basescan.org/address/${walletAddress}`, '_blank')}
               >
                 <ExternalLink className="w-3 h-3" />
               </Button>
