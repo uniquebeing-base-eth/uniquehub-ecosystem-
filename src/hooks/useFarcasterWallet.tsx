@@ -49,25 +49,31 @@ export const useFarcasterWallet = () => {
         let fcFid: number | undefined;
         try {
           const mod = await import('@farcaster/miniapp-sdk');
-          const context = await mod?.sdk?.context;
+          const context = await mod?.sdk?.context; // Context is a promise
           fcFid = context?.user?.fid;
           if (!cancelled && fcFid) setFid(fcFid);
-        } catch {}
+        } catch (err) {
+          console.log('Farcaster SDK context not available:', err);
+        }
 
         // Fetch wallet data from Neynar via FID (no auth required)
         if (fcFid) {
-          const { data, error } = await supabase.functions.invoke('fetch-farcaster-wallet', {
-            body: { fid: fcFid }
-          });
-          if (!cancelled && data?.walletAddress) {
-            setAddress(data.walletAddress as `0x${string}`);
-            setEthBalance(data.ethBalance || '0.00');
-            setUsdcBalance(data.usdcBalance || '0.00');
-            // Also try to get provider for signing
-            await fromProvider();
-            return;
+          try {
+            const { data, error } = await supabase.functions.invoke('fetch-farcaster-wallet', {
+              body: { fid: fcFid }
+            });
+            if (!cancelled && data?.walletAddress) {
+              setAddress(data.walletAddress as `0x${string}`);
+              setEthBalance(data.ethBalance || '0.00');
+              setUsdcBalance(data.usdcBalance || '0.00');
+              // Also try to get provider for signing
+              await fromProvider();
+              return;
+            }
+            if (error) console.error('Error fetching wallet via FID:', error);
+          } catch (err) {
+            console.error('Failed to invoke fetch-farcaster-wallet:', err);
           }
-          if (error) console.error('Error fetching wallet via FID:', error);
         }
 
         // Fallback to provider detection
