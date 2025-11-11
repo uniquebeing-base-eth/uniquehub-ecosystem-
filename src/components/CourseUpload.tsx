@@ -21,8 +21,8 @@ interface CourseUploadProps {
 
 export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
   const { user } = useAuth();
-  const { address, isConnected } = useAccount();
-  const { walletAddress } = useFarcasterWallet();
+  const { address } = useAccount();
+  const { walletAddress, isLoading: walletLoading } = useFarcasterWallet();
   const [loading, setLoading] = useState(false);
   const [listingStep, setListingStep] = useState<'idle' | 'approving' | 'listing'>('idle');
   const [formData, setFormData] = useState({
@@ -59,9 +59,9 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
     const priceInUSDC = parseFloat(formData.price_usdc) || 0;
     const isPaidCourse = priceInUSDC > 0;
 
-    // Validate wallet connection for paid courses
-    if (isPaidCourse && (!isConnected || !address)) {
-      toast.error('Please connect your wallet to list a paid course');
+    // Validate wallet for paid courses
+    if (isPaidCourse && !address && !walletAddress) {
+      toast.error('Wallet not available. Please try again.');
       return;
     }
 
@@ -78,19 +78,24 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
 
       // For paid courses, list on smart contract first with 0.1 USDC fee
       if (isPaidCourse) {
+        const activeAddress = (address || walletAddress) as `0x${string}`;
+        if (!activeAddress) {
+          throw new Error('No wallet address available');
+        }
+
         const listingFee = parseUnits('0.1', 6); // 0.1 USDC
         const currentAllowance = (allowance as bigint) || 0n;
 
         // Approve USDC if needed
         if (currentAllowance < listingFee) {
           setListingStep('approving');
-          toast.info('Step 1/2: Approve USDC listing fee...');
+          toast.info('Step 1/2: Approve USDC listing fee in your wallet...');
           await writeContractAsync({
             address: USDC_ADDRESS as `0x${string}`,
             abi: USDC_ABI,
             functionName: 'approve',
             args: [CONTRACTS.COURSE_CONTRACT as `0x${string}`, listingFee],
-            account: address!,
+            account: activeAddress,
             chain: base,
           });
           await refetchAllowance();
@@ -104,7 +109,7 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
           abi: COURSE_CONTRACT_ABI,
           functionName: 'listCourse',
           args: [courseId, parseUnits(priceInUSDC.toString(), 6)],
-          account: address!,
+          account: activeAddress,
           chain: base,
         });
       }
@@ -309,7 +314,11 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
         </div>
 
         <div className="flex gap-3 pt-4 items-center">
-          <Button type="submit" disabled={loading || isPending || isConfirming} className="bg-primary hover:bg-primary/90">
+          <Button 
+            type="submit" 
+            disabled={loading || isPending || isConfirming || (walletLoading && parseFloat(formData.price_usdc) > 0)} 
+            className="bg-primary hover:bg-primary/90"
+          >
             {(loading || isPending || isConfirming) && (
               <span className="inline-flex items-center gap-2">
                 <span className="w-3.5 h-3.5 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
@@ -318,8 +327,14 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
                 {listingStep === 'idle' && 'Uploading...'}
               </span>
             )}
-            {!loading && !isPending && !isConfirming && uploadStatus === 'uploaded' && 'Uploaded ✅'}
-            {!loading && !isPending && !isConfirming && uploadStatus !== 'uploaded' && 'Upload Course'}
+            {walletLoading && parseFloat(formData.price_usdc) > 0 && !loading && (
+              <span className="inline-flex items-center gap-2">
+                <span className="w-3.5 h-3.5 border-2 border-primary/60 border-t-transparent rounded-full animate-spin" />
+                Loading wallet...
+              </span>
+            )}
+            {!loading && !isPending && !isConfirming && !walletLoading && uploadStatus === 'uploaded' && 'Uploaded ✅'}
+            {!loading && !isPending && !isConfirming && !walletLoading && uploadStatus !== 'uploaded' && 'Upload Course'}
           </Button>
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
