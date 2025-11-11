@@ -29,19 +29,39 @@ export const WalletSection = () => {
 
   const ethBalance = ethBalanceData 
     ? parseFloat(formatUnits(ethBalanceData.value, ethBalanceData.decimals)).toFixed(4)
-    : '0.00';
+    : '0.0000';
 
   const usdcBalance = usdcBalanceData
     ? parseFloat(formatUnits(usdcBalanceData.value, usdcBalanceData.decimals)).toFixed(2)
     : '0.00';
 
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-      title: "Copied!",
-      description: "Address copied to clipboard",
-    });
+  const copyToClipboard = async (text: string) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      toast({
+        title: "Copied!",
+        description: "Address copied to clipboard",
+      });
+    } catch (e) {
+      toast({
+        title: "Copy failed",
+        description: "Could not copy address. Please copy manually.",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatAddress = (address: string) => {
@@ -63,7 +83,11 @@ export const WalletSection = () => {
           <div className="flex items-center justify-between gap-2">
             <div className="flex-1 min-w-0">
               <div className="text-xs text-muted-foreground mb-1">Wallet Address</div>
-              <div className="text-sm font-mono font-medium truncate">
+              <div
+                className="text-sm font-mono font-medium truncate cursor-pointer"
+                onClick={() => copyToClipboard(address)}
+                title="Click to copy full address"
+              >
                 {formatAddress(address)}
               </div>
             </div>
