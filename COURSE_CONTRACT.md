@@ -1,5 +1,7 @@
 # UniqueHub Course Contract
 
+**Deployed Contract Address (Base Mainnet)**: `0x237b0cdC89A75B329f1b650D844F20497698a48A`
+
 ## CourseContract.sol
 
 ```solidity
