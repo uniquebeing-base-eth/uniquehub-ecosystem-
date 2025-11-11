@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Share2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { sdk } from '@farcaster/miniapp-sdk';
 
 interface ShareToFarcasterProps {
   text: string;
@@ -25,23 +26,19 @@ export const ShareToFarcaster = ({
   const handleShare = async () => {
     setIsSharing(true);
     try {
-      // Build Farcaster composer URL with intent
-      const encodedText = encodeURIComponent(text);
-      let composerUrl = `https://warpcast.com/~/compose?text=${encodedText}`;
+      // Use Farcaster SDK composeCast action for native sharing
+      // Farcaster embeds support max 2 URLs
+      const embedsToShare = embeds?.slice(0, 2) as [] | [string] | [string, string] | undefined;
       
-      // Add embeds if provided (URLs that will show preview cards)
-      if (embeds && embeds.length > 0) {
-        const embedParams = embeds.map(embed => `&embeds[]=${encodeURIComponent(embed)}`).join('');
-        composerUrl += embedParams;
-      }
-      
-      // Open in new window/tab or in the current app
-      window.open(composerUrl, '_blank');
+      await sdk.actions.composeCast({
+        text,
+        embeds: embedsToShare || [],
+      });
       
       toast.success('Opening Farcaster composer...');
     } catch (error) {
       console.error('Error sharing to Farcaster:', error);
-      toast.error('Failed to open Farcaster composer');
+      toast.error('Failed to share cast');
     } finally {
       setIsSharing(false);
     }

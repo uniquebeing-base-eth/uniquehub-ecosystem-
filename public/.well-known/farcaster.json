@@ -9,6 +9,7 @@
     "name": "UniqueHub",
     "iconUrl": "https://uniqueehub.vercel.app/icon.png",
     "homeUrl": "https://uniqueehub.vercel.app",
+    "castShareUrl": "https://uniqueehub.vercel.app",
     "imageUrl": "https://uniqueehub.vercel.app/opengraph-image.png",
     "buttonTitle": "Launch UniqueHub",
     "splashImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png",
