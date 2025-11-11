@@ -107,7 +107,7 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
         video_url = videoUrlData.publicUrl;
       }
 
-      // Create course in database
+      // Create course in database FIRST to get real ID
       const { data: newCourse, error } = await supabase
         .from('courses')
         .insert({
@@ -125,24 +125,12 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
 
       if (error) throw error;
 
-      setUploadStatus('uploaded');
-      toast.success('Course listed on-chain and published!');
-
-      // Reset form
-      setFormData({ title: '', description: '', price_usdc: '', category: 'web3-basics' });
-      setThumbnailFile(null);
-      if (thumbPreview) URL.revokeObjectURL(thumbPreview);
-      setThumbPreview(null);
-      setVideoFile(null);
-      setListingStep('idle');
-
-      onSuccess?.();
-      window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'courses' } }));
+      return newCourse.id; // Return the course ID for on-chain listing
     } catch (error) {
       console.error('Error creating course in database:', error);
-      toast.error('Course listed on-chain but failed to create database entry');
-    } finally {
+      toast.error('Failed to create course in database');
       setLoading(false);
+      throw error;
     }
   };
 
@@ -202,10 +190,15 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
     setLoading(true);
     
     try {
-      const priceInUSDC = BigInt(parseFloat(formData.price_usdc) * 1_000_000);
+      // Create course in database FIRST to get real ID
+      toast.info('Creating course...');
+      const courseId = await handleDatabaseCreation();
       
-      // Use a temporary ID (will be replaced with actual DB id later)
-      const tempCourseId = `temp-${Date.now()}-${address.slice(2, 10)}`;
+      if (!courseId) {
+        throw new Error('Failed to create course in database');
+      }
+
+      const priceInUSDC = BigInt(parseFloat(formData.price_usdc) * 1_000_000);
       
       toast.info('Please confirm the listing transaction in your wallet...');
       
@@ -213,7 +206,7 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
         address: COURSE_CONTRACT_ADDRESS,
         abi: COURSE_CONTRACT_ABI,
         functionName: 'listCourse',
-        args: [tempCourseId, priceInUSDC],
+        args: [courseId, priceInUSDC],
         account: address,
         chain: walletClient.chain,
       } as any);
@@ -223,8 +216,20 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
       // Wait for confirmation
       await publicClient.waitForTransactionReceipt({ hash });
       
-      toast.success('Course listed on-chain!');
-      await handleDatabaseCreation();
+      toast.success('Course listed on-chain and published!');
+      setUploadStatus('uploaded');
+      
+      // Reset form
+      setFormData({ title: '', description: '', price_usdc: '', category: 'web3-basics' });
+      setThumbnailFile(null);
+      if (thumbPreview) URL.revokeObjectURL(thumbPreview);
+      setThumbPreview(null);
+      setVideoFile(null);
+      setListingStep('idle');
+      setLoading(false);
+
+      onSuccess?.();
+      window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'courses' } }));
     } catch (error: any) {
       console.error('Listing error:', error);
       toast.error(error.message || 'Failed to list course on-chain');
@@ -243,8 +248,13 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
     setLoading(true);
     
     try {
-      // Use a temporary ID (will be replaced with actual DB id later)
-      const tempCourseId = `temp-${Date.now()}-${address.slice(2, 10)}`;
+      // Create course in database FIRST to get real ID
+      toast.info('Creating free course...');
+      const courseId = await handleDatabaseCreation();
+      
+      if (!courseId) {
+        throw new Error('Failed to create course in database');
+      }
       
       toast.info('Listing free course on-chain...');
       
@@ -252,7 +262,7 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
         address: COURSE_CONTRACT_ADDRESS,
         abi: COURSE_CONTRACT_ABI,
         functionName: 'listCourse',
-        args: [tempCourseId, 0n],
+        args: [courseId, 0n],
         account: address,
         chain: walletClient.chain,
       } as any);
@@ -262,8 +272,20 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
       // Wait for confirmation
       await publicClient.waitForTransactionReceipt({ hash });
       
-      toast.success('Free course listed on-chain!');
-      await handleDatabaseCreation();
+      toast.success('Free course listed on-chain and published!');
+      setUploadStatus('uploaded');
+      
+      // Reset form
+      setFormData({ title: '', description: '', price_usdc: '', category: 'web3-basics' });
+      setThumbnailFile(null);
+      if (thumbPreview) URL.revokeObjectURL(thumbPreview);
+      setThumbPreview(null);
+      setVideoFile(null);
+      setListingStep('idle');
+      setLoading(false);
+
+      onSuccess?.();
+      window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'courses' } }));
     } catch (error: any) {
       console.error('Listing error:', error);
       toast.error(error.message || 'Failed to list free course on-chain');

@@ -246,7 +246,7 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
 
   const handleEnrollFree = async () => {
     if (!address || !walletClient || !publicClient) {
-      toast.error('Wallet not connected');
+      toast.error('Wallet not ready. Please try again in a moment.');
       return;
     }
 
@@ -290,8 +290,8 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
       return;
     }
 
-    if (!address) {
-      toast.error('Could not fetch your Farcaster wallet address');
+    if (!address || !walletClient || !publicClient) {
+      toast.error('Wallet not ready. Please try again in a moment.');
       return;
     }
 
