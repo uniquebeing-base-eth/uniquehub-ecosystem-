@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { WalletCard } from "@/components/WalletCard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,19 +8,21 @@ import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
 import { useBalance } from "wagmi";
 import { formatUnits } from "viem";
 import { base } from "wagmi/chains";
+import { supabase } from "@/integrations/supabase/client";
 
 const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
 
 export const WalletSection = () => {
   const { toast } = useToast();
   const { address, isLoading } = useFarcasterWallet();
-
+  const [serverAddress, setServerAddress] = useState<string | undefined>();
+  const [serverEth, setServerEth] = useState<string | undefined>();
+  const [serverUsdc, setServerUsdc] = useState<string | undefined>();
   // Fetch ETH balance
   const { data: ethBalanceData } = useBalance({
     address,
     chainId: base.id,
   });
-
   // Fetch USDC balance
   const { data: usdcBalanceData } = useBalance({
     address,
@@ -27,13 +30,28 @@ export const WalletSection = () => {
     chainId: base.id,
   });
 
+  // Also fetch balances via Neynar/Alchemy edge function as a reliable fallback
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('fetch-farcaster-balances');
+        if (!error && data) {
+          if (data.address) setServerAddress(data.address as string);
+          if (data.eth?.formatted) setServerEth(String(data.eth.formatted));
+          if (data.usdc?.formatted) setServerUsdc(String(data.usdc.formatted));
+        }
+      } catch {}
+    };
+    run();
+  }, [address]);
+
   const ethBalance = ethBalanceData 
     ? parseFloat(formatUnits(ethBalanceData.value, ethBalanceData.decimals)).toFixed(4)
-    : '0.0000';
+    : serverEth ?? '0.0000';
 
   const usdcBalance = usdcBalanceData
     ? parseFloat(formatUnits(usdcBalanceData.value, usdcBalanceData.decimals)).toFixed(2)
-    : '0.00';
+    : serverUsdc ?? '0.00';
 
 
   const copyToClipboard = async (text: string) => {
@@ -68,6 +86,8 @@ export const WalletSection = () => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
+  const displayAddress = (address ?? serverAddress) as string | undefined;
+
   return (
     <div className="space-y-4 pb-20">
       <div className="text-center space-y-1 mb-4">
@@ -78,17 +98,17 @@ export const WalletSection = () => {
       </div>
 
       {/* Wallet Address */}
-      {address && (
+      {displayAddress && (
         <Card className="p-3 bg-gradient-card">
           <div className="flex items-center justify-between gap-2">
             <div className="flex-1 min-w-0">
               <div className="text-xs text-muted-foreground mb-1">Wallet Address</div>
               <div
                 className="text-sm font-mono font-medium truncate cursor-pointer"
-                onClick={() => copyToClipboard(address)}
+                onClick={() => copyToClipboard(displayAddress)}
                 title="Click to copy full address"
               >
-                {formatAddress(address)}
+                {formatAddress(displayAddress)}
               </div>
             </div>
             <div className="flex gap-1">
@@ -96,7 +116,7 @@ export const WalletSection = () => {
                 size="sm"
                 variant="outline"
                 className="h-7 w-7 p-0"
-                onClick={() => copyToClipboard(address)}
+                onClick={() => copyToClipboard(displayAddress)}
               >
                 <Copy className="w-3 h-3" />
               </Button>
@@ -104,7 +124,7 @@ export const WalletSection = () => {
                 size="sm"
                 variant="outline"
                 className="h-7 w-7 p-0"
-                onClick={() => window.open(`https://basescan.org/address/${address}`, '_blank')}
+                onClick={() => window.open(`https://basescan.org/address/${displayAddress}`, '_blank')}
               >
                 <ExternalLink className="w-3 h-3" />
               </Button>
