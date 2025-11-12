@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import animeEarnBg from "@/assets/anime-earn-bg.jpg";
 
 interface LeaderboardEntry {
   user_id: string;
@@ -143,70 +144,88 @@ export const Leaderboard = () => {
     return (
       <div
         key={leader.user_id}
-        className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
+        className={`relative flex items-center gap-3 p-3 rounded-xl transition-all overflow-hidden ${
           isUserCard
-            ? 'bg-primary/10 border border-primary/30'
-            : 'bg-card hover:bg-accent/5'
+            ? 'ring-2 ring-primary/50'
+            : ''
         }`}
       >
-        <div className="flex items-center justify-center w-8 text-muted-foreground font-medium text-sm">
-          {leader.rank <= 3 ? getRankIcon(leader.rank) : `#${leader.rank}`}
-        </div>
+        {/* Anime Background */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${animeEarnBg})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/90 to-background/95" />
+        
+        {/* Content */}
+        <div className="relative z-10 flex items-center gap-3 w-full">
+          {/* Rank */}
+          <div className="flex items-center justify-center w-8 flex-shrink-0">
+            {leader.rank <= 3 ? (
+              getRankIcon(leader.rank)
+            ) : (
+              <span className="text-sm font-bold text-muted-foreground">#{leader.rank}</span>
+            )}
+          </div>
 
-        <Avatar className="w-10 h-10 border border-border">
-          <AvatarImage src={leader.avatar_url || undefined} />
-          <AvatarFallback className="bg-primary/20 text-foreground text-xs font-medium">
-            {(leader.display_name || leader.farcaster_username || 'U').slice(0, 2).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+          {/* Avatar */}
+          <Avatar className="w-10 h-10 border-2 border-primary/30 flex-shrink-0">
+            <AvatarImage src={leader.avatar_url || undefined} />
+            <AvatarFallback className="bg-primary/20 text-foreground text-xs font-bold">
+              {(leader.display_name || leader.farcaster_username || 'U').slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
 
-        <div className="flex-1 min-w-0">
-          {leader.farcaster_username ? (
-            <a 
-              href={`https://warpcast.com/${leader.farcaster_username}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-foreground hover:underline truncate block text-sm"
-            >
-              @{leader.farcaster_username}
-            </a>
-          ) : (
-            <p className="font-semibold text-foreground truncate text-sm">
-              {leader.display_name || 'Anonymous'}
-            </p>
-          )}
-          {leader.daily_streak > 0 && (
-            <p className="text-xs text-muted-foreground">
-              🔥 {leader.daily_streak} day streak
-            </p>
-          )}
-        </div>
-
-        <div className="text-right">
-          {showPoints ? (
-            <>
-              <p className="text-lg font-bold text-foreground">
-                {leader.total_points.toLocaleString()}
+          {/* User Info */}
+          <div className="flex-1 min-w-0">
+            {leader.farcaster_username ? (
+              <a 
+                href={`https://warpcast.com/${leader.farcaster_username}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-foreground hover:text-primary hover:underline truncate block text-sm transition-colors"
+              >
+                @{leader.farcaster_username}
+              </a>
+            ) : (
+              <p className="font-semibold text-foreground truncate text-sm">
+                {leader.display_name || 'Anonymous'}
               </p>
-              <p className="text-xs text-muted-foreground">UP</p>
-            </>
-          ) : (
-            <div className="space-y-0.5">
-              {(leader.total_eth_earned && leader.total_eth_earned > 0) && (
-                <p className="text-sm font-semibold text-blue-400">
-                  Ξ {leader.total_eth_earned.toFixed(4)}
+            )}
+            {leader.daily_streak > 0 && (
+              <p className="text-xs text-orange-400 font-medium">
+                🔥 {leader.daily_streak} day streak
+              </p>
+            )}
+          </div>
+
+          {/* Points/Earnings */}
+          <div className="text-right flex-shrink-0">
+            {showPoints ? (
+              <>
+                <p className="text-lg font-bold text-foreground leading-tight">
+                  {leader.total_points.toLocaleString()}
                 </p>
-              )}
-              {(leader.total_usdc_earned && leader.total_usdc_earned > 0) && (
-                <p className="text-sm font-semibold text-green-400 flex items-center justify-end gap-1">
-                  <DollarSign className="w-3 h-3" />{leader.total_usdc_earned.toFixed(2)}
-                </p>
-              )}
-              {totalEarnings === 0 && (
-                <p className="text-sm text-muted-foreground">$0</p>
-              )}
-            </div>
-          )}
+                <p className="text-xs text-muted-foreground">UP</p>
+              </>
+            ) : (
+              <div className="space-y-0.5">
+                {(leader.total_eth_earned && leader.total_eth_earned > 0) && (
+                  <p className="text-sm font-bold text-blue-400 leading-tight">
+                    Ξ {leader.total_eth_earned.toFixed(4)}
+                  </p>
+                )}
+                {(leader.total_usdc_earned && leader.total_usdc_earned > 0) && (
+                  <p className="text-sm font-bold text-green-400 flex items-center justify-end gap-0.5 leading-tight">
+                    <DollarSign className="w-3 h-3" />{leader.total_usdc_earned.toFixed(2)}
+                  </p>
+                )}
+                {totalEarnings === 0 && (
+                  <p className="text-sm text-muted-foreground">$0.00</p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -222,22 +241,22 @@ export const Leaderboard = () => {
     : leaders;
 
   return (
-    <Card className="p-4 bg-card">
+    <Card className="p-5 bg-card border-border/50">
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="w-5 h-5 text-primary" />
         <h3 className="text-lg font-bold text-foreground">Leaderboard</h3>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "points" | "earnings")} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
-          <TabsTrigger value="points" className="text-sm">UP Points</TabsTrigger>
-          <TabsTrigger value="earnings" className="text-sm">Money Earned</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 mb-4 h-10">
+          <TabsTrigger value="points" className="text-sm font-semibold">UP Points</TabsTrigger>
+          <TabsTrigger value="earnings" className="text-sm font-semibold">Money Earned</TabsTrigger>
         </TabsList>
 
         <TabsContent value="points" className="mt-0">
-          <div className="space-y-2 max-h-[500px] overflow-y-auto">
+          <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
             {leaders.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8 text-sm">
+              <p className="text-center text-muted-foreground py-12 text-sm">
                 No leaderboard data yet. Be the first to check in and earn UP!
               </p>
             ) : (
@@ -245,8 +264,8 @@ export const Leaderboard = () => {
                 {leaders.map((leader) => renderLeaderCard(leader))}
                 
                 {userPosition && userPosition.rank > 10 && (
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <p className="text-xs text-muted-foreground mb-2 font-medium">Your Position</p>
+                  <div className="mt-4 pt-4 border-t border-border/50">
+                    <p className="text-xs text-muted-foreground mb-2 font-semibold">Your Position</p>
                     {renderLeaderCard(userPosition, true)}
                   </div>
                 )}
@@ -256,9 +275,9 @@ export const Leaderboard = () => {
         </TabsContent>
 
         <TabsContent value="earnings" className="mt-0">
-          <div className="space-y-2 max-h-[500px] overflow-y-auto">
+          <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
             {sortedLeaders.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8 text-sm">
+              <p className="text-center text-muted-foreground py-12 text-sm">
                 No earnings data yet. Start selling courses to earn!
               </p>
             ) : (
@@ -266,8 +285,8 @@ export const Leaderboard = () => {
                 {sortedLeaders.map((leader, index) => renderLeaderCard({ ...leader, rank: index + 1 }))}
                 
                 {userPosition && userPosition.rank > 10 && (
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <p className="text-xs text-muted-foreground mb-2 font-medium">Your Position</p>
+                  <div className="mt-4 pt-4 border-t border-border/50">
+                    <p className="text-xs text-muted-foreground mb-2 font-semibold">Your Position</p>
                     {renderLeaderCard(userPosition, true)}
                   </div>
                 )}
