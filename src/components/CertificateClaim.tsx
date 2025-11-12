@@ -216,7 +216,7 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
                 </div>
                 <ShareToFarcaster
                   text={`I just earned my certificate for completing "${courseTitle}" on @uniquehub! 🎓✨`}
-                  embeds={[certificate.image_url, 'https://farcaster.xyz/miniapps/lQoakVUKSjUV/uniquehub']}
+                  embeds={[certificate.image_url, 'https://uniqueehub.vercel.app']}
                   buttonText="Share Certificate"
                   variant="default"
                   size="sm"
