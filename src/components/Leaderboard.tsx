@@ -244,13 +244,13 @@ export const Leaderboard = () => {
     <Card className="p-5 bg-card border-border/50">
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="w-5 h-5 text-primary" />
-        <h3 className="text-lg font-bold text-foreground">Top 20 Leaderboard</h3>
+        <h3 className="text-lg font-bold text-foreground">Top Earners</h3>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "points" | "earnings")} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4 h-9">
-          <TabsTrigger value="points" className="text-xs font-semibold">UP Points</TabsTrigger>
-          <TabsTrigger value="earnings" className="text-xs font-semibold">Money Earned</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 mb-4 h-8 p-0.5">
+          <TabsTrigger value="points" className="text-xs font-medium py-1">UP Points</TabsTrigger>
+          <TabsTrigger value="earnings" className="text-xs font-medium py-1">Money Earned</TabsTrigger>
         </TabsList>
 
         <TabsContent value="points" className="mt-0">
