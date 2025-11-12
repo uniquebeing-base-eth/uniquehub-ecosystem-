@@ -45,3 +45,9 @@ verify_jwt = false
 [functions.miniapp-webhook]
 verify_jwt = false
 
+[functions.generate-certificate]
+verify_jwt = true
+
+[functions.fetch-farcaster-balances]
+verify_jwt = true
+
