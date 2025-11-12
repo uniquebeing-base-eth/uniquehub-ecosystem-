@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { ShareToFarcaster } from '@/components/ShareToFarcaster';
 import { CommentItem } from '@/components/CommentItem';
+import { CertificateClaim } from '@/components/CertificateClaim';
 
 interface CourseViewerProps {
   course: any;
@@ -332,26 +333,14 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
               </div>
             )}
 
-            {/* Course Completion Share */}
-            {isCompleted && (
-              <div className="p-3 border-b border-primary/10 bg-gradient-to-br from-success/5 to-primary/5">
-                <div className="text-center space-y-2">
-                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-primary mb-1">
-                    <Star className="w-5 h-5 text-white fill-white" />
-                  </div>
-                  <h4 className="text-sm font-bold text-foreground">Course Completed! 🎉</h4>
-                  <p className="text-xs text-muted-foreground">Share your achievement with others</p>
-                  <ShareToFarcaster
-                    text={`I just completed "${course.title}"! 🎓 Learn now!`}
-                    embeds={course.thumbnail_url ? [course.thumbnail_url, 'https://uniqueehub.vercel.app'] : ['https://uniqueehub.vercel.app']}
-                    buttonText="Share Achievement"
-                    variant="default"
-                    size="sm"
-                    className="w-full bg-gradient-primary"
-                  />
-                </div>
-              </div>
-            )}
+            {/* Certificate Claim Section */}
+            <div className="p-3 border-b border-primary/10">
+              <CertificateClaim
+                courseId={course.id}
+                courseTitle={course.title}
+                isCompleted={isCompleted}
+              />
+            </div>
 
             {/* Comments Section */}
             <div className="p-3 space-y-2">

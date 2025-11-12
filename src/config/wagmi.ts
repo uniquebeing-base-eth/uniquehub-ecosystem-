@@ -120,10 +120,55 @@ export const MARKETPLACE_CONTRACT_ABI = [
   },
 ] as const;
 
+// Certificate NFT Contract ABI
+export const CERTIFICATE_CONTRACT_ABI = [
+  {
+    inputs: [
+      { name: 'recipient', type: 'address' },
+      { name: 'courseId', type: 'string' },
+      { name: 'courseName', type: 'string' },
+      { name: 'certificateId', type: 'string' },
+      { name: 'tokenURI', type: 'string' }
+    ],
+    name: 'mintCertificate',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'tokenId', type: 'uint256' }],
+    name: 'getCertificate',
+    outputs: [
+      {
+        components: [
+          { name: 'recipient', type: 'address' },
+          { name: 'courseId', type: 'string' },
+          { name: 'courseName', type: 'string' },
+          { name: 'issuedAt', type: 'uint256' },
+          { name: 'certificateId', type: 'string' }
+        ],
+        name: '',
+        type: 'tuple'
+      }
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'user', type: 'address' }, { name: 'courseId', type: 'string' }],
+    name: 'hasCertificate',
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
 // Contract Addresses on Base Mainnet
 export const COURSE_CONTRACT_ADDRESS = '0x237b0cdC89A75B329f1b650D844F20497698a48A' as const;
 export const MARKETPLACE_CONTRACT_ADDRESS = '0x08A8A1E3E9E74005f764f449C62FCEdC5f3E9421' as const;
+export const CERTIFICATE_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000000' as const; // UPDATE AFTER DEPLOYMENT
 export const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
 export const LISTING_FEE = 100000n; // 0.1 USDC (6 decimals)
 export const FREE_COURSE_FEE = 100000000000n; // 0.0000001 ETH
 export const MARKETPLACE_LISTING_FEE = 100000n; // 0.1 USDC (6 decimals)
+export const CERTIFICATE_MINT_FEE = 100000000000n; // 0.0000001 ETH

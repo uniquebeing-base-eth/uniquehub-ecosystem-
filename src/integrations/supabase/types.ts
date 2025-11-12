@@ -38,6 +38,56 @@ export type Database = {
         }
         Relationships: []
       }
+      certificates: {
+        Row: {
+          certificate_id: string
+          course_id: string
+          created_at: string
+          id: string
+          image_url: string
+          minted_at: string | null
+          token_id: number | null
+          token_uri: string | null
+          transaction_hash: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          certificate_id: string
+          course_id: string
+          created_at?: string
+          id?: string
+          image_url: string
+          minted_at?: string | null
+          token_id?: number | null
+          token_uri?: string | null
+          transaction_hash?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          certificate_id?: string
+          course_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          minted_at?: string | null
+          token_id?: number | null
+          token_uri?: string | null
+          transaction_hash?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_course"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chapters: {
         Row: {
           chapter_number: number
