@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Circle, Coins, BookOpen, Package, Image, UserPlus } from "lucide-react";
+import { CheckCircle2, Circle, Coins, BookOpen, Package, Image, UserPlus, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +30,8 @@ export const EarnSection = () => {
   const [totalPoints, setTotalPoints] = useState(0);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [lastClaimedPoints, setLastClaimedPoints] = useState(0);
+  const [totalEthEarned, setTotalEthEarned] = useState(0);
+  const [totalUsdcEarned, setTotalUsdcEarned] = useState(0);
 
   const tasks: Task[] = [
     {
@@ -104,6 +106,7 @@ export const EarnSection = () => {
     if (user) {
       loadCompletedTasks();
       loadUserPoints();
+      loadUserEarnings();
     }
   }, [user]);
 
@@ -132,6 +135,30 @@ export const EarnSection = () => {
     if (data) {
       setTotalPoints(data.total_points);
     }
+  };
+
+  const loadUserEarnings = async () => {
+    if (!user) return;
+
+    const { data: payments } = await supabase
+      .from('course_payments')
+      .select('amount, currency, status')
+      .eq('seller_user_id', user.id)
+      .eq('status', 'completed');
+    
+    let eth_earned = 0;
+    let usdc_earned = 0;
+    
+    payments?.forEach(payment => {
+      if (payment.currency === 'ETH') {
+        eth_earned += Number(payment.amount);
+      } else if (payment.currency === 'USDC') {
+        usdc_earned += Number(payment.amount);
+      }
+    });
+    
+    setTotalEthEarned(eth_earned);
+    setTotalUsdcEarned(usdc_earned);
   };
 
   const checkFollowStatus = async (taskId: string, username: string) => {
@@ -342,27 +369,33 @@ export const EarnSection = () => {
       </div>
 
       {/* Affiliate Stats */}
-      <Card className="p-3 bg-gradient-card relative overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center opacity-30" style={{ backgroundImage: `url(${cardBgEarn})` }} />
+      <Card className="p-4 relative overflow-hidden border-primary/30">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-50" 
+          style={{ backgroundImage: `url(${animeEarnBg})` }} 
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/70 to-background/90" />
         <div className="relative z-10">
-        <div className="flex items-center gap-2 mb-2">
-          <Coins className="w-4 h-4 text-primary" />
-          <h3 className="text-sm font-semibold">Your Earnings</h3>
-        </div>
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div>
-            <div className="text-base font-bold text-primary">0</div>
-            <div className="text-[10px] text-muted-foreground">Referrals</div>
+          <div className="flex items-center gap-2 mb-4">
+            <Coins className="w-5 h-5 text-primary" />
+            <h3 className="text-base font-bold text-foreground">Your Earnings</h3>
           </div>
-          <div>
-            <div className="text-base font-bold text-primary">$0</div>
-            <div className="text-[10px] text-muted-foreground">Commission</div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="text-center p-2 rounded-lg bg-background/40">
+              <div className="text-xl font-bold text-foreground">{totalPoints}</div>
+              <div className="text-xs text-muted-foreground font-medium">UP Points</div>
+            </div>
+            <div className="text-center p-2 rounded-lg bg-background/40">
+              <div className="text-sm font-bold text-foreground">
+                {totalEthEarned > 0 && <div className="text-blue-400">Ξ {totalEthEarned.toFixed(4)}</div>}
+                {totalUsdcEarned > 0 && <div className="text-green-400 flex items-center justify-center gap-1">
+                  <DollarSign className="w-3 h-3" />{totalUsdcEarned.toFixed(2)}
+                </div>}
+                {totalEthEarned === 0 && totalUsdcEarned === 0 && <div>$0</div>}
+              </div>
+              <div className="text-xs text-muted-foreground font-medium">Money Earned</div>
+            </div>
           </div>
-          <div>
-            <div className="text-base font-bold text-primary">{totalPoints}</div>
-            <div className="text-[10px] text-muted-foreground">UP Points</div>
-          </div>
-        </div>
         </div>
       </Card>
 

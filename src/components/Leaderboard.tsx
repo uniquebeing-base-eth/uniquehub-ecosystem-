@@ -168,35 +168,36 @@ export const Leaderboard = () => {
             href={`https://warpcast.com/${leader.farcaster_username}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold text-primary hover:underline truncate block text-base"
+            className="font-semibold text-white hover:underline truncate block text-base"
           >
             @{leader.farcaster_username}
           </a>
         ) : (
-          <p className="font-semibold text-foreground truncate text-base">
+          <p className="font-semibold text-white truncate text-base">
             {leader.display_name || 'Anonymous'}
           </p>
         )}
-        <div className="flex flex-wrap gap-2 text-sm mt-1">
-          {leader.daily_streak > 0 && (
-            <span className="text-orange-400 font-medium">🔥 {leader.daily_streak}d</span>
-          )}
-          {(leader.total_eth_earned && leader.total_eth_earned > 0) && (
-            <span className="text-crypto-eth font-semibold">Ξ {leader.total_eth_earned.toFixed(4)}</span>
-          )}
-          {(leader.total_usdc_earned && leader.total_usdc_earned > 0) && (
-            <span className="text-crypto-usdc font-semibold flex items-center gap-1">
-              <DollarSign className="w-3 h-3" />{leader.total_usdc_earned.toFixed(2)}
-            </span>
-          )}
+        <div className="flex flex-col gap-1 mt-2">
+          <div className="flex items-center gap-2">
+            <p className="text-2xl font-bold text-white">
+              {leader.total_points.toLocaleString()}
+            </p>
+            <p className="text-sm text-gray-300">UP</p>
+          </div>
+          <div className="flex flex-wrap gap-3 text-sm">
+            {leader.daily_streak > 0 && (
+              <span className="text-orange-400 font-medium">🔥 {leader.daily_streak}d</span>
+            )}
+            {(leader.total_eth_earned && leader.total_eth_earned > 0) && (
+              <span className="text-blue-300 font-semibold">Ξ {leader.total_eth_earned.toFixed(4)}</span>
+            )}
+            {(leader.total_usdc_earned && leader.total_usdc_earned > 0) && (
+              <span className="text-green-300 font-semibold flex items-center gap-1">
+                <DollarSign className="w-3 h-3" />{leader.total_usdc_earned.toFixed(2)}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
-
-      <div className="text-right">
-        <p className="text-xl font-bold text-primary">
-          {leader.total_points.toLocaleString()}
-        </p>
-        <p className="text-xs text-muted-foreground">UP</p>
       </div>
     </div>
   );
@@ -208,7 +209,7 @@ export const Leaderboard = () => {
         <h3 className="text-xl font-bold text-foreground">Top 10 UP Earners</h3>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 max-h-[600px] overflow-y-auto">
         {leaders.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">
             No leaderboard data yet. Be the first to check in and earn UP!
