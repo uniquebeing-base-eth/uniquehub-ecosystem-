@@ -38,7 +38,7 @@ export const Leaderboard = () => {
       const { data, error } = await supabase
         .from('leaderboard')
         .select('*')
-        .limit(10);
+        .limit(20);
 
       if (error) throw error;
       
@@ -72,7 +72,7 @@ export const Leaderboard = () => {
       
       setLeaders(leadersWithEarnings);
 
-      // Fetch user's position if they're not in top 10
+      // Fetch user's position if they're not in top 20
       if (user) {
         const { data: userData } = await supabase
           .from('leaderboard')
@@ -80,7 +80,7 @@ export const Leaderboard = () => {
           .eq('user_id', user.id)
           .maybeSingle();
 
-        if (userData && userData.rank > 10) {
+        if (userData && userData.rank > 20) {
           const { data: userPayments } = await supabase
             .from('course_payments')
             .select('amount, currency, status')
@@ -244,17 +244,17 @@ export const Leaderboard = () => {
     <Card className="p-5 bg-card border-border/50">
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="w-5 h-5 text-primary" />
-        <h3 className="text-lg font-bold text-foreground">Leaderboard</h3>
+        <h3 className="text-lg font-bold text-foreground">Top 20 Leaderboard</h3>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "points" | "earnings")} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4 h-10">
-          <TabsTrigger value="points" className="text-sm font-semibold">UP Points</TabsTrigger>
-          <TabsTrigger value="earnings" className="text-sm font-semibold">Money Earned</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 mb-4 h-9">
+          <TabsTrigger value="points" className="text-xs font-semibold">UP Points</TabsTrigger>
+          <TabsTrigger value="earnings" className="text-xs font-semibold">Money Earned</TabsTrigger>
         </TabsList>
 
         <TabsContent value="points" className="mt-0">
-          <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-[60vh] overflow-y-auto pb-4">
             {leaders.length === 0 ? (
               <p className="text-center text-muted-foreground py-12 text-sm">
                 No leaderboard data yet. Be the first to check in and earn UP!
@@ -263,7 +263,7 @@ export const Leaderboard = () => {
               <>
                 {leaders.map((leader) => renderLeaderCard(leader))}
                 
-                {userPosition && userPosition.rank > 10 && (
+                {userPosition && userPosition.rank > 20 && (
                   <div className="mt-4 pt-4 border-t border-border/50">
                     <p className="text-xs text-muted-foreground mb-2 font-semibold">Your Position</p>
                     {renderLeaderCard(userPosition, true)}
@@ -275,7 +275,7 @@ export const Leaderboard = () => {
         </TabsContent>
 
         <TabsContent value="earnings" className="mt-0">
-          <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-[60vh] overflow-y-auto pb-4">
             {sortedLeaders.length === 0 ? (
               <p className="text-center text-muted-foreground py-12 text-sm">
                 No earnings data yet. Start selling courses to earn!
@@ -284,7 +284,7 @@ export const Leaderboard = () => {
               <>
                 {sortedLeaders.map((leader, index) => renderLeaderCard({ ...leader, rank: index + 1 }))}
                 
-                {userPosition && userPosition.rank > 10 && (
+                {userPosition && userPosition.rank > 20 && (
                   <div className="mt-4 pt-4 border-t border-border/50">
                     <p className="text-xs text-muted-foreground mb-2 font-semibold">Your Position</p>
                     {renderLeaderCard(userPosition, true)}
