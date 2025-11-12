@@ -317,6 +317,13 @@ export const BlogSection = () => {
     }
   };
 
+  // Prepare articles: newest first, no emojis
+  const stripEmojis = (s: string) => s.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|[\uD83C-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u26FF]|\uFE0F/gu, '');
+  const sanitize = (a: BlogArticle) => ({ ...a, title: stripEmojis(a.title), excerpt: stripEmojis(a.excerpt), content: stripEmojis(a.content) });
+  const sortedArticles = [...articles]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .map(sanitize);
+
   return (
     <div className="space-y-6 pb-24">
       <div className="text-center space-y-2">
@@ -327,7 +334,7 @@ export const BlogSection = () => {
       </div>
 
       <div className="space-y-4">
-        {articles.map((article) => (
+        {sortedArticles.map((article) => (
           <Card key={article.id} className="overflow-hidden hover:border-primary/50 transition-colors">
             <img 
               src={article.image} 

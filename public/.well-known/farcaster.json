@@ -10,9 +10,9 @@
     "iconUrl": "https://uniqueehub.vercel.app/icon.png",
     "homeUrl": "https://uniqueehub.vercel.app",
     "castShareUrl": "https://uniqueehub.vercel.app",
-    "imageUrl": "https://uniqueehub.vercel.app/opengraph-image.png",
+    "imageUrl": "https://uniqueehub.vercel.app/images/uniquehub-hero.jpg",
     "buttonTitle": "Launch UniqueHub",
-    "splashImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png",
+    "splashImageUrl": "https://uniqueehub.vercel.app/images/uniquehub-hero.jpg",
     "splashBackgroundColor": "#1a4d8f",
     "webhookUrl": "https://api.neynar.com/f/app/916259b6-b248-4d47-b5e2-28d9e4bcb1c6/event",
     "subtitle": "Learn Earn and Trade on Base",
@@ -25,11 +25,11 @@
       "base",
       "learning"
     ],
-    "heroImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png",
+    "heroImageUrl": "https://uniqueehub.vercel.app/images/uniquehub-hero.jpg",
     "tagline": "Learn Earn and Trade on Base",
     "ogTitle": "UniqueHub",
     "ogDescription": "Blockchain learning and digital trading",
-    "ogImageUrl": "https://uniqueehub.vercel.app/opengraph-image.png"
+    "ogImageUrl": "https://uniqueehub.vercel.app/images/uniquehub-hero.jpg"
   },
   "baseBuilder": {
     "ownerAddress": "0x170c5a413136F094421fad8Dd20285b5e05Fff5e"
