@@ -90,7 +90,9 @@ serve(async (req) => {
 - Issued by: UniqueHub
 - Design: Modern, professional, with elegant borders and UniqueHub branding
 - Colors: Use purple/blue gradient background, gold accents
-- Include decorative elements like ribbons or seals
+- Place a BLUE 3D CUBE icon/logo in the BOTTOM RIGHT area, next to where it says "Issued By: UniqueHub" (replace any circular icon with the blue cube)
+- The blue cube should be the signature UniqueHub brand icon, positioned right next to the issuer text
+- Include decorative elements like ribbons, gold seal/medal, and elegant corner flourishes
 - Professional typography with clear hierarchy
 - 16:9 aspect ratio for horizontal certificate display`;
 
