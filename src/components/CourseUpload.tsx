@@ -298,6 +298,16 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
     e.preventDefault();
     if (!user) return;
 
+    if (!thumbnailFile) {
+      toast.error('Please upload a course thumbnail');
+      return;
+    }
+
+    if (!videoFile) {
+      toast.error('Please upload a course video');
+      return;
+    }
+
     if (formData.price_usdc && parseFloat(formData.price_usdc) <= 0) {
       toast.error('Please set a valid price for your course');
       return;
