@@ -90,9 +90,11 @@ serve(async (req) => {
 - Issued by: UniqueHub
 - Design: Modern, professional, with elegant borders and UniqueHub branding
 - Colors: Use purple/blue gradient background, gold accents
+- Include a BLUE 3D CUBE as the UniqueHub logo/icon in the top right corner (signature brand element)
 - Include decorative elements like ribbons or seals
 - Professional typography with clear hierarchy
-- 16:9 aspect ratio for horizontal certificate display`;
+- 16:9 aspect ratio for horizontal certificate display
+- The blue cube should be prominent and recognizable as the UniqueHub brand icon`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
