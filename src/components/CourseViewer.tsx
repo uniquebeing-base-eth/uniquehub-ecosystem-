@@ -27,6 +27,7 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
   const [isCompleted, setIsCompleted] = useState(false);
   const [hasCertificate, setHasCertificate] = useState(false);
   const [isGeneratingCert, setIsGeneratingCert] = useState(false);
+  const [enrollmentId, setEnrollmentId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAuthorProfile();
@@ -40,13 +41,60 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
     if (!user) return;
     const { data } = await supabase
       .from('enrollments')
-      .select('progress_percentage')
+      .select('id, progress_percentage')
       .eq('user_id', user.id)
       .eq('course_id', course.id)
       .single();
     
-    if (data && data.progress_percentage === 100) {
+    if (data) {
+      setEnrollmentId(data.id);
+      if (data.progress_percentage === 100) {
+        setIsCompleted(true);
+      }
+    }
+  };
+
+  const handleVideoEnd = async () => {
+    if (!user || !enrollmentId) return;
+    
+    console.log('Video ended, marking course as complete');
+    
+    const { error } = await supabase
+      .from('enrollments')
+      .update({ 
+        progress_percentage: 100,
+        completed_at: new Date().toISOString()
+      })
+      .eq('id', enrollmentId);
+
+    if (error) {
+      console.error('Failed to update completion:', error);
+      toast({ 
+        title: "Failed to track completion", 
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
       setIsCompleted(true);
+      toast({ 
+        title: "Course completed! 🎉", 
+        description: "You can now claim your certificate"
+      });
+    }
+  };
+
+  const handleVideoProgress = async (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    if (!user || !enrollmentId) return;
+    
+    const video = e.currentTarget;
+    const progress = Math.floor((video.currentTime / video.duration) * 100);
+    
+    // Update progress at 25%, 50%, 75% milestones
+    if (progress === 25 || progress === 50 || progress === 75) {
+      await supabase
+        .from('enrollments')
+        .update({ progress_percentage: progress })
+        .eq('id', enrollmentId);
     }
   };
 
@@ -309,6 +357,8 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
                 src={course.video_url}
                 poster={course.thumbnail_url}
                 onContextMenu={(e) => e.preventDefault()}
+                onEnded={handleVideoEnd}
+                onTimeUpdate={handleVideoProgress}
               >
                 Your browser does not support the video tag.
               </video>
