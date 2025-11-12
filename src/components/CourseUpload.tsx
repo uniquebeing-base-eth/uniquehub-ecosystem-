@@ -189,10 +189,25 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
     setListingStep('listing');
     setLoading(true);
     
+    let courseId: string | null = null;
+    
     try {
+      // Check ETH balance first
+      const balance = await publicClient.getBalance({ address });
+      const estimatedGas = 150000n; // Estimated gas for listCourse
+      const gasPrice = await publicClient.getGasPrice();
+      const estimatedCost = estimatedGas * gasPrice;
+      
+      if (balance < estimatedCost) {
+        toast.error(`Insufficient ETH for gas. Need ~${(Number(estimatedCost) / 1e18).toFixed(6)} ETH`);
+        setListingStep('idle');
+        setLoading(false);
+        return;
+      }
+
       // Create course in database FIRST to get real ID
       toast.info('Creating course...');
-      const courseId = await handleDatabaseCreation();
+      courseId = await handleDatabaseCreation();
       
       if (!courseId) {
         throw new Error('Failed to create course in database');
@@ -232,7 +247,20 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
       window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'courses' } }));
     } catch (error: any) {
       console.error('Listing error:', error);
-      toast.error(error.message || 'Failed to list course on-chain');
+      
+      // Rollback: Delete course from database if on-chain listing failed
+      if (courseId) {
+        try {
+          await supabase.from('courses').delete().eq('id', courseId);
+          toast.error('On-chain listing failed. Course creation rolled back.');
+        } catch (deleteError) {
+          console.error('Failed to rollback course:', deleteError);
+          toast.error('On-chain listing failed and rollback failed. Please contact support.');
+        }
+      } else {
+        toast.error(error.message || 'Failed to list course on-chain');
+      }
+      
       setListingStep('idle');
       setLoading(false);
     }
@@ -247,10 +275,25 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
     setListingStep('listing');
     setLoading(true);
     
+    let courseId: string | null = null;
+    
     try {
+      // Check ETH balance first
+      const balance = await publicClient.getBalance({ address });
+      const estimatedGas = 150000n; // Estimated gas for listCourse
+      const gasPrice = await publicClient.getGasPrice();
+      const estimatedCost = estimatedGas * gasPrice;
+      
+      if (balance < estimatedCost) {
+        toast.error(`Insufficient ETH for gas. Need ~${(Number(estimatedCost) / 1e18).toFixed(6)} ETH`);
+        setListingStep('idle');
+        setLoading(false);
+        return;
+      }
+
       // Create course in database FIRST to get real ID
       toast.info('Creating free course...');
-      const courseId = await handleDatabaseCreation();
+      courseId = await handleDatabaseCreation();
       
       if (!courseId) {
         throw new Error('Failed to create course in database');
@@ -288,7 +331,20 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
       window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'courses' } }));
     } catch (error: any) {
       console.error('Listing error:', error);
-      toast.error(error.message || 'Failed to list free course on-chain');
+      
+      // Rollback: Delete course from database if on-chain listing failed
+      if (courseId) {
+        try {
+          await supabase.from('courses').delete().eq('id', courseId);
+          toast.error('On-chain listing failed. Course creation rolled back.');
+        } catch (deleteError) {
+          console.error('Failed to rollback course:', deleteError);
+          toast.error('On-chain listing failed and rollback failed. Please contact support.');
+        }
+      } else {
+        toast.error(error.message || 'Failed to list free course on-chain');
+      }
+      
       setListingStep('idle');
       setLoading(false);
     }
