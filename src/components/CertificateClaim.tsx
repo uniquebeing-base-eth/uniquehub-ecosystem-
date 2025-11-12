@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Award, Download, ExternalLink, Loader2 } from 'lucide-react';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { parseEther } from 'viem';
-import { base } from 'wagmi/chains';
+import { useFarcasterWallet } from '@/hooks/useFarcasterWallet';
+import { useViemClients } from '@/hooks/useViemClients';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { ShareToFarcaster } from '@/components/ShareToFarcaster';
 import {
   CERTIFICATE_CONTRACT_ABI,
@@ -21,30 +20,11 @@ interface CertificateClaimProps {
 }
 
 export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: CertificateClaimProps) => {
-  const { address } = useAccount();
+  const { address } = useFarcasterWallet();
+  const { publicClient, walletClient } = useViemClients(address);
   const [certificate, setCertificate] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const { writeContract, data: hash, isPending: isMinting } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
-
-  // Refresh certificate state after successful minting
-  useEffect(() => {
-    if (isConfirmed && hash) {
-      const updateCertificate = async () => {
-        await supabase
-          .from('certificates')
-          .update({
-            transaction_hash: hash,
-            minted_at: new Date().toISOString()
-          })
-          .eq('id', certificate?.id);
-        
-        await checkExistingCertificate();
-        toast({ title: "Certificate NFT minted successfully! 🎉" });
-      };
-      updateCertificate();
-    }
-  }, [isConfirmed, hash]);
+  const [isMinting, setIsMinting] = useState(false);
 
   // Check if certificate already exists
   useEffect(() => {
@@ -68,7 +48,7 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
 
   const generateCertificate = async () => {
     if (!address) {
-      toast({ title: "Please connect your wallet", variant: "destructive" });
+      toast.error("Please connect your wallet");
       return;
     }
 
@@ -81,24 +61,26 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
       if (error) throw error;
 
       setCertificate(data.certificate);
-      toast({ title: "Certificate generated! Ready to mint." });
+      toast.success("Certificate generated! Ready to mint.");
     } catch (error: any) {
       console.error('Generate certificate error:', error);
-      toast({
-        title: "Failed to generate certificate",
-        description: error.message,
-        variant: "destructive"
-      });
+      toast.error(error.message || "Failed to generate certificate");
     } finally {
       setIsGenerating(false);
     }
   };
 
   const mintCertificate = async () => {
-    if (!certificate || !address) return;
+    if (!certificate || !address || !walletClient || !publicClient) {
+      toast.error('Wallet not connected');
+      return;
+    }
 
+    setIsMinting(true);
     try {
-      await writeContract({
+      toast.info('Please confirm the transaction in your wallet...');
+      
+      const hash = await walletClient.writeContract({
         address: CERTIFICATE_CONTRACT_ADDRESS,
         abi: CERTIFICATE_CONTRACT_ABI,
         functionName: 'mintCertificate',
@@ -111,15 +93,29 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
         ],
         value: CERTIFICATE_MINT_FEE,
         account: address,
-        chain: base,
-      });
+        chain: walletClient.chain,
+      } as any);
+
+      toast.info('Minting transaction submitted. Waiting for confirmation...');
+      
+      await publicClient.waitForTransactionReceipt({ hash });
+      
+      // Update database with transaction hash
+      await supabase
+        .from('certificates')
+        .update({
+          transaction_hash: hash,
+          minted_at: new Date().toISOString()
+        })
+        .eq('id', certificate.id);
+      
+      await checkExistingCertificate();
+      toast.success("Certificate NFT minted successfully! 🎉");
     } catch (error: any) {
       console.error('Mint error:', error);
-      toast({
-        title: "Failed to mint certificate",
-        description: error.message,
-        variant: "destructive"
-      });
+      toast.error(error.message || "Failed to mint certificate");
+    } finally {
+      setIsMinting(false);
     }
   };
 
@@ -174,14 +170,14 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
                 </p>
                 <Button
                   onClick={mintCertificate}
-                  disabled={isMinting || isConfirming || !address}
+                  disabled={isMinting || !address || !walletClient}
                   className="w-full bg-gradient-primary"
                   size="sm"
                 >
-                  {isMinting || isConfirming ? (
+                  {isMinting ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                      {isMinting ? 'Minting...' : 'Confirming...'}
+                      Minting...
                     </>
                   ) : (
                     <>
