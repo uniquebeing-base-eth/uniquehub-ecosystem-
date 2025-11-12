@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type SyntheticEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -28,6 +28,7 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
   const [hasCertificate, setHasCertificate] = useState(false);
   const [isGeneratingCert, setIsGeneratingCert] = useState(false);
   const [enrollmentId, setEnrollmentId] = useState<string | null>(null);
+  const [savedMilestones, setSavedMilestones] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     fetchAuthorProfile();
@@ -44,11 +45,17 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
       .select('id, progress_percentage')
       .eq('user_id', user.id)
       .eq('course_id', course.id)
-      .single();
+      .maybeSingle();
     
     if (data) {
       setEnrollmentId(data.id);
-      if (data.progress_percentage === 100) {
+      // Preload milestone set based on current progress
+      const init = new Set<number>();
+      if (data.progress_percentage >= 25) init.add(25);
+      if (data.progress_percentage >= 50) init.add(50);
+      if (data.progress_percentage >= 75) init.add(75);
+      setSavedMilestones(init);
+      if (data.progress_percentage >= 100) {
         setIsCompleted(true);
       }
     }
@@ -56,9 +63,7 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
 
   const handleVideoEnd = async () => {
     if (!user || !enrollmentId) return;
-    
     console.log('Video ended, marking course as complete');
-    
     const { error } = await supabase
       .from('enrollments')
       .update({ 
@@ -69,32 +74,40 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
 
     if (error) {
       console.error('Failed to update completion:', error);
-      toast({ 
-        title: "Failed to track completion", 
-        description: error.message,
-        variant: "destructive"
-      });
+      toast({ title: "Failed to track completion", description: error.message, variant: "destructive" });
     } else {
       setIsCompleted(true);
-      toast({ 
-        title: "Course completed! 🎉", 
-        description: "You can now claim your certificate"
-      });
+      toast({ title: "Course completed! 🎉", description: "You can now claim your certificate" });
     }
   };
 
-  const handleVideoProgress = async (e: React.SyntheticEvent<HTMLVideoElement>) => {
+  const handleVideoProgress = async (e: SyntheticEvent<HTMLVideoElement>) => {
     if (!user || !enrollmentId) return;
-    
     const video = e.currentTarget;
-    const progress = Math.floor((video.currentTime / video.duration) * 100);
-    
-    // Update progress at 25%, 50%, 75% milestones
-    if (progress === 25 || progress === 50 || progress === 75) {
-      await supabase
-        .from('enrollments')
-        .update({ progress_percentage: progress })
-        .eq('id', enrollmentId);
+    const duration = video.duration;
+    if (!Number.isFinite(duration) || duration <= 0) return;
+
+    const progress = Math.floor((video.currentTime / duration) * 100);
+
+    // If near the end (>= 98%), ensure completion
+    if (progress >= 98 && !isCompleted) {
+      await handleVideoEnd();
+      return;
+    }
+
+    // Milestone updates at >=25/50/75 once each
+    const milestones = [25, 50, 75] as const;
+    for (const m of milestones) {
+      if (progress >= m && !savedMilestones.has(m)) {
+        const { error } = await supabase
+          .from('enrollments')
+          .update({ progress_percentage: m })
+          .eq('id', enrollmentId);
+        if (!error) {
+          setSavedMilestones(prev => new Set(prev).add(m));
+        }
+        break; // update one milestone per tick
+      }
     }
   };
 
