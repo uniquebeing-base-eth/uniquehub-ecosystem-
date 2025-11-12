@@ -5,7 +5,6 @@ import { Trophy, TrendingUp, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import animeEarnBg from "@/assets/anime-earn-bg.jpg";
 
 interface LeaderboardEntry {
@@ -27,7 +26,7 @@ export const Leaderboard = () => {
   const [leaders, setLeaders] = useState<LeaderboardEntry[]>([]);
   const [userPosition, setUserPosition] = useState<LeaderboardEntry | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"points" | "earnings">("points");
+  const [activeView, setActiveView] = useState<"points" | "earnings" | null>(null);
 
   useEffect(() => {
     fetchLeaderboard();
@@ -138,7 +137,7 @@ export const Leaderboard = () => {
   }
 
   const renderLeaderCard = (leader: LeaderboardEntry, isUserCard = false) => {
-    const showPoints = activeTab === "points";
+    const showPoints = activeView === "points";
     const totalEarnings = (leader.total_eth_earned || 0) + (leader.total_usdc_earned || 0);
     
     return (
@@ -231,71 +230,106 @@ export const Leaderboard = () => {
     );
   };
 
-  // Sort and re-rank leaders based on active tab
-  const sortedLeaders = activeTab === "earnings" 
-    ? [...leaders].sort((a, b) => {
-        const aTotal = (a.total_eth_earned || 0) + (a.total_usdc_earned || 0);
-        const bTotal = (b.total_eth_earned || 0) + (b.total_usdc_earned || 0);
-        return bTotal - aTotal;
-      }).map((leader, index) => ({ ...leader, rank: index + 1 }))
-    : [...leaders].sort((a, b) => b.total_points - a.total_points)
-      .map((leader, index) => ({ ...leader, rank: index + 1 }));
+  // Sort and re-rank leaders based on active view
+  const pointsLeaders = [...leaders]
+    .sort((a, b) => b.total_points - a.total_points)
+    .map((leader, index) => ({ ...leader, rank: index + 1 }));
+    
+  const earningsLeaders = [...leaders]
+    .sort((a, b) => {
+      const aTotal = (a.total_eth_earned || 0) + (a.total_usdc_earned || 0);
+      const bTotal = (b.total_eth_earned || 0) + (b.total_usdc_earned || 0);
+      return bTotal - aTotal;
+    })
+    .map((leader, index) => ({ ...leader, rank: index + 1 }));
+
+  // Show selector view if no view is active
+  if (!activeView) {
+    return (
+      <Card className="p-5 bg-card border-border/50">
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-bold text-foreground">Top Earners</h3>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {/* UP Points Card */}
+          <div
+            onClick={() => setActiveView("points")}
+            className="relative p-4 rounded-xl cursor-pointer transition-all hover:scale-105 overflow-hidden group"
+          >
+            <div 
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${animeEarnBg})` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/90 to-primary/70 group-hover:from-primary/95 group-hover:to-primary/80 transition-all" />
+            
+            <div className="relative z-10 text-center">
+              <Trophy className="w-8 h-8 text-white mx-auto mb-2" />
+              <h4 className="font-bold text-white text-sm mb-1">UP Points</h4>
+              <p className="text-xs text-white/80">Top performers</p>
+            </div>
+          </div>
+
+          {/* Money Earned Card */}
+          <div
+            onClick={() => setActiveView("earnings")}
+            className="relative p-4 rounded-xl cursor-pointer transition-all hover:scale-105 overflow-hidden group"
+          >
+            <div 
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${animeEarnBg})` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-green-600/90 to-green-500/70 group-hover:from-green-600/95 group-hover:to-green-500/80 transition-all" />
+            
+            <div className="relative z-10 text-center">
+              <DollarSign className="w-8 h-8 text-white mx-auto mb-2" />
+              <h4 className="font-bold text-white text-sm mb-1">Money Earned</h4>
+              <p className="text-xs text-white/80">Top earners</p>
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  // Show specific leaderboard view
+  const displayLeaders = activeView === "points" ? pointsLeaders : earningsLeaders;
 
   return (
     <Card className="p-5 bg-card border-border/50">
       <div className="flex items-center gap-2 mb-4">
-        <TrendingUp className="w-5 h-5 text-primary" />
-        <h3 className="text-lg font-bold text-foreground">Top Earners</h3>
+        <button
+          onClick={() => setActiveView(null)}
+          className="text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <TrendingUp className="w-5 h-5" />
+        </button>
+        <h3 className="text-lg font-bold text-foreground flex-1">
+          {activeView === "points" ? "UP Points Leaderboard" : "Money Earned Leaderboard"}
+        </h3>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "points" | "earnings")} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4 h-9 p-1">
-          <TabsTrigger value="points" className="text-[11px] font-medium px-2">UP Points</TabsTrigger>
-          <TabsTrigger value="earnings" className="text-[11px] font-medium px-2">Money Earned</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="points" className="mt-0">
-          <div className="space-y-2 max-h-[60vh] overflow-y-auto pb-4">
-            {leaders.length === 0 ? (
-              <p className="text-center text-muted-foreground py-12 text-sm">
-                No leaderboard data yet. Be the first to check in and earn UP!
-              </p>
-            ) : (
-              <>
-                {leaders.map((leader) => renderLeaderCard(leader))}
-                
-                {userPosition && userPosition.rank > 20 && (
-                  <div className="mt-4 pt-4 border-t border-border/50">
-                    <p className="text-xs text-muted-foreground mb-2 font-semibold">Your Position</p>
-                    {renderLeaderCard(userPosition, true)}
-                  </div>
-                )}
-              </>
+      <div className="space-y-2 max-h-[60vh] overflow-y-auto pb-4">
+        {displayLeaders.length === 0 ? (
+          <p className="text-center text-muted-foreground py-12 text-sm">
+            {activeView === "points" 
+              ? "No leaderboard data yet. Be the first to check in and earn UP!"
+              : "No earnings data yet. Start selling courses to earn!"}
+          </p>
+        ) : (
+          <>
+            {displayLeaders.map((leader) => renderLeaderCard(leader))}
+            
+            {userPosition && userPosition.rank > 20 && (
+              <div className="mt-4 pt-4 border-t border-border/50">
+                <p className="text-xs text-muted-foreground mb-2 font-semibold">Your Position</p>
+                {renderLeaderCard(userPosition, true)}
+              </div>
             )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="earnings" className="mt-0">
-          <div className="space-y-2 max-h-[60vh] overflow-y-auto pb-4">
-            {sortedLeaders.length === 0 ? (
-              <p className="text-center text-muted-foreground py-12 text-sm">
-                No earnings data yet. Start selling courses to earn!
-              </p>
-            ) : (
-              <>
-                {sortedLeaders.map((leader) => renderLeaderCard(leader))}
-                
-                {userPosition && userPosition.rank > 20 && (
-                  <div className="mt-4 pt-4 border-t border-border/50">
-                    <p className="text-xs text-muted-foreground mb-2 font-semibold">Your Position</p>
-                    {renderLeaderCard(userPosition, true)}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
+          </>
+        )}
+      </div>
     </Card>
   );
 };
