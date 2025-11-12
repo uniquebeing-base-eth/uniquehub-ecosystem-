@@ -97,16 +97,10 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
         course_id: course.id,
       });
 
-      const { data: courseData } = await supabase
-        .from('courses')
-        .select('enrollment_count')
-        .eq('id', course.id)
-        .single();
-
-      await supabase
-        .from('courses')
-        .update({ enrollment_count: (courseData?.enrollment_count || 0) + 1 })
-        .eq('id', course.id);
+      // Use RPC function to accurately increment enrollment count
+      await supabase.rpc('increment_enrollment_count', { 
+        course_id: course.id 
+      });
 
       toast.success('Successfully enrolled! You can now access the course.');
       setIsProcessing(false);

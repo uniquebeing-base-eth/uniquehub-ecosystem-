@@ -39,11 +39,31 @@ export const CoursesSection = () => {
 
   useEffect(() => {
     fetchCourses();
+    
+    // Check for course parameter in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseId = urlParams.get('course');
+    if (courseId) {
+      handleDirectCourseLink(courseId);
+    }
   }, []);
 
   useEffect(() => {
     filterCourses();
   }, [courses, searchTerm, selectedCategory, priceFilter]);
+
+  const handleDirectCourseLink = async (courseId: string) => {
+    const { data: courseData } = await supabase
+      .from('courses')
+      .select('*')
+      .eq('id', courseId)
+      .eq('status', 'published')
+      .maybeSingle();
+    
+    if (courseData) {
+      await handleCourseClick(courseData);
+    }
+  };
 
   const fetchCourses = async () => {
     const { data, error } = await supabase
