@@ -243,93 +243,90 @@ export const Leaderboard = () => {
     })
     .map((leader, index) => ({ ...leader, rank: index + 1 }));
 
-  // Show selector view if no view is active
-  if (!activeView) {
-    return (
-      <Card className="p-5 bg-card border-border/50">
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-bold text-foreground">Top Earners</h3>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          {/* UP Points Card */}
-          <div
-            onClick={() => setActiveView("points")}
-            className="relative p-4 rounded-xl cursor-pointer transition-all hover:scale-105 overflow-hidden group"
-          >
-            <div 
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${animeEarnBg})` }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/90 to-primary/70 group-hover:from-primary/95 group-hover:to-primary/80 transition-all" />
-            
-            <div className="relative z-10 text-center">
-              <Trophy className="w-8 h-8 text-white mx-auto mb-2" />
-              <h4 className="font-bold text-white text-sm mb-1">UP Points</h4>
-              <p className="text-xs text-white/80">Top performers</p>
-            </div>
-          </div>
-
-          {/* Money Earned Card */}
-          <div
-            onClick={() => setActiveView("earnings")}
-            className="relative p-4 rounded-xl cursor-pointer transition-all hover:scale-105 overflow-hidden group"
-          >
-            <div 
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${animeEarnBg})` }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-br from-green-600/90 to-green-500/70 group-hover:from-green-600/95 group-hover:to-green-500/80 transition-all" />
-            
-            <div className="relative z-10 text-center">
-              <DollarSign className="w-8 h-8 text-white mx-auto mb-2" />
-              <h4 className="font-bold text-white text-sm mb-1">Money Earned</h4>
-              <p className="text-xs text-white/80">Top earners</p>
-            </div>
-          </div>
-        </div>
-      </Card>
-    );
-  }
-
-  // Show specific leaderboard view
+  // Show specific leaderboard based on active view
   const displayLeaders = activeView === "points" ? pointsLeaders : earningsLeaders;
 
   return (
     <Card className="p-5 bg-card border-border/50">
       <div className="flex items-center gap-2 mb-4">
-        <button
-          onClick={() => setActiveView(null)}
-          className="text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <TrendingUp className="w-5 h-5" />
-        </button>
-        <h3 className="text-lg font-bold text-foreground flex-1">
-          {activeView === "points" ? "UP Points Leaderboard" : "Money Earned Leaderboard"}
-        </h3>
+        <TrendingUp className="w-5 h-5 text-primary" />
+        <h3 className="text-lg font-bold text-foreground">Top Earners</h3>
       </div>
 
-      <div className="space-y-2 max-h-[60vh] overflow-y-auto pb-4">
-        {displayLeaders.length === 0 ? (
-          <p className="text-center text-muted-foreground py-12 text-sm">
-            {activeView === "points" 
-              ? "No leaderboard data yet. Be the first to check in and earn UP!"
-              : "No earnings data yet. Start selling courses to earn!"}
-          </p>
-        ) : (
-          <>
-            {displayLeaders.map((leader) => renderLeaderCard(leader))}
-            
-            {userPosition && userPosition.rank > 20 && (
-              <div className="mt-4 pt-4 border-t border-border/50">
-                <p className="text-xs text-muted-foreground mb-2 font-semibold">Your Position</p>
-                {renderLeaderCard(userPosition, true)}
-              </div>
-            )}
-          </>
-        )}
+      {/* Selection Cards */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        {/* UP Points Card */}
+        <div
+          onClick={() => setActiveView("points")}
+          className={`relative p-4 rounded-xl cursor-pointer transition-all overflow-hidden ${
+            activeView === "points" ? "ring-2 ring-primary scale-105" : "hover:scale-105"
+          }`}
+        >
+          <div 
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${animeEarnBg})` }}
+          />
+          <div className={`absolute inset-0 bg-gradient-to-br transition-all ${
+            activeView === "points" 
+              ? "from-primary/95 to-primary/80" 
+              : "from-primary/90 to-primary/70"
+          }`} />
+          
+          <div className="relative z-10 text-center">
+            <Trophy className="w-8 h-8 text-white mx-auto mb-2" />
+            <h4 className="font-bold text-white text-sm mb-1">UP Points</h4>
+            <p className="text-xs text-white/80">Top performers</p>
+          </div>
+        </div>
+
+        {/* Money Earned Card */}
+        <div
+          onClick={() => setActiveView("earnings")}
+          className={`relative p-4 rounded-xl cursor-pointer transition-all overflow-hidden ${
+            activeView === "earnings" ? "ring-2 ring-green-500 scale-105" : "hover:scale-105"
+          }`}
+        >
+          <div 
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${animeEarnBg})` }}
+          />
+          <div className={`absolute inset-0 bg-gradient-to-br transition-all ${
+            activeView === "earnings"
+              ? "from-green-600/95 to-green-500/80"
+              : "from-green-600/90 to-green-500/70"
+          }`} />
+          
+          <div className="relative z-10 text-center">
+            <DollarSign className="w-8 h-8 text-white mx-auto mb-2" />
+            <h4 className="font-bold text-white text-sm mb-1">Money Earned</h4>
+            <p className="text-xs text-white/80">Top earners</p>
+          </div>
+        </div>
       </div>
+
+      {/* Leaderboard List */}
+      {activeView && (
+        <div className="space-y-2 max-h-[50vh] overflow-y-auto pb-4">
+          {displayLeaders.length === 0 ? (
+            <p className="text-center text-muted-foreground py-12 text-sm">
+              {activeView === "points" 
+                ? "No leaderboard data yet. Be the first to check in and earn UP!"
+                : "No earnings data yet. Start selling courses to earn!"}
+            </p>
+          ) : (
+            <>
+              {displayLeaders.map((leader) => renderLeaderCard(leader))}
+              
+              {userPosition && userPosition.rank > 20 && (
+                <div className="mt-4 pt-4 border-t border-border/50">
+                  <p className="text-xs text-muted-foreground mb-2 font-semibold">Your Position</p>
+                  {renderLeaderCard(userPosition, true)}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </Card>
   );
 };
