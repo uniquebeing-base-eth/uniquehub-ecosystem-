@@ -5,7 +5,7 @@ import { Trophy, TrendingUp, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
-import animeEarnBg from "@/assets/anime-earn-bg.jpg";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface LeaderboardEntry {
   user_id: string;
@@ -26,6 +26,7 @@ export const Leaderboard = () => {
   const [leaders, setLeaders] = useState<LeaderboardEntry[]>([]);
   const [userPosition, setUserPosition] = useState<LeaderboardEntry | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"points" | "earnings">("points");
 
   useEffect(() => {
     fetchLeaderboard();
@@ -135,98 +136,146 @@ export const Leaderboard = () => {
     );
   }
 
-  const renderLeaderCard = (leader: LeaderboardEntry, isUserCard = false) => (
-    <div
-      key={leader.user_id}
-      style={{
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.75)), url(${animeEarnBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-      className={`flex items-center gap-4 p-4 rounded-xl transition-all shadow-lg border ${
-        leader.rank <= 3
-          ? 'border-primary/40 shadow-primary/20'
-          : isUserCard
-          ? 'border-accent/40'
-          : 'border-border/40'
-      }`}
-    >
-      <div className="flex items-center justify-center w-10 h-10">
-        {getRankIcon(leader.rank)}
-      </div>
+  const renderLeaderCard = (leader: LeaderboardEntry, isUserCard = false) => {
+    const showPoints = activeTab === "points";
+    const totalEarnings = (leader.total_eth_earned || 0) + (leader.total_usdc_earned || 0);
+    
+    return (
+      <div
+        key={leader.user_id}
+        className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
+          isUserCard
+            ? 'bg-primary/10 border border-primary/30'
+            : 'bg-card hover:bg-accent/5'
+        }`}
+      >
+        <div className="flex items-center justify-center w-8 text-muted-foreground font-medium text-sm">
+          {leader.rank <= 3 ? getRankIcon(leader.rank) : `#${leader.rank}`}
+        </div>
 
-      <Avatar className="w-12 h-12 border-2 border-primary/30">
-        <AvatarImage src={leader.avatar_url || undefined} />
-        <AvatarFallback className="bg-gradient-primary text-primary-foreground text-sm font-bold">
-          {(leader.display_name || leader.farcaster_username || 'U').slice(0, 2).toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
+        <Avatar className="w-10 h-10 border border-border">
+          <AvatarImage src={leader.avatar_url || undefined} />
+          <AvatarFallback className="bg-primary/20 text-foreground text-xs font-medium">
+            {(leader.display_name || leader.farcaster_username || 'U').slice(0, 2).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
 
-      <div className="flex-1 min-w-0">
-        {leader.farcaster_username ? (
-          <a 
-            href={`https://warpcast.com/${leader.farcaster_username}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-white hover:underline truncate block text-base"
-          >
-            @{leader.farcaster_username}
-          </a>
-        ) : (
-          <p className="font-semibold text-white truncate text-base">
-            {leader.display_name || 'Anonymous'}
-          </p>
-        )}
-        <div className="flex flex-col gap-1 mt-2">
-          <div className="flex items-center gap-2">
-            <p className="text-2xl font-bold text-white">
-              {leader.total_points.toLocaleString()}
+        <div className="flex-1 min-w-0">
+          {leader.farcaster_username ? (
+            <a 
+              href={`https://warpcast.com/${leader.farcaster_username}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-foreground hover:underline truncate block text-sm"
+            >
+              @{leader.farcaster_username}
+            </a>
+          ) : (
+            <p className="font-semibold text-foreground truncate text-sm">
+              {leader.display_name || 'Anonymous'}
             </p>
-            <p className="text-sm text-gray-300">UP</p>
-          </div>
-          <div className="flex flex-wrap gap-3 text-sm">
-            {leader.daily_streak > 0 && (
-              <span className="text-orange-400 font-medium">🔥 {leader.daily_streak}d</span>
-            )}
-            {(leader.total_eth_earned && leader.total_eth_earned > 0) && (
-              <span className="text-blue-300 font-semibold">Ξ {leader.total_eth_earned.toFixed(4)}</span>
-            )}
-            {(leader.total_usdc_earned && leader.total_usdc_earned > 0) && (
-              <span className="text-green-300 font-semibold flex items-center gap-1">
-                <DollarSign className="w-3 h-3" />{leader.total_usdc_earned.toFixed(2)}
-              </span>
-            )}
-          </div>
+          )}
+          {leader.daily_streak > 0 && (
+            <p className="text-xs text-muted-foreground">
+              🔥 {leader.daily_streak} day streak
+            </p>
+          )}
+        </div>
+
+        <div className="text-right">
+          {showPoints ? (
+            <>
+              <p className="text-lg font-bold text-foreground">
+                {leader.total_points.toLocaleString()}
+              </p>
+              <p className="text-xs text-muted-foreground">UP</p>
+            </>
+          ) : (
+            <div className="space-y-0.5">
+              {(leader.total_eth_earned && leader.total_eth_earned > 0) && (
+                <p className="text-sm font-semibold text-blue-400">
+                  Ξ {leader.total_eth_earned.toFixed(4)}
+                </p>
+              )}
+              {(leader.total_usdc_earned && leader.total_usdc_earned > 0) && (
+                <p className="text-sm font-semibold text-green-400 flex items-center justify-end gap-1">
+                  <DollarSign className="w-3 h-3" />{leader.total_usdc_earned.toFixed(2)}
+                </p>
+              )}
+              {totalEarnings === 0 && (
+                <p className="text-sm text-muted-foreground">$0</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  // Sort leaders by earnings for earnings tab
+  const sortedLeaders = activeTab === "earnings" 
+    ? [...leaders].sort((a, b) => {
+        const aTotal = (a.total_eth_earned || 0) + (a.total_usdc_earned || 0);
+        const bTotal = (b.total_eth_earned || 0) + (b.total_usdc_earned || 0);
+        return bTotal - aTotal;
+      })
+    : leaders;
 
   return (
-    <Card className="p-6 bg-gradient-card">
-      <div className="flex items-center gap-2 mb-6">
-        <TrendingUp className="w-6 h-6 text-primary" />
-        <h3 className="text-xl font-bold text-foreground">Top 10 UP Earners</h3>
+    <Card className="p-4 bg-card">
+      <div className="flex items-center gap-2 mb-4">
+        <TrendingUp className="w-5 h-5 text-primary" />
+        <h3 className="text-lg font-bold text-foreground">Leaderboard</h3>
       </div>
 
-      <div className="space-y-3 max-h-[600px] overflow-y-auto">
-        {leaders.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">
-            No leaderboard data yet. Be the first to check in and earn UP!
-          </p>
-        ) : (
-          <>
-            {leaders.map((leader) => renderLeaderCard(leader))}
-            
-            {userPosition && (
-              <div className="mt-6 pt-6 border-t border-border">
-                <p className="text-sm text-muted-foreground mb-3 font-medium">Your Position</p>
-                {renderLeaderCard(userPosition, true)}
-              </div>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "points" | "earnings")} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="points" className="text-sm">UP Points</TabsTrigger>
+          <TabsTrigger value="earnings" className="text-sm">Money Earned</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="points" className="mt-0">
+          <div className="space-y-2 max-h-[500px] overflow-y-auto">
+            {leaders.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8 text-sm">
+                No leaderboard data yet. Be the first to check in and earn UP!
+              </p>
+            ) : (
+              <>
+                {leaders.map((leader) => renderLeaderCard(leader))}
+                
+                {userPosition && userPosition.rank > 10 && (
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <p className="text-xs text-muted-foreground mb-2 font-medium">Your Position</p>
+                    {renderLeaderCard(userPosition, true)}
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
-      </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="earnings" className="mt-0">
+          <div className="space-y-2 max-h-[500px] overflow-y-auto">
+            {sortedLeaders.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8 text-sm">
+                No earnings data yet. Start selling courses to earn!
+              </p>
+            ) : (
+              <>
+                {sortedLeaders.map((leader, index) => renderLeaderCard({ ...leader, rank: index + 1 }))}
+                
+                {userPosition && userPosition.rank > 10 && (
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <p className="text-xs text-muted-foreground mb-2 font-medium">Your Position</p>
+                    {renderLeaderCard(userPosition, true)}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </Card>
   );
 };
