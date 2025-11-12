@@ -25,7 +25,26 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
   const [certificate, setCertificate] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { writeContract, data: hash, isPending: isMinting } = useWriteContract();
-  const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash });
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+
+  // Refresh certificate state after successful minting
+  useEffect(() => {
+    if (isConfirmed && hash) {
+      const updateCertificate = async () => {
+        await supabase
+          .from('certificates')
+          .update({
+            transaction_hash: hash,
+            minted_at: new Date().toISOString()
+          })
+          .eq('id', certificate?.id);
+        
+        await checkExistingCertificate();
+        toast({ title: "Certificate NFT minted successfully! 🎉" });
+      };
+      updateCertificate();
+    }
+  }, [isConfirmed, hash]);
 
   // Check if certificate already exists
   useEffect(() => {
@@ -88,25 +107,12 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
           courseId,
           courseTitle,
           certificate.certificate_id,
-          certificate.image_url
+          certificate.token_uri || certificate.image_url
         ],
         value: CERTIFICATE_MINT_FEE,
         account: address,
         chain: base,
       });
-
-      // Update certificate with transaction hash after confirmation
-      if (hash) {
-        await supabase
-          .from('certificates')
-          .update({
-            transaction_hash: hash,
-            minted_at: new Date().toISOString()
-          })
-          .eq('id', certificate.id);
-      }
-
-      toast({ title: "Certificate NFT minted successfully! 🎉" });
     } catch (error: any) {
       console.error('Mint error:', error);
       toast({
@@ -153,11 +159,13 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
           </div>
         ) : (
           <div className="space-y-3">
-            <img
-              src={certificate.image_url}
-              alt="Certificate"
-              className="w-full rounded-lg border border-primary/20"
-            />
+            <div className="flex justify-center">
+              <img
+                src={certificate.image_url}
+                alt="Certificate"
+                className="w-4/5 max-w-sm rounded-lg border border-primary/20"
+              />
+            </div>
             
             {!certificate.minted_at ? (
               <div className="space-y-2">
