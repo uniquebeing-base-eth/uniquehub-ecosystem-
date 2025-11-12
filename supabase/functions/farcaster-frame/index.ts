@@ -14,7 +14,7 @@ serve(async (req) => {
     const url = new URL(req.url);
     const title = url.searchParams.get('title') || 'UniqueHub';
     const description = url.searchParams.get('description') || 'Learn, Trade, Earn on Base';
-    const imageUrl = url.searchParams.get('image') || 'https://uniqueehub.vercel.app/images/uniquehub-hero.jpg';
+    const imageUrl = url.searchParams.get('image') || 'https://uniqueehub.vercel.app/opengraph-image.png';
     
     // Always use the main mini app URL for the action
     const miniAppUrl = 'https://uniqueehub.vercel.app';
