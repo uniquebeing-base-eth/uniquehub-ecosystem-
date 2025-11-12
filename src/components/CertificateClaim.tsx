@@ -1,29 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Award, Download, ExternalLink, Loader2 } from 'lucide-react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther } from 'viem';
+import { base } from 'wagmi/chains';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { ShareToFarcaster } from '@/components/ShareToFarcaster';
-
-const CERTIFICATE_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000000' as const; // UPDATE AFTER DEPLOYMENT
-const CERTIFICATE_CONTRACT_ABI = [
-  {
-    inputs: [
-      { name: 'recipient', type: 'address' },
-      { name: 'courseId', type: 'string' },
-      { name: 'courseName', type: 'string' },
-      { name: 'certificateId', type: 'string' },
-      { name: 'tokenURI', type: 'string' }
-    ],
-    name: 'mintCertificate',
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-] as const;
+import {
+  CERTIFICATE_CONTRACT_ABI,
+  CERTIFICATE_CONTRACT_ADDRESS,
+  CERTIFICATE_MINT_FEE
+} from '@/config/wagmi';
 
 interface CertificateClaimProps {
   courseId: string;
@@ -39,11 +28,11 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
   const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash });
 
   // Check if certificate already exists
-  useState(() => {
+  useEffect(() => {
     if (isCompleted && address) {
       checkExistingCertificate();
     }
-  });
+  }, [isCompleted, address]);
 
   const checkExistingCertificate = async () => {
     const { data } = await supabase
@@ -99,9 +88,11 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
           courseId,
           courseTitle,
           certificate.certificate_id,
-          certificate.token_uri
+          certificate.image_url
         ],
-        value: parseEther('0.0000001')
+        value: CERTIFICATE_MINT_FEE,
+        account: address,
+        chain: base,
       });
 
       // Update certificate with transaction hash after confirmation

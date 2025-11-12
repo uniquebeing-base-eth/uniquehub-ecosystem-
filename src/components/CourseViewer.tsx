@@ -25,12 +25,15 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [hasCertificate, setHasCertificate] = useState(false);
+  const [isGeneratingCert, setIsGeneratingCert] = useState(false);
 
   useEffect(() => {
     fetchAuthorProfile();
     fetchUserRating();
     fetchComments();
     checkCompletion();
+    checkCertificate();
   }, [course.id]);
 
   const checkCompletion = async () => {
@@ -44,6 +47,50 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
     
     if (data && data.progress_percentage === 100) {
       setIsCompleted(true);
+    }
+  };
+
+  const checkCertificate = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('certificates')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('course_id', course.id)
+      .single();
+    
+    setHasCertificate(!!data);
+  };
+
+  const handleClaimCertificate = async () => {
+    if (!user) {
+      toast({ title: "Please sign in to claim certificate", variant: "destructive" });
+      return;
+    }
+
+    setIsGeneratingCert(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-certificate', {
+        body: { courseId: course.id }
+      });
+
+      if (error) throw error;
+
+      toast({ 
+        title: "Certificate generated! 🎉", 
+        description: "Now mint it as an NFT to your wallet"
+      });
+      
+      setHasCertificate(true);
+    } catch (error) {
+      console.error('Certificate generation error:', error);
+      toast({ 
+        title: "Failed to generate certificate", 
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingCert(false);
     }
   };
 
