@@ -231,14 +231,15 @@ export const Leaderboard = () => {
     );
   };
 
-  // Sort leaders by earnings for earnings tab
+  // Sort and re-rank leaders based on active tab
   const sortedLeaders = activeTab === "earnings" 
     ? [...leaders].sort((a, b) => {
         const aTotal = (a.total_eth_earned || 0) + (a.total_usdc_earned || 0);
         const bTotal = (b.total_eth_earned || 0) + (b.total_usdc_earned || 0);
         return bTotal - aTotal;
-      })
-    : leaders;
+      }).map((leader, index) => ({ ...leader, rank: index + 1 }))
+    : [...leaders].sort((a, b) => b.total_points - a.total_points)
+      .map((leader, index) => ({ ...leader, rank: index + 1 }));
 
   return (
     <Card className="p-5 bg-card border-border/50">
@@ -248,9 +249,9 @@ export const Leaderboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "points" | "earnings")} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4 h-8 p-0.5">
-          <TabsTrigger value="points" className="text-xs font-medium py-1">UP Points</TabsTrigger>
-          <TabsTrigger value="earnings" className="text-xs font-medium py-1">Money Earned</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 mb-4 h-9 p-1">
+          <TabsTrigger value="points" className="text-[11px] font-medium px-2">UP Points</TabsTrigger>
+          <TabsTrigger value="earnings" className="text-[11px] font-medium px-2">Money Earned</TabsTrigger>
         </TabsList>
 
         <TabsContent value="points" className="mt-0">
@@ -282,7 +283,7 @@ export const Leaderboard = () => {
               </p>
             ) : (
               <>
-                {sortedLeaders.map((leader, index) => renderLeaderCard({ ...leader, rank: index + 1 }))}
+                {sortedLeaders.map((leader) => renderLeaderCard(leader))}
                 
                 {userPosition && userPosition.rank > 20 && (
                   <div className="mt-4 pt-4 border-t border-border/50">
