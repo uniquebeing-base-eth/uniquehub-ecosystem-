@@ -238,19 +238,19 @@ What UniqBot Can Do
 
 UniqBot is built to make your journey through UniqueHub effortless. Here's what it can help you with:
 
-🧭 Platform Navigation: Guides you on how to find courses, join the earning section, access your dashboard, or visit the marketplace.
+Platform Navigation: Guides you on how to find courses, join the earning section, access your dashboard, or visit the marketplace.
 
-📚 Learning Support: Helps you understand how to enroll in a course, complete modules, and earn UNIQ Points.
+Learning Support: Helps you understand how to enroll in a course, complete modules, and earn UNIQ Points.
 
-🪙 Token & Points Info: Explains how UNIQ Points work, how they can be converted into $UNIQ tokens, and what role they play in the ecosystem.
+Token & Points Info: Explains how UNIQ Points work, how they can be converted into $UNIQ tokens, and what role they play in the ecosystem.
 
-🧾 Mint Certificate Guidance: Walks you through how to generate and mint your course certificate as an NFT to your wallet once you complete a course.
+Mint Certificate Guidance: Walks you through how to generate and mint your course certificate as an NFT to your wallet once you complete a course.
 
-🛍️ Marketplace Assistance: Offers quick guidance on how to list products, sell digital collections, and receive payments in USDC or ETH on the Base network.
+Marketplace Assistance: Offers quick guidance on how to list products, sell digital collections, and receive payments in USDC or ETH on the Base network.
 
-💬 General Help & FAQs: Answers general questions, explains new features, and provides tips for getting the best experience on UniqueHub.
+General Help & FAQs: Answers general questions, explains new features, and provides tips for getting the best experience on UniqueHub.
 
-🧠 Smart Conversations: Learns from user interactions to offer more personalized assistance over time, helping both new and returning users feel at home.
+Smart Conversations: Learns from user interactions to offer more personalized assistance over time, helping both new and returning users feel at home.
 
 Why UniqBot Matters
 
@@ -327,7 +327,7 @@ export const BlogSection = () => {
       </div>
 
       <div className="space-y-4">
-        {articles.map((article) => (
+        {[...articles].reverse().map((article) => (
           <Card key={article.id} className="overflow-hidden hover:border-primary/50 transition-colors">
             <img 
               src={article.image} 
