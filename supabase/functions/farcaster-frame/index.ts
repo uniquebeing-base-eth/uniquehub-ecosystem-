@@ -15,9 +15,10 @@ serve(async (req) => {
     const title = url.searchParams.get('title') || 'UniqueHub';
     const description = url.searchParams.get('description') || 'Learn, Trade, Earn on Base';
     const imageUrl = url.searchParams.get('image') || 'https://uniqueehub.vercel.app/opengraph-image.png';
+    const deepLink = url.searchParams.get('url') || '';
     
-    // Always use the main mini app URL for the action
-    const miniAppUrl = 'https://uniqueehub.vercel.app';
+    // Use deep link if provided, otherwise main app URL
+    const miniAppUrl = deepLink || 'https://uniqueehub.vercel.app';
 
     // Create the Mini App Embed JSON according to Farcaster spec
     const miniAppEmbed = {
