@@ -37,16 +37,18 @@ export const ShareToFarcaster = ({
     try {
       let embedsToShare: [] | [string] | [string, string] | undefined;
       
-      // If frame props provided, generate dynamic frame URL
+      // If frame props provided, create TWO embeds for side-by-side display
       if (frameTitle && frameImage && frameUrl) {
         const frameParams = new URLSearchParams({
           title: frameTitle,
           description: frameDescription || frameTitle,
-          image: frameImage,
+          image: 'https://uniqueehub.vercel.app/opengraph-image.png', // Use anime background for frame
           url: frameUrl
         });
         const dynamicFrameUrl = `https://ucqcrhfcflrepsdlcvpq.supabase.co/functions/v1/farcaster-frame?${frameParams.toString()}`;
-        embedsToShare = [dynamicFrameUrl] as [string];
+        
+        // Two embeds: [actual image, frame with anime background + launch button]
+        embedsToShare = [frameImage, dynamicFrameUrl] as [string, string];
       } else if (embeds) {
         // Use provided embeds (max 2 URLs)
         embedsToShare = embeds.slice(0, 2) as [] | [string] | [string, string] | undefined;
