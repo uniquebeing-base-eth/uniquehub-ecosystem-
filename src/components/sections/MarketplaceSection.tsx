@@ -33,6 +33,37 @@ export const MarketplaceSection = () => {
   useEffect(() => {
     fetchNfts();
     fetchMarketItems();
+    
+    // Check for deep link parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    let marketplaceId = urlParams.get('marketplace');
+    let nftId = urlParams.get('nft');
+    
+    if (!marketplaceId) {
+      marketplaceId = sessionStorage.getItem('deeplink_marketplace');
+      if (marketplaceId) {
+        sessionStorage.removeItem('deeplink_marketplace');
+      }
+    }
+    
+    if (!nftId) {
+      nftId = sessionStorage.getItem('deeplink_nft');
+      if (nftId) {
+        sessionStorage.removeItem('deeplink_nft');
+      }
+    }
+    
+    // Handle deep link to specific item
+    if (marketplaceId || nftId) {
+      setTimeout(() => {
+        const itemId = marketplaceId || nftId;
+        const item = [...marketItems, ...nfts].find((i: any) => i.id === itemId);
+        if (item) {
+          setSelectedItem(item);
+          setIsDetailOpen(true);
+        }
+      }, 500);
+    }
   }, []);
 
   useEffect(() => {
@@ -157,7 +188,10 @@ export const MarketplaceSection = () => {
                       </Button>
                       <ShareToFarcaster
                         text={`Check out ${item.title} on @uniquehub marketplace! 🛍️ $${item.price_usdc} USDC`}
-                        embeds={item.image_url ? [item.image_url, 'https://uniqueehub.vercel.app'] : ['https://uniqueehub.vercel.app']}
+                        frameTitle={item.title}
+                        frameDescription={`$${item.price_usdc} USDC - ${item.description || 'Available on UniqueHub Marketplace'}`}
+                        frameImage={item.image_url || 'https://uniqueehub.vercel.app/opengraph-image.png'}
+                        frameUrl={`https://uniqueehub.vercel.app?marketplace=${item.id}`}
                         variant="ghost"
                         size="icon"
                         className="flex-shrink-0"

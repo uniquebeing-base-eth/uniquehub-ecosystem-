@@ -50,6 +50,23 @@ export const CertificatesSection = () => {
         }));
         
         setCertificates(mappedData);
+        
+        // Check for deep link to specific certificate
+        const urlParams = new URLSearchParams(window.location.search);
+        let certificateId = urlParams.get('certificate');
+        
+        if (!certificateId) {
+          certificateId = sessionStorage.getItem('deeplink_certificate');
+          if (certificateId) {
+            sessionStorage.removeItem('deeplink_certificate');
+          }
+        }
+        
+        if (certificateId) {
+          // Certificate section already displays all certificates, no additional action needed
+          // Could scroll to specific certificate or highlight it if desired
+          console.log('Deep link to certificate:', certificateId);
+        }
       } catch (error) {
         console.error('Error fetching certificates:', error);
         toast.error('Failed to load certificates');
@@ -190,7 +207,10 @@ export const CertificatesSection = () => {
 
                 <ShareToFarcaster
                   text={`I just earned my "${cert.course_title}" certificate NFT on UniqueHub! 🎓✨`}
-                  embeds={[cert.image_url, 'https://uniqueehub.vercel.app']}
+                  frameTitle={`${cert.course_title} - Certificate`}
+                  frameDescription="Course completion certificate NFT minted on Base"
+                  frameImage={cert.image_url}
+                  frameUrl={`https://uniqueehub.vercel.app?certificate=${cert.id}`}
                   variant="outline"
                   size="sm"
                   buttonText="Share"
