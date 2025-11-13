@@ -480,6 +480,10 @@ export const EarnSection = () => {
           <div className="flex flex-col gap-3 mt-4">
             <ShareToFarcaster
               text={`Just earned ${lastClaimedPoints} UP points on @uniquehub! 🎉 Join me and start earning rewards for completing tasks! 💎`}
+              embeds={[
+                'https://uniqueehub.vercel.app/opengraph-image.png',
+                'https://uniqueehub.vercel.app'
+              ]}
               buttonText="Share on Farcaster"
               variant="default"
               size="sm"
