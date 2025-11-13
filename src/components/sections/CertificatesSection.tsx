@@ -207,10 +207,9 @@ export const CertificatesSection = () => {
 
                 <ShareToFarcaster
                   text={`I just earned my "${cert.course_title}" certificate NFT on UniqueHub! 🎓✨`}
-                  shareType="certificate"
-                  shareTitle={`${cert.course_title} Completion`}
-                  shareSubtitle="Course completion certificate NFT"
-                  shareUsername="UniqueHub"
+                  frameTitle={`${cert.course_title} - Certificate`}
+                  frameDescription="Course completion certificate NFT minted on Base"
+                  frameImage={cert.image_url}
                   frameUrl={`https://uniqueehub.vercel.app?certificate=${cert.id}`}
                   variant="outline"
                   size="sm"

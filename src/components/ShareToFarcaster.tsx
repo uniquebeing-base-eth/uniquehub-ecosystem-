@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Share2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { sdk } from '@farcaster/miniapp-sdk';
-import { supabase } from '@/integrations/supabase/client';
 
 interface ShareToFarcasterProps {
   text: string;
@@ -12,12 +11,10 @@ interface ShareToFarcasterProps {
   buttonText?: string;
   variant?: "default" | "outline" | "ghost" | "secondary";
   size?: "default" | "sm" | "lg" | "icon";
-  // For dynamic frame generation with template
-  shareType?: 'course' | 'certificate' | 'nft' | 'marketplace' | 'general';
-  shareTitle?: string;
-  shareSubtitle?: string;
-  shareUsername?: string;
-  shareAvatar?: string;
+  // For dynamic frame generation
+  frameTitle?: string;
+  frameDescription?: string;
+  frameImage?: string;
   frameUrl?: string;
 }
 
@@ -28,11 +25,9 @@ export const ShareToFarcaster = ({
   buttonText,
   variant = "ghost", 
   size = "icon",
-  shareType = 'general',
-  shareTitle,
-  shareSubtitle,
-  shareUsername,
-  shareAvatar,
+  frameTitle,
+  frameDescription,
+  frameImage,
   frameUrl
 }: ShareToFarcasterProps) => {
   const [isSharing, setIsSharing] = useState(false);
@@ -42,34 +37,12 @@ export const ShareToFarcaster = ({
     try {
       let embedsToShare: [] | [string] | [string, string] | undefined;
       
-      // If share props provided, generate template-based share image
-      if (shareType && shareTitle && frameUrl) {
-        console.log('Generating template-based share image...');
-        
-        // Generate share image using template
-        const { data: imageData, error: imageError } = await supabase.functions.invoke('generate-share-image', {
-          body: {
-            type: shareType,
-            title: shareTitle,
-            subtitle: shareSubtitle,
-            username: shareUsername || 'UniqueHub User',
-            avatar: shareAvatar
-          }
-        });
-
-        if (imageError) {
-          console.error('Error generating share image:', imageError);
-          throw imageError;
-        }
-
-        const shareImageUrl = imageData?.imageUrl;
-        console.log('Generated share image URL:', shareImageUrl);
-
-        // Create frame URL with generated image
+      // If frame props provided, generate dynamic frame URL
+      if (frameTitle && frameImage && frameUrl) {
         const frameParams = new URLSearchParams({
-          title: shareTitle,
-          description: shareSubtitle || shareTitle,
-          image: shareImageUrl,
+          title: frameTitle,
+          description: frameDescription || frameTitle,
+          image: frameImage,
           url: frameUrl
         });
         const dynamicFrameUrl = `https://ucqcrhfcflrepsdlcvpq.supabase.co/functions/v1/farcaster-frame?${frameParams.toString()}`;
