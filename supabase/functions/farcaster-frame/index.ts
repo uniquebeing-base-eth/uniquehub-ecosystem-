@@ -14,16 +14,10 @@ serve(async (req) => {
     const url = new URL(req.url);
     const title = url.searchParams.get('title') || 'UniqueHub';
     const description = url.searchParams.get('description') || 'Learn, Trade, Earn on Base';
-    const imageParam = url.searchParams.get('image') || '';
-    const deepLink = url.searchParams.get('url') || '';
+    const imageUrl = url.searchParams.get('image') || 'https://uniqueehub.vercel.app/opengraph-image.png';
     
-    // Validate image URL - must be a valid URL starting with http/https
-    // Farcaster requires actual image URLs (PNG, JPG, GIF, WebP)
-    const isValidImageUrl = imageParam && (imageParam.startsWith('http://') || imageParam.startsWith('https://'));
-    const imageUrl = isValidImageUrl ? imageParam : 'https://uniqueehub.vercel.app/opengraph-image.png';
-    
-    // Use deep link if provided, otherwise main app URL
-    const miniAppUrl = deepLink || 'https://uniqueehub.vercel.app';
+    // Always use the main mini app URL for the action
+    const miniAppUrl = 'https://uniqueehub.vercel.app';
 
     // Create the Mini App Embed JSON according to Farcaster spec
     const miniAppEmbed = {

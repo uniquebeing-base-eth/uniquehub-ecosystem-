@@ -40,17 +40,9 @@ export const CoursesSection = () => {
   useEffect(() => {
     fetchCourses();
     
-    // Check for course parameter in URL or sessionStorage
+    // Check for course parameter in URL
     const urlParams = new URLSearchParams(window.location.search);
-    let courseId = urlParams.get('course');
-    
-    if (!courseId) {
-      courseId = sessionStorage.getItem('deeplink_course');
-      if (courseId) {
-        sessionStorage.removeItem('deeplink_course');
-      }
-    }
-    
+    const courseId = urlParams.get('course');
     if (courseId) {
       handleDirectCourseLink(courseId);
     }

@@ -11,11 +11,6 @@ interface ShareToFarcasterProps {
   buttonText?: string;
   variant?: "default" | "outline" | "ghost" | "secondary";
   size?: "default" | "sm" | "lg" | "icon";
-  // For dynamic frame generation
-  frameTitle?: string;
-  frameDescription?: string;
-  frameImage?: string;
-  frameUrl?: string;
 }
 
 export const ShareToFarcaster = ({ 
@@ -24,44 +19,27 @@ export const ShareToFarcaster = ({
   className, 
   buttonText,
   variant = "ghost", 
-  size = "icon",
-  frameTitle,
-  frameDescription,
-  frameImage,
-  frameUrl
+  size = "icon" 
 }: ShareToFarcasterProps) => {
   const [isSharing, setIsSharing] = useState(false);
 
   const handleShare = async () => {
     setIsSharing(true);
     try {
-      let embedsToShare: [] | [string] | [string, string] | undefined;
-      
-      // If frame props provided, create TWO embeds for side-by-side display
-      if (frameTitle && frameImage && frameUrl) {
-        const frameParams = new URLSearchParams({
-          title: frameTitle,
-          description: frameDescription || frameTitle,
-          image: 'https://uniqueehub.vercel.app/opengraph-image.png', // Use anime background for frame
-          url: frameUrl
-        });
-        const dynamicFrameUrl = `https://ucqcrhfcflrepsdlcvpq.supabase.co/functions/v1/farcaster-frame?${frameParams.toString()}`;
-        
-        // Two embeds: [actual image, frame with anime background + launch button]
-        embedsToShare = [frameImage, dynamicFrameUrl] as [string, string];
-      } else if (embeds) {
-        // Use provided embeds (max 2 URLs)
-        embedsToShare = embeds.slice(0, 2) as [] | [string] | [string, string] | undefined;
-      }
+      // Use Farcaster SDK composeCast action for native sharing
+      // Farcaster embeds support max 2 URLs
+      const embedsToShare = embeds?.slice(0, 2) as [] | [string] | [string, string] | undefined;
       
       const result = await sdk.actions.composeCast({
         text,
         embeds: embedsToShare,
       });
       
+      // Only show success if cast was actually created (not cancelled)
       console.log('Compose cast result:', result);
     } catch (error: any) {
       console.error('Error sharing to Farcaster:', error);
+      // Only show error if it's not a user cancellation
       if (error?.message && !error.message.includes('cancel')) {
         toast.error('Failed to share cast');
       }

@@ -51,10 +51,7 @@ export const LatestNFTCard = ({ nft }: LatestNFTCardProps) => {
             </div>
             <ShareToFarcaster
               text={`Check out this NFT: ${nft.name || 'NFT'} on @uniquehub! 💎✨`}
-              frameTitle={nft.name || `NFT #${nft.token_id.slice(0, 8)}`}
-              frameDescription={`${nft.price_amount} ${nft.price_currency} on ${nft.chain}`}
-              frameImage={nft.image_url || 'https://uniqueehub.vercel.app/opengraph-image.png'}
-              frameUrl={`https://uniqueehub.vercel.app?nft=${nft.id}`}
+              embeds={nft.image_url ? [nft.image_url, 'https://uniqueehub.vercel.app'] : ['https://uniqueehub.vercel.app']}
               variant="ghost"
               size="icon"
             />
