@@ -210,9 +210,10 @@ export const ProfileSection = () => {
                 </div>
                 <ShareToFarcaster
                   text={`Check out my course: ${course.title} on @uniquehub! 🎓 Learn now for just $${course.price_usdc} USDC! 💎`}
-                  frameTitle={course.title}
-                  frameDescription={`$${course.price_usdc} USDC - ${course.description || 'Learn on UniqueHub'}`}
-                  frameImage={course.thumbnail_url || 'https://uniqueehub.vercel.app/opengraph-image.png'}
+                  shareType="course"
+                  shareTitle={course.title}
+                  shareSubtitle={`$${course.price_usdc} USDC`}
+                  shareUsername="UniqueHub"
                   frameUrl={`https://uniqueehub.vercel.app?course=${course.id}`}
                   buttonText="Share Course"
                   size="sm"
