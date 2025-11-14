@@ -7,9 +7,38 @@ import { toast } from "sonner";
 
 export const NFTSection = () => {
   const { user } = useAuth();
+  const { address } = useFarcasterWallet();
+  const { publicClient, walletClient } = useViemClients(address);
   const [isGenerating, setIsGenerating] = useState(false);
   const [nftData, setNftData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMinting, setIsMinting] = useState(false);
+  
+  const { writeContractAsync } = useWriteContract();
+  
+  // Check if user has minted on-chain
+  const { data: hasMintedOnChain } = useReadContract({
+    address: UNIQUE_NFT_ADDRESS,
+    abi: UNIQUE_NFT_ABI,
+    functionName: 'hasUserMinted',
+    args: address ? [address] : undefined,
+  });
+  
+  // Get user's token ID
+  const { data: userTokenId } = useReadContract({
+    address: UNIQUE_NFT_ADDRESS,
+    abi: UNIQUE_NFT_ABI,
+    functionName: 'getUserTokenId',
+    args: address ? [address] : undefined,
+  });
+  
+  // Check USDC allowance
+  const { data: allowance, refetch: refetchAllowance } = useReadContract({
+    address: USDC_ADDRESS,
+    abi: USDC_ABI,
+    functionName: 'allowance',
+    args: address ? [address, UNIQUE_NFT_ADDRESS] : undefined,
+  });
 
   useEffect(() => {
     loadExistingNFT();
