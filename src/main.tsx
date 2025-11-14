@@ -8,27 +8,32 @@ import { AuthProvider } from '@/hooks/useAuth';
 import { PlatformGuard } from '@/components/PlatformGuard';
 import { wagmiConfig } from '@/config/wagmi';
 import Dashboard from './pages/Dashboard.tsx'
+import NFTs from './pages/NFTs.tsx'
 import NotFound from './pages/NotFound.tsx'
+import { HelmetProvider } from 'react-helmet-async';
 import './index.css'
 
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <PlatformGuard>
-      <WagmiProvider config={wagmiConfig}>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <Toaster />
-            </BrowserRouter>
-          </AuthProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
-    </PlatformGuard>
+    <HelmetProvider>
+      <PlatformGuard>
+        <WagmiProvider config={wagmiConfig}>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/nfts" element={<NFTs />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <Toaster />
+              </BrowserRouter>
+            </AuthProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
+      </PlatformGuard>
+    </HelmetProvider>
   </StrictMode>,
 )
