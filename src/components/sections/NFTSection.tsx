@@ -125,63 +125,82 @@ export const NFTSection = () => {
 
     setIsMinting(true);
     try {
-      // Check and approve USDC if needed (handle USDC's non-zero-to-non-zero rule)
-      const currentAllowance = allowance as bigint | undefined;
+      // Always read fresh on-chain allowance to avoid stale cache
       const required = NFT_MINT_PRICE;
-      if (!currentAllowance || currentAllowance < required) {
-        // If there is a small existing allowance, reset to 0 first to satisfy USDC's allowance rule
-        if (currentAllowance && currentAllowance > 0n) {
+      let currentAllowance: bigint = 0n;
+      try {
+        currentAllowance = (await publicClient.readContract({
+          address: USDC_ADDRESS,
+          abi: USDC_ABI,
+          functionName: "allowance",
+          args: [address, UNIQUE_NFT_ADDRESS],
+        } as any)) as bigint;
+      } catch (e) {
+        // fallback to hook value if read fails
+        currentAllowance = (allowance as bigint | undefined) ?? 0n;
+      }
+
+      if (currentAllowance < required) {
+        // Reset non-zero allowance to 0 first for USDC compatibility
+        if (currentAllowance > 0n) {
           toast.info("Resetting existing USDC allowance...");
-          const resetHash = await walletClient.writeContract({
+          const { request: resetReq } = await publicClient.simulateContract({
             address: USDC_ADDRESS,
             abi: USDC_ABI,
             functionName: "approve",
             args: [UNIQUE_NFT_ADDRESS, 0n],
             account: address,
-            chain: walletClient.chain,
           } as any);
-          await publicClient.waitForTransactionReceipt({ hash: resetHash });
+          const resetHash = await walletClient.writeContract(resetReq as any);
+          await publicClient.waitForTransactionReceipt({ hash: resetHash, timeout: 120_000 });
         }
 
         toast.info("Approving USDC...");
-        const approveHash = await walletClient.writeContract({
+        const { request: approveReq } = await publicClient.simulateContract({
           address: USDC_ADDRESS,
           abi: USDC_ABI,
           functionName: "approve",
           args: [UNIQUE_NFT_ADDRESS, required],
           account: address,
-          chain: walletClient.chain,
         } as any);
-
-        toast.info("Approval transaction submitted. Waiting for confirmation...");
-        await publicClient.waitForTransactionReceipt({ hash: approveHash });
-        await refetchAllowance();
+        const approveHash = await walletClient.writeContract(approveReq as any);
+        toast.info("Approval submitted. Waiting for confirmation...");
+        await publicClient.waitForTransactionReceipt({ hash: approveHash, timeout: 120_000 });
+        await refetchAllowance?.();
         toast.success("USDC approved!");
       }
 
-      // Mint the NFT
+      // Simulate mint to pre-catch reverts and ensure correct request params
       toast.info("Minting your NFT...");
-      const mintHash = await walletClient.writeContract({
+      const { request: mintReq } = await publicClient.simulateContract({
         address: UNIQUE_NFT_ADDRESS,
         abi: UNIQUE_NFT_ABI,
         functionName: "mintAvatar",
         args: [nftData.image_url],
         account: address,
-        chain: walletClient.chain,
       } as any);
 
+      const mintHash = await walletClient.writeContract(mintReq as any);
       toast.info("Mint transaction submitted. Waiting for confirmation...");
-      await publicClient.waitForTransactionReceipt({ hash: mintHash });
+      await publicClient.waitForTransactionReceipt({ hash: mintHash, timeout: 180_000 });
+
       await Promise.all([refetchHasMinted?.(), refetchUserTokenId?.()]);
       toast.success("NFT minted successfully!");
     } catch (error: any) {
       console.error("Minting error:", error);
-      toast.error(error.message || "Failed to mint NFT");
+      const msg =
+        error?.shortMessage ||
+        error?.message ||
+        (typeof error === "string" ? error : "Failed to mint NFT");
+      if (/timed out|timeout|expired/i.test(msg)) {
+        toast.error("Transaction took too long and may still confirm. Please check BaseScan and try again.");
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setIsMinting(false);
     }
   };
-
   const downloadNFT = () => {
     if (!nftData?.image_url) return;
 
