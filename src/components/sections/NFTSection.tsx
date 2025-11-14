@@ -429,8 +429,8 @@ export const NFTSection = () => {
                           View on BaseScan
                         </Button>
                         <ShareToFarcaster
-                          text={`Just minted my unique avatar on UniqueHub! 🎨✨\n\n#UniqueHub #NFT #Base`}
-                          embeds={[shareImageUrl || nftData.image_url, 'https://uniqueehub.vercel.app/nfts']}
+                          text={`Just minted my unique avatar on @uniquehub.\n\nMint yours — blue energies, unique minds, infinite possibilities.`}
+                          embeds={[shareImageUrl || nftData.image_url, 'https://uniqueehub.vercel.app']}
                           variant="outline"
                           size="icon"
                         />
