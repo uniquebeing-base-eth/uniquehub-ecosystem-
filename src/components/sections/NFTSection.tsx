@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
 import { useViemClients } from "@/hooks/useViemClients";
 import { useReadContract } from "wagmi";
+import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 import {
   UNIQUE_NFT_ABI,
   UNIQUE_NFT_ADDRESS,
@@ -384,7 +385,16 @@ export const NFTSection = () => {
                         >
                           View on BaseScan
                         </Button>
-                        <Button onClick={downloadNFT} variant="outline">
+                        <ShareToFarcaster
+                          text={`Just minted my unique avatar on UniqueHub! 🎨✨\n\n#UniqueHub #NFT #Base`}
+                          embeds={[
+                            nftData.image_url,
+                            `https://basescan.org/token/${UNIQUE_NFT_ADDRESS}?a=${userTokenId}`
+                          ]}
+                          variant="outline"
+                          size="icon"
+                        />
+                        <Button onClick={downloadNFT} variant="outline" size="icon">
                           <Download className="h-4 w-4" />
                         </Button>
                       </div>
