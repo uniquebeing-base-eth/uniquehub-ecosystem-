@@ -54,3 +54,6 @@ verify_jwt = true
 [functions.fetch-farcaster-balances]
 verify_jwt = true
 
+[functions.farcaster-mention-handler]
+verify_jwt = false
+
