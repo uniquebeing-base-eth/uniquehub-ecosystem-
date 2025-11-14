@@ -103,10 +103,10 @@ export const NFTSection = () => {
     <div className="space-y-6 pb-24 animate-fade-in">
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-blue-400 to-primary bg-clip-text text-transparent">
-          Your Unique NFT Character
+          Unique NFTs
         </h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Generate your one-of-a-kind AI character featuring UniqueHub's signature blue theme and energies
+          Generate your own unique Avatar. Blue energies, unique minds, and infinite possibilities.
         </p>
       </div>
 
@@ -117,17 +117,10 @@ export const NFTSection = () => {
           </div>
           
           <div className="space-y-3">
-            <h2 className="text-2xl font-bold text-foreground">Create Your Character</h2>
-            <p className="text-muted-foreground">
-              Generate a unique blue-themed anime character that represents you in the UniqueHub universe. 
-              Features include:
+            <h2 className="text-2xl font-bold text-foreground">Create Your Avatar</h2>
+            <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
+              Generate your own unique Avatar with blue energies, unique minds, and infinite possibilities.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1 max-w-md mx-auto">
-              <li>✨ Vibrant blue hair and glowing blue energy aura</li>
-              <li>🎨 Personalized to your profile</li>
-              <li>🚀 One generation per user - make it count!</li>
-              <li>💎 High-quality AI-generated artwork</li>
-            </ul>
           </div>
 
           <Button
@@ -139,18 +132,18 @@ export const NFTSection = () => {
             {isGenerating ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                Generating Your Character...
+                Generating Your Avatar...
               </>
             ) : (
               <>
                 <Sparkles className="w-5 h-5 mr-2" />
-                Generate My NFT Character
+                Generate My Avatar
               </>
             )}
           </Button>
 
           <p className="text-xs text-muted-foreground">
-            ⚠️ You can only generate one character per account
+            One generation per account
           </p>
         </div>
       ) : (
@@ -187,7 +180,7 @@ export const NFTSection = () => {
             <div className="pt-4 border-t border-border">
               <div className="flex items-center gap-2 text-sm text-success">
                 <Sparkles className="w-4 h-4" />
-                <span className="font-medium">Your unique NFT character is ready!</span>
+                <span className="font-medium">Your unique avatar is ready!</span>
               </div>
             </div>
           </div>
