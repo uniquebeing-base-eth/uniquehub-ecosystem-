@@ -185,7 +185,6 @@ export const NFTSection = () => {
 
       await Promise.all([refetchHasMinted?.(), refetchUserTokenId?.()]);
       toast.success("NFT minted successfully!");
-    }
     } catch (error: any) {
       console.error("Minting error:", error);
       const msg =
