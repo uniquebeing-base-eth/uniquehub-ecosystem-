@@ -4,39 +4,51 @@ import { Sparkles, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
+import { useViemClients } from "@/hooks/useViemClients";
+import { useReadContract, useWriteContract } from "wagmi";
+import { base } from "wagmi/chains";
+import {
+  UNIQUE_NFT_ABI,
+  UNIQUE_NFT_ADDRESS,
+  USDC_ABI,
+  USDC_ADDRESS,
+  NFT_MINT_PRICE,
+} from "@/config/wagmi";
+import nftPlaceholder from "@/assets/nft-placeholder.png";
 
 export const NFTSection = () => {
   const { user } = useAuth();
   const { address } = useFarcasterWallet();
-  const { publicClient, walletClient } = useViemClients(address);
+  const { publicClient } = useViemClients(address);
   const [isGenerating, setIsGenerating] = useState(false);
   const [nftData, setNftData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMinting, setIsMinting] = useState(false);
-  
+
   const { writeContractAsync } = useWriteContract();
-  
+
   // Check if user has minted on-chain
   const { data: hasMintedOnChain } = useReadContract({
     address: UNIQUE_NFT_ADDRESS,
     abi: UNIQUE_NFT_ABI,
-    functionName: 'hasUserMinted',
+    functionName: "hasUserMinted",
     args: address ? [address] : undefined,
   });
-  
+
   // Get user's token ID
   const { data: userTokenId } = useReadContract({
     address: UNIQUE_NFT_ADDRESS,
     abi: UNIQUE_NFT_ABI,
-    functionName: 'getUserTokenId',
+    functionName: "getUserTokenId",
     args: address ? [address] : undefined,
   });
-  
+
   // Check USDC allowance
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: USDC_ADDRESS,
     abi: USDC_ABI,
-    functionName: 'allowance',
+    functionName: "allowance",
     args: address ? [address, UNIQUE_NFT_ADDRESS] : undefined,
   });
 
@@ -52,16 +64,16 @@ export const NFTSection = () => {
 
     try {
       const { data, error } = await supabase
-        .from('user_nft_generations')
-        .select('*')
-        .eq('user_id', user.id)
+        .from("user_nft_generations")
+        .select("*")
+        .eq("user_id", user.id)
         .single();
 
       if (data) {
         setNftData(data);
       }
     } catch (error) {
-      console.error('Error loading NFT:', error);
+      console.error("Error loading NFT:", error);
     } finally {
       setIsLoading(false);
     }
@@ -75,11 +87,14 @@ export const NFTSection = () => {
 
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-nft-character', {
-        headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+      const { data, error } = await supabase.functions.invoke(
+        "generate-nft-character",
+        {
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
         }
-      });
+      );
 
       if (error) throw error;
 
@@ -98,17 +113,70 @@ export const NFTSection = () => {
         toast.success("Your unique NFT character has been generated!");
       }
     } catch (error: any) {
-      console.error('Error generating NFT:', error);
+      console.error("Error generating NFT:", error);
       toast.error(error.message || "Failed to generate NFT");
     } finally {
       setIsGenerating(false);
     }
   };
 
+  const mintNFT = async () => {
+    if (!nftData?.image_url || !address) {
+      toast.error("Please generate an NFT first and connect your wallet");
+      return;
+    }
+
+    setIsMinting(true);
+    try {
+      // Check if already minted
+      if (hasMintedOnChain) {
+        toast.error("You have already minted your unique avatar");
+        return;
+      }
+
+      // Check and approve USDC if needed
+      const currentAllowance = allowance as bigint | undefined;
+      if (!currentAllowance || currentAllowance < NFT_MINT_PRICE) {
+        toast.info("Approving USDC...");
+        const approveTx = await writeContractAsync({
+          address: USDC_ADDRESS,
+          abi: USDC_ABI,
+          functionName: "approve",
+          args: [UNIQUE_NFT_ADDRESS, NFT_MINT_PRICE],
+          account: address,
+          chain: base,
+        });
+
+        await publicClient?.waitForTransactionReceipt({ hash: approveTx });
+        await refetchAllowance();
+        toast.success("USDC approved!");
+      }
+
+      // Mint the NFT
+      toast.info("Minting your NFT...");
+      const mintTx = await writeContractAsync({
+        address: UNIQUE_NFT_ADDRESS,
+        abi: UNIQUE_NFT_ABI,
+        functionName: "mintAvatar",
+        args: [nftData.image_url],
+        account: address,
+        chain: base,
+      });
+
+      await publicClient?.waitForTransactionReceipt({ hash: mintTx });
+      toast.success("NFT minted successfully!");
+    } catch (error: any) {
+      console.error("Minting error:", error);
+      toast.error(error.message || "Failed to mint NFT");
+    } finally {
+      setIsMinting(false);
+    }
+  };
+
   const downloadNFT = () => {
     if (!nftData?.image_url) return;
-    
-    const link = document.createElement('a');
+
+    const link = document.createElement("a");
     link.href = nftData.image_url;
     link.download = `uniquehub-nft-${Date.now()}.png`;
     document.body.appendChild(link);
@@ -130,86 +198,105 @@ export const NFTSection = () => {
 
   return (
     <div className="space-y-6 pb-24 animate-fade-in">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-blue-400 to-primary bg-clip-text text-transparent">
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
           Unique NFTs
         </h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Generate your own unique Avatar. Blue energies, unique minds, and infinite possibilities.
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Generate your own unique Avatar. Blue energies, unique minds, and
+          infinite possibilities.
         </p>
       </div>
 
       {!nftData ? (
-        <div className="bg-card rounded-2xl border border-border p-8 max-w-2xl mx-auto text-center space-y-6">
-          <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-blue-500/20 flex items-center justify-center border-2 border-primary/30">
-            <Sparkles className="w-16 h-16 text-primary" />
+        <div className="max-w-md mx-auto">
+          <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-8 border border-primary/20">
+            <div className="text-center space-y-6">
+              <div className="w-32 h-32 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20 p-1">
+                <img 
+                  src={nftPlaceholder} 
+                  alt="NFT Placeholder"
+                  className="w-full h-full object-cover rounded-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-semibold">
+                  Create Your Avatar
+                </h3>
+              </div>
+              <Button
+                onClick={generateNFT}
+                disabled={isGenerating}
+                size="lg"
+                className="w-full"
+              >
+                {isGenerating ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    Generate My Avatar
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                One generation per account
+              </p>
+            </div>
           </div>
-          
-          <div className="space-y-3">
-            <h2 className="text-2xl font-bold text-foreground">Create Your Avatar</h2>
-            <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
-              Generate your own unique Avatar with blue energies, unique minds, and infinite possibilities.
-            </p>
-          </div>
-
-          <Button
-            onClick={generateNFT}
-            disabled={isGenerating}
-            size="lg"
-            className="bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-500/90"
-          >
-            {isGenerating ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                Generating Your Avatar...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-5 h-5 mr-2" />
-                Generate My Avatar
-              </>
-            )}
-          </Button>
-
-          <p className="text-xs text-muted-foreground">
-            One generation per account
-          </p>
         </div>
       ) : (
-        <div className="bg-card rounded-2xl border border-border overflow-hidden max-w-3xl mx-auto">
-          <div className="relative aspect-video bg-gradient-to-br from-background to-primary/5">
-            <img
-              src={nftData.image_url}
-              alt="Your Unique NFT Character"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          
-          <div className="p-6 space-y-4">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-2">
-                  {nftData.metadata?.display_name || "Your Character"}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Generated on {new Date(nftData.generated_at).toLocaleDateString()}
-                </p>
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-6 border border-primary/20">
+            <div className="space-y-6">
+              <div className="aspect-square rounded-xl overflow-hidden bg-background/50">
+                <img
+                  src={nftData.image_url}
+                  alt="Your unique NFT avatar"
+                  className="w-full h-full object-cover"
+                />
               </div>
-              
-              <Button
-                onClick={downloadNFT}
-                variant="outline"
-                size="sm"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download
-              </Button>
-            </div>
 
-            <div className="pt-4 border-t border-border">
-              <div className="flex items-center gap-2 text-sm text-success">
-                <Sparkles className="w-4 h-4" />
-                <span className="font-medium">Your unique avatar is ready!</span>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Display Name</p>
+                    <p className="font-medium">
+                      {nftData.metadata?.displayName || "UniqueHub User"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Hair Style</p>
+                    <p className="font-medium">
+                      {nftData.metadata?.hairStyle || "Blue"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  {!hasMintedOnChain ? (
+                    <Button
+                      onClick={mintNFT}
+                      disabled={isMinting || !address}
+                      className="flex-1"
+                    >
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      {isMinting ? "Minting..." : "Mint for 0.2 USDC"}
+                    </Button>
+                  ) : (
+                    <div className="flex-1 text-center">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Minted on-chain #{userTokenId?.toString()}
+                      </p>
+                    </div>
+                  )}
+                  <Button onClick={downloadNFT} variant="outline">
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
