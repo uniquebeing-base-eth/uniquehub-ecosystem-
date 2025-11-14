@@ -430,9 +430,7 @@ export const NFTSection = () => {
                         </Button>
                         <ShareToFarcaster
                           text={`Just minted my unique avatar on UniqueHub! 🎨✨\n\n#UniqueHub #NFT #Base`}
-                          embeds={[
-                            `${FUNCTIONS_BASE}/farcaster-frame?title=${encodeURIComponent('UniqueHub Avatar')}&description=${encodeURIComponent('Minted on Base')}&image=${encodeURIComponent(shareImageUrl || nftData.image_url)}`
-                          ]}
+                          embeds={[shareImageUrl || nftData.image_url, 'https://uniqueehub.vercel.app/nfts']}
                           variant="outline"
                           size="icon"
                         />
