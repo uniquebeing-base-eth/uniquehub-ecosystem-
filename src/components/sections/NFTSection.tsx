@@ -6,8 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
 import { useViemClients } from "@/hooks/useViemClients";
-import { useReadContract, useWriteContract } from "wagmi";
-import { base } from "wagmi/chains";
+import { useReadContract } from "wagmi";
 import {
   UNIQUE_NFT_ABI,
   UNIQUE_NFT_ADDRESS,
@@ -20,13 +19,11 @@ import nftPlaceholder from "@/assets/nft-placeholder.png";
 export const NFTSection = () => {
   const { user } = useAuth();
   const { address } = useFarcasterWallet();
-  const { publicClient } = useViemClients(address);
+  const { publicClient, walletClient } = useViemClients(address);
   const [isGenerating, setIsGenerating] = useState(false);
   const [nftData, setNftData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMinting, setIsMinting] = useState(false);
-
-  const { writeContractAsync } = useWriteContract();
 
   // Check if user has minted on-chain
   const { data: hasMintedOnChain } = useReadContract({
@@ -121,7 +118,7 @@ export const NFTSection = () => {
   };
 
   const mintNFT = async () => {
-    if (!nftData?.image_url || !address) {
+    if (!nftData?.image_url || !address || !walletClient || !publicClient) {
       toast.error("Please generate an NFT first and connect your wallet");
       return;
     }
@@ -132,32 +129,34 @@ export const NFTSection = () => {
       const currentAllowance = allowance as bigint | undefined;
       if (!currentAllowance || currentAllowance < NFT_MINT_PRICE) {
         toast.info("Approving USDC...");
-        const approveTx = await writeContractAsync({
+        const approveHash = await walletClient.writeContract({
           address: USDC_ADDRESS,
           abi: USDC_ABI,
           functionName: "approve",
           args: [UNIQUE_NFT_ADDRESS, NFT_MINT_PRICE],
           account: address,
-          chain: base,
-        });
+          chain: walletClient.chain,
+        } as any);
 
-        await publicClient?.waitForTransactionReceipt({ hash: approveTx });
+        toast.info("Approval transaction submitted. Waiting for confirmation...");
+        await publicClient.waitForTransactionReceipt({ hash: approveHash });
         await refetchAllowance();
         toast.success("USDC approved!");
       }
 
       // Mint the NFT
       toast.info("Minting your NFT...");
-      const mintTx = await writeContractAsync({
+      const mintHash = await walletClient.writeContract({
         address: UNIQUE_NFT_ADDRESS,
         abi: UNIQUE_NFT_ABI,
         functionName: "mintAvatar",
         args: [nftData.image_url],
         account: address,
-        chain: base,
-      });
+        chain: walletClient.chain,
+      } as any);
 
-      await publicClient?.waitForTransactionReceipt({ hash: mintTx });
+      toast.info("Mint transaction submitted. Waiting for confirmation...");
+      await publicClient.waitForTransactionReceipt({ hash: mintHash });
       toast.success("NFT minted successfully!");
     } catch (error: any) {
       console.error("Minting error:", error);
