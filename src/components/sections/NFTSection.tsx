@@ -128,12 +128,6 @@ export const NFTSection = () => {
 
     setIsMinting(true);
     try {
-      // Check if already minted
-      if (hasMintedOnChain) {
-        toast.error("You have already minted your unique avatar");
-        return;
-      }
-
       // Check and approve USDC if needed
       const currentAllowance = allowance as bigint | undefined;
       if (!currentAllowance || currentAllowance < NFT_MINT_PRICE) {
@@ -276,26 +270,41 @@ export const NFTSection = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-3">
+                <div className="space-y-3">
                   {!hasMintedOnChain ? (
                     <Button
                       onClick={mintNFT}
                       disabled={isMinting || !address}
-                      className="flex-1"
+                      className="w-full"
                     >
                       <Sparkles className="mr-2 h-4 w-4" />
                       {isMinting ? "Minting..." : "Mint for 0.2 USDC"}
                     </Button>
                   ) : (
-                    <div className="flex-1 text-center">
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Minted on-chain #{userTokenId?.toString()}
-                      </p>
-                    </div>
+                    <>
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Minted on-chain #{userTokenId?.toString()}
+                        </p>
+                      </div>
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={() => {
+                            window.open(
+                              `https://basescan.org/token/${UNIQUE_NFT_ADDRESS}?a=${userTokenId}`,
+                              "_blank"
+                            );
+                          }}
+                          className="flex-1"
+                        >
+                          View on BaseScan
+                        </Button>
+                        <Button onClick={downloadNFT} variant="outline">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </>
                   )}
-                  <Button onClick={downloadNFT} variant="outline">
-                    <Download className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
             </div>
