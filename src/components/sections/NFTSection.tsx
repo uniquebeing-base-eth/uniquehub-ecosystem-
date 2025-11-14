@@ -26,7 +26,7 @@ export const NFTSection = () => {
   const [isMinting, setIsMinting] = useState(false);
 
   // Check if user has minted on-chain
-  const { data: hasMintedOnChain } = useReadContract({
+  const { data: hasMintedOnChain, refetch: refetchHasMinted } = useReadContract({
     address: UNIQUE_NFT_ADDRESS,
     abi: UNIQUE_NFT_ABI,
     functionName: "hasUserMinted",
@@ -34,7 +34,7 @@ export const NFTSection = () => {
   });
 
   // Get user's token ID
-  const { data: userTokenId } = useReadContract({
+  const { data: userTokenId, refetch: refetchUserTokenId } = useReadContract({
     address: UNIQUE_NFT_ADDRESS,
     abi: UNIQUE_NFT_ABI,
     functionName: "getUserTokenId",
@@ -125,15 +125,30 @@ export const NFTSection = () => {
 
     setIsMinting(true);
     try {
-      // Check and approve USDC if needed
+      // Check and approve USDC if needed (handle USDC's non-zero-to-non-zero rule)
       const currentAllowance = allowance as bigint | undefined;
-      if (!currentAllowance || currentAllowance < NFT_MINT_PRICE) {
+      const required = NFT_MINT_PRICE;
+      if (!currentAllowance || currentAllowance < required) {
+        // If there is a small existing allowance, reset to 0 first to satisfy USDC's allowance rule
+        if (currentAllowance && currentAllowance > 0n) {
+          toast.info("Resetting existing USDC allowance...");
+          const resetHash = await walletClient.writeContract({
+            address: USDC_ADDRESS,
+            abi: USDC_ABI,
+            functionName: "approve",
+            args: [UNIQUE_NFT_ADDRESS, 0n],
+            account: address,
+            chain: walletClient.chain,
+          } as any);
+          await publicClient.waitForTransactionReceipt({ hash: resetHash });
+        }
+
         toast.info("Approving USDC...");
         const approveHash = await walletClient.writeContract({
           address: USDC_ADDRESS,
           abi: USDC_ABI,
           functionName: "approve",
-          args: [UNIQUE_NFT_ADDRESS, NFT_MINT_PRICE],
+          args: [UNIQUE_NFT_ADDRESS, required],
           account: address,
           chain: walletClient.chain,
         } as any);
@@ -157,6 +172,7 @@ export const NFTSection = () => {
 
       toast.info("Mint transaction submitted. Waiting for confirmation...");
       await publicClient.waitForTransactionReceipt({ hash: mintHash });
+      await Promise.all([refetchHasMinted?.(), refetchUserTokenId?.()]);
       toast.success("NFT minted successfully!");
     } catch (error: any) {
       console.error("Minting error:", error);
