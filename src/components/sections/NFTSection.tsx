@@ -169,13 +169,65 @@ export const NFTSection = () => {
         toast.success("USDC approved!");
       }
 
+      // Prepare a short tokenURI (avoid huge base64 in calldata)
+      toast.info("Preparing NFT metadata...");
+      let tokenUri: string | undefined = nftData?.metadata?.token_uri as string | undefined;
+      try {
+        if (!tokenUri) {
+          // Ensure image is a short public URL
+          let imagePublicUrl: string = nftData.image_url as string;
+          if (typeof imagePublicUrl === 'string' && imagePublicUrl.startsWith('data:')) {
+            const res = await fetch(imagePublicUrl);
+            const blob = await res.blob();
+            const avatarId = nftData.id || crypto.randomUUID();
+            const pngPath = `avatars/${user?.id || address}/${avatarId}.png`;
+            const { error: uploadError } = await supabase.storage
+              .from('certificates')
+              .upload(pngPath, blob, { contentType: 'image/png' });
+            if (uploadError && !String(uploadError.message || uploadError).includes('already exists')) {
+              throw uploadError;
+            }
+            const { data: pub } = supabase.storage.from('certificates').getPublicUrl(pngPath);
+            imagePublicUrl = pub.publicUrl;
+          }
+
+          // Create ERC721 metadata JSON
+          const meta = {
+            name: 'UniqueHub Avatar',
+            description: 'Your unique on-chain avatar on UniqueHub',
+            image: imagePublicUrl,
+            attributes: [
+              { trait_type: 'Display Name', value: nftData.metadata?.display_name || nftData.metadata?.displayName || 'User' },
+              { trait_type: 'Hair Style', value: nftData.metadata?.hair_style || nftData.metadata?.hairStyle || 'Blue' },
+            ],
+          };
+          const avatarId = nftData.id || crypto.randomUUID();
+          const metaPath = `avatars/${user?.id || address}/${avatarId}-metadata.json`;
+          const { error: metaError } = await supabase.storage
+            .from('certificates')
+            .upload(metaPath, new Blob([JSON.stringify(meta)], { type: 'application/json' }));
+          if (metaError && !String(metaError.message || metaError).includes('already exists')) {
+            throw metaError;
+          }
+          const { data: metaPub } = supabase.storage.from('certificates').getPublicUrl(metaPath);
+          tokenUri = metaPub.publicUrl;
+
+          // Cache token_uri so next attempt skips uploads
+          setNftData((prev: any) => prev ? { ...prev, metadata: { ...prev.metadata, token_uri: tokenUri } } : prev);
+        }
+      } catch (prepErr) {
+        console.error('Metadata prep error:', prepErr);
+        toast.error('Failed to prepare NFT metadata');
+        throw prepErr;
+      }
+
       // Directly write without simulate to mirror reliable certificate flow
       toast.info("Minting your NFT...");
       const mintHash = await walletClient.writeContract({
         address: UNIQUE_NFT_ADDRESS,
         abi: UNIQUE_NFT_ABI,
         functionName: "mintAvatar",
-        args: [nftData.image_url],
+        args: [tokenUri || nftData.image_url],
         account: address,
         chain: walletClient.chain,
       } as any);
@@ -292,13 +344,13 @@ export const NFTSection = () => {
                   <div>
                     <p className="text-muted-foreground">Display Name</p>
                     <p className="font-medium">
-                      {nftData.metadata?.displayName || "UniqueHub User"}
+                      {nftData.metadata?.displayName || nftData.metadata?.display_name || "UniqueHub User"}
                     </p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Hair Style</p>
                     <p className="font-medium">
-                      {nftData.metadata?.hairStyle || "Blue"}
+                      {nftData.metadata?.hairStyle || nftData.metadata?.hair_style || "Blue"}
                     </p>
                   </div>
                 </div>
