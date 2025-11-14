@@ -763,6 +763,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_nft_generations: {
+        Row: {
+          generated_at: string
+          id: string
+          image_url: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          generated_at?: string
+          id?: string
+          image_url: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          generated_at?: string
+          id?: string
+          image_url?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_points: {
         Row: {
           created_at: string
