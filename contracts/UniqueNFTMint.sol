@@ -54,15 +54,15 @@ contract UniqueNFTMint is ERC721, ERC721URIStorage, Ownable {
     
     /**
      * @dev Mint a unique NFT avatar
-     * @param tokenURI The metadata URI for the NFT
+     * @param _tokenURI The metadata URI for the NFT
      * Requirements:
      * - User must not have minted before
      * - User must have approved this contract to spend 0.2 USDC
      * - User must have at least 0.2 USDC balance
      */
-    function mintAvatar(string memory tokenURI) external {
+    function mintAvatar(string memory _tokenURI) external {
         require(!hasMinted[msg.sender], "Already minted your unique avatar");
-        require(bytes(tokenURI).length > 0, "Token URI cannot be empty");
+        require(bytes(_tokenURI).length > 0, "Token URI cannot be empty");
         
         // Check USDC balance
         require(
@@ -87,13 +87,13 @@ contract UniqueNFTMint is ERC721, ERC721URIStorage, Ownable {
         _tokenIdCounter++;
         
         _safeMint(msg.sender, tokenId);
-        _setTokenURI(tokenId, tokenURI);
+        _setTokenURI(tokenId, _tokenURI);
         
         // Mark user as having minted
         hasMinted[msg.sender] = true;
         userTokenId[msg.sender] = tokenId;
         
-        emit NFTMinted(msg.sender, tokenId, tokenURI);
+        emit NFTMinted(msg.sender, tokenId, _tokenURI);
     }
     
     /**
