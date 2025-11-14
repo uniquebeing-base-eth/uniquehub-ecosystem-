@@ -125,7 +125,6 @@ export const NFTSection = () => {
 
     setIsMinting(true);
     try {
-      // Always read fresh on-chain allowance to avoid stale cache
       const required = NFT_MINT_PRICE;
       let currentAllowance: bigint = 0n;
       try {
@@ -144,48 +143,49 @@ export const NFTSection = () => {
         // Reset non-zero allowance to 0 first for USDC compatibility
         if (currentAllowance > 0n) {
           toast.info("Resetting existing USDC allowance...");
-          const { request: resetReq } = await publicClient.simulateContract({
+          const resetHash = await walletClient.writeContract({
             address: USDC_ADDRESS,
             abi: USDC_ABI,
             functionName: "approve",
             args: [UNIQUE_NFT_ADDRESS, 0n],
             account: address,
+            chain: walletClient.chain,
           } as any);
-          const resetHash = await walletClient.writeContract(resetReq as any);
-          await publicClient.waitForTransactionReceipt({ hash: resetHash, timeout: 120_000 });
+          await publicClient.waitForTransactionReceipt({ hash: resetHash });
         }
 
         toast.info("Approving USDC...");
-        const { request: approveReq } = await publicClient.simulateContract({
+        const approveHash = await walletClient.writeContract({
           address: USDC_ADDRESS,
           abi: USDC_ABI,
           functionName: "approve",
           args: [UNIQUE_NFT_ADDRESS, required],
           account: address,
+          chain: walletClient.chain,
         } as any);
-        const approveHash = await walletClient.writeContract(approveReq as any);
         toast.info("Approval submitted. Waiting for confirmation...");
-        await publicClient.waitForTransactionReceipt({ hash: approveHash, timeout: 120_000 });
+        await publicClient.waitForTransactionReceipt({ hash: approveHash });
         await refetchAllowance?.();
         toast.success("USDC approved!");
       }
 
-      // Simulate mint to pre-catch reverts and ensure correct request params
+      // Directly write without simulate to mirror reliable certificate flow
       toast.info("Minting your NFT...");
-      const { request: mintReq } = await publicClient.simulateContract({
+      const mintHash = await walletClient.writeContract({
         address: UNIQUE_NFT_ADDRESS,
         abi: UNIQUE_NFT_ABI,
         functionName: "mintAvatar",
         args: [nftData.image_url],
         account: address,
+        chain: walletClient.chain,
       } as any);
 
-      const mintHash = await walletClient.writeContract(mintReq as any);
       toast.info("Mint transaction submitted. Waiting for confirmation...");
-      await publicClient.waitForTransactionReceipt({ hash: mintHash, timeout: 180_000 });
+      await publicClient.waitForTransactionReceipt({ hash: mintHash });
 
       await Promise.all([refetchHasMinted?.(), refetchUserTokenId?.()]);
       toast.success("NFT minted successfully!");
+    }
     } catch (error: any) {
       console.error("Minting error:", error);
       const msg =
