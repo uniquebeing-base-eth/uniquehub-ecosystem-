@@ -25,6 +25,8 @@ export const NFTSection = () => {
   const [nftData, setNftData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMinting, setIsMinting] = useState(false);
+  const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
+  const FUNCTIONS_BASE = 'https://ucqcrhfcflrepsdlcvpq.functions.supabase.co';
 
   // Check if user has minted on-chain
   const { data: hasMintedOnChain, refetch: refetchHasMinted } = useReadContract({
@@ -76,6 +78,47 @@ export const NFTSection = () => {
       setIsLoading(false);
     }
   };
+
+  // Ensure we have a public HTTP image URL for Farcaster embeds
+  useEffect(() => {
+    const prepareShareImage = async () => {
+      const url = nftData?.image_url as string | undefined;
+      if (!url) {
+        setShareImageUrl(null);
+        return;
+      }
+      // If already http(s), we're good
+      if (/^https?:\/\//i.test(url)) {
+        setShareImageUrl(url);
+        return;
+      }
+      // Convert data URL to a public URL via Supabase Storage
+      if (typeof url === 'string' && url.startsWith('data:')) {
+        try {
+          const res = await fetch(url);
+          const blob = await res.blob();
+          const avatarId = nftData?.id || crypto.randomUUID();
+          const pngPath = `avatars/${user?.id || address}/${avatarId}-share.png`;
+          const { error: uploadError } = await supabase.storage
+            .from('certificates')
+            .upload(pngPath, blob, { contentType: 'image/png' });
+          if (uploadError && !String(uploadError.message || uploadError).includes('already exists')) {
+            throw uploadError as any;
+          }
+          const { data: pub } = supabase.storage.from('certificates').getPublicUrl(pngPath);
+          setShareImageUrl(pub.publicUrl);
+        } catch (e) {
+          console.error('Failed to prepare share image URL', e);
+          setShareImageUrl(null);
+        }
+      } else {
+        // Fallback
+        setShareImageUrl(url);
+      }
+    };
+
+    prepareShareImage();
+  }, [nftData?.image_url, nftData?.id, user?.id, address]);
 
   const generateNFT = async () => {
     if (!user) {
@@ -388,8 +431,7 @@ export const NFTSection = () => {
                         <ShareToFarcaster
                           text={`Just minted my unique avatar on UniqueHub! 🎨✨\n\n#UniqueHub #NFT #Base`}
                           embeds={[
-                            nftData.image_url,
-                            'https://uniqueehub.vercel.app'
+                            `${FUNCTIONS_BASE}/farcaster-frame?title=${encodeURIComponent('UniqueHub Avatar')}&description=${encodeURIComponent('Minted on Base')}&image=${encodeURIComponent(shareImageUrl || nftData.image_url)}`
                           ]}
                           variant="outline"
                           size="icon"
