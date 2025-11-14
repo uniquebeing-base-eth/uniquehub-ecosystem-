@@ -389,7 +389,7 @@ export const NFTSection = () => {
                           text={`Just minted my unique avatar on UniqueHub! 🎨✨\n\n#UniqueHub #NFT #Base`}
                           embeds={[
                             nftData.image_url,
-                            `https://basescan.org/token/${UNIQUE_NFT_ADDRESS}?a=${userTokenId}`
+                            'https://uniqueehub.vercel.app'
                           ]}
                           variant="outline"
                           size="icon"
