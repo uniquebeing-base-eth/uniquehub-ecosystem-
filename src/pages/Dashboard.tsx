@@ -12,6 +12,7 @@ import { TutorSection } from "@/components/sections/TutorSection";
 import { UploadSection } from "@/components/sections/UploadSection";
 import { WalletSection } from "@/components/sections/WalletSection";
 import { EarnSection } from "@/components/sections/EarnSection";
+import { NFTSection } from "@/components/sections/NFTSection";
 import { BlogSection } from "@/components/sections/BlogSection";
 import { CertificatesSection } from "@/components/sections/CertificatesSection";
 import { Leaderboard } from "@/components/Leaderboard";
@@ -112,6 +113,8 @@ const Dashboard = () => {
         return <WalletSection />;
       case "earn":
         return <EarnSection />;
+      case "nft":
+        return <NFTSection />;
       case "leaderboard":
         return <Leaderboard />;
       case "blog":

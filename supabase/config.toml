@@ -1,5 +1,8 @@
 project_id = "ucqcrhfcflrepsdlcvpq"
 
+[functions.generate-nft-character]
+verify_jwt = true
+
 [functions.fetch-user-nfts]
 verify_jwt = true
 
