@@ -78,64 +78,48 @@ serve(async (req) => {
       day: "numeric"
     });
 
-    // Generate certificate image using Lovable AI
+    // Generate certificate SVG
     console.log("Generating certificate image...");
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
-    const imagePrompt = `Create a professional certificate of completion with the following details:
-- Title: "Certificate of Completion"
-- Course: "${course.title}"
-- Recipient: "${userName}"
-- Date: ${completionDate}
-- Issued by: UniqueHub
-- Design: Modern, professional, with elegant borders and UniqueHub branding
-- Colors: Use purple/blue gradient background, gold accents
-- Place a BLUE 3D CUBE icon/logo in the BOTTOM RIGHT area, next to where it says "Issued By: UniqueHub" (replace any circular icon with the blue cube)
-- The blue cube should be the signature UniqueHub brand icon, positioned right next to the issuer text
-- Include decorative elements like ribbons, gold seal/medal, and elegant corner flourishes
-- Professional typography with clear hierarchy
-- 16:9 aspect ratio for horizontal certificate display`;
+    const svgCertificate = `<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="1200" height="800" fill="url(#bgGradient)"/>
+  <rect x="40" y="40" width="1120" height="720" fill="none" stroke="#FFD700" stroke-width="8" rx="10"/>
+  <rect x="60" y="60" width="1080" height="680" fill="none" stroke="#FFD700" stroke-width="2" rx="5"/>
+  
+  <text x="600" y="150" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#FFD700" text-anchor="middle">CERTIFICATE OF COMPLETION</text>
+  
+  <text x="600" y="220" font-family="Arial, sans-serif" font-size="24" fill="#FFFFFF" text-anchor="middle">This certifies that</text>
+  
+  <text x="600" y="320" font-family="Arial, sans-serif" font-size="42" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${userName}</text>
+  
+  <text x="600" y="400" font-family="Arial, sans-serif" font-size="24" fill="#FFFFFF" text-anchor="middle">has successfully completed</text>
+  
+  <text x="600" y="480" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#FFD700" text-anchor="middle">${course.title}</text>
+  
+  <text x="600" y="580" font-family="Arial, sans-serif" font-size="20" fill="#FFFFFF" text-anchor="middle">Completion Date: ${completionDate}</text>
+  
+  <text x="600" y="680" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Issued by UniqueHub</text>
+</svg>`;
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
-        messages: [{
-          role: "user",
-          content: imagePrompt
-        }],
-        modalities: ["image", "text"]
-      })
-    });
-
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error("AI Gateway error:", aiResponse.status, errorText);
-      throw new Error("Failed to generate certificate image");
-    }
-
-    const aiData = await aiResponse.json();
-    const imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-    if (!imageUrl) {
-      throw new Error("No image generated");
-    }
-
-    // Convert base64 to blob and upload to Supabase storage
-    const base64Data = imageUrl.split(",")[1];
+    // Convert SVG to base64 data URL
+    const svgBase64 = btoa(unescape(encodeURIComponent(svgCertificate)));
+    const base64Data = svgBase64;
     const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
     
     const certificateId = crypto.randomUUID();
-    const fileName = `${user.id}/${certificateId}.png`;
+    const fileName = `${user.id}/${certificateId}.svg`;
 
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from("certificates")
       .upload(fileName, binaryData, {
-        contentType: "image/png",
+        contentType: "image/svg+xml",
         upsert: false
       });
 
