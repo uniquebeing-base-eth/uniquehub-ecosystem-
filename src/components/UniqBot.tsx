@@ -80,7 +80,24 @@ export const UniqBot = () => {
         body: { messages: [...messages, userMessage] },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error:", error);
+        // Check if it's a payment or rate limit error
+        if (error.message?.includes('credits depleted') || error.message?.includes('402')) {
+          toast.error("AI service is temporarily unavailable. Please contact support.");
+        } else if (error.message?.includes('Too many requests') || error.message?.includes('429')) {
+          toast.error("Too many requests. Please wait a moment and try again.");
+        } else {
+          toast.error(error.message || "Failed to get response. Please try again.");
+        }
+        return;
+      }
+
+      if (data?.error) {
+        console.error("API Error:", data.error);
+        toast.error(data.error);
+        return;
+      }
 
       const assistantMessage: Message = {
         role: "assistant",
