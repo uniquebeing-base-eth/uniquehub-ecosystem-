@@ -178,6 +178,27 @@ Remember: You're here to make Web3 education accessible, fun, and rewarding for 
     
     if (!response.ok) {
       console.error('Lovable AI Gateway error:', data);
+      
+      // Handle payment required (402) - out of credits
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ 
+          error: 'AI service credits depleted. Please contact the platform admin to add more credits.' 
+        }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      // Handle rate limit (429)
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ 
+          error: 'Too many requests. Please wait a moment and try again.' 
+        }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
       throw new Error(data.error?.message || 'Failed to get response from AI');
     }
 
