@@ -69,6 +69,22 @@ export const EarnSection = () => {
       type: 'app',
     },
     {
+      id: "read-blog-blue-energy-nfts",
+      title: "Read Blue Energy NFTs",
+      description: "Learn about UniqueHub NFTs",
+      points: 100,
+      icon: BookOpen,
+      type: 'app',
+    },
+    {
+      id: "read-blog-creativity-campaign",
+      title: "Read Creativity Campaign",
+      description: "Discover the creativity campaign",
+      points: 100,
+      icon: BookOpen,
+      type: 'app',
+    },
+    {
       id: "finish-1-course",
       title: "Finish 1 Course",
       description: "Complete your first course",
