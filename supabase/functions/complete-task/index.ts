@@ -54,21 +54,10 @@ Deno.serve(async (req) => {
     switch (taskId) {
       case 'read-blog-web3':
       case 'read-blog-education':
-      case 'read-blog-blue-energy-nfts':
-      case 'read-blog-creativity-campaign':
         // For blog reading tasks, trust client-side verification
         isCompleted = true;
         pointsToAward = 100;
         console.log(`Blog task ${taskId} marked as completed`);
-        break;
-      case 'share-blog-what-is-web3':
-      case 'share-blog-education-in-web3':
-      case 'share-blog-blue-energy-nfts':
-      case 'share-blog-creativity-campaign':
-        // For blog sharing tasks, trust client-side verification
-        isCompleted = true;
-        pointsToAward = 50;
-        console.log(`Blog share task ${taskId} marked as completed`);
         break;
       case 'finish-1-course': {
         const { data: enrollments, error: enrollError } = await supabase
