@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, CheckCircle2 } from "lucide-react";
+import { Calendar } from "lucide-react";
 import cubeLogo from "@/assets/uniquehub-cube.png";
 import blogWeb3Image from "@/assets/blog-web3.jpg";
 import blogEducationImage from "@/assets/blog-education-web3.jpg";
@@ -12,6 +12,7 @@ import blogCreativityCampaign from "@/assets/blog-creativity-campaign.jpg";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 
 interface BlogArticle {
   id: string;
@@ -312,7 +313,7 @@ Mint yours and step fully into what makes you truly unique.`,
   },
   {
     id: "creativity-campaign",
-    title: "The UniqueHub Creativity Campaign: Show the World What Makes You Unique",
+    title: "The UniqueHub Creativity Campaign: Show How Unique You Are",
     excerpt: "At UniqueHub, we believe everyone has something valuable to share — a skill, a talent, an idea, or a passion. To encourage this, we are launching a Creativity Campaign designed to highlight and reward the unique abilities within our community.",
     content: `At UniqueHub, we believe everyone has something valuable to share — a skill, a talent, an idea, or a passion.
 
@@ -359,6 +360,7 @@ Your uniqueness is your strength — and this is your moment to display it.`,
 export const BlogSection = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [sharedArticles, setSharedArticles] = useState<string[]>([]);
 
   const handleArticleRead = async (articleId: string) => {
     if (!user) return;
@@ -371,6 +373,8 @@ export const BlogSection = () => {
       'about-uniquehub': 'read-blog-about-uniquehub',
       'uniquehub-features-updates': 'read-blog-features-updates',
       'meet-uniqbot': 'read-blog-uniqbot',
+      'blue-energy-nfts': 'read-blog-blue-energy-nfts',
+      'creativity-campaign': 'read-blog-creativity-campaign',
     };
 
     const taskId = taskIdMap[articleId];
@@ -400,6 +404,39 @@ export const BlogSection = () => {
       }
     } catch (error) {
       console.error('Error completing blog task:', error);
+    }
+  };
+
+  const handleShareSuccess = async (articleId: string) => {
+    if (!user || sharedArticles.includes(articleId)) return;
+
+    const shareTaskId = `share-blog-${articleId}`;
+    
+    try {
+      // Check if already shared
+      const { data: existing } = await supabase
+        .from('task_completions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('task_id', shareTaskId)
+        .maybeSingle();
+
+      if (existing) return;
+
+      // Award points for sharing
+      const { error } = await supabase.functions.invoke('complete-task', {
+        body: { taskId: shareTaskId },
+      });
+
+      if (!error) {
+        setSharedArticles([...sharedArticles, articleId]);
+        toast({
+          title: "Points earned!",
+          description: "You earned 50 UP for sharing this article",
+        });
+      }
+    } catch (error) {
+      console.error('Error awarding share points:', error);
     }
   };
 
@@ -447,22 +484,34 @@ export const BlogSection = () => {
                 </div>
               </div>
 
-              <details 
-                className="pt-2"
-                onToggle={(e) => {
-                  const isOpen = (e.target as HTMLDetailsElement).open;
-                  if (isOpen) {
-                    handleArticleRead(article.id);
-                  }
-                }}
-              >
-                <summary className="text-sm font-semibold text-primary cursor-pointer hover:underline">
-                  Read full article
-                </summary>
-                <div className="mt-4 space-y-4 text-sm text-foreground leading-relaxed whitespace-pre-line">
-                  {article.content}
+              <div className="flex items-center justify-between pt-2">
+                <details 
+                  className="flex-1"
+                  onToggle={(e) => {
+                    const isOpen = (e.target as HTMLDetailsElement).open;
+                    if (isOpen) {
+                      handleArticleRead(article.id);
+                    }
+                  }}
+                >
+                  <summary className="text-sm font-semibold text-primary cursor-pointer hover:underline">
+                    Read full article
+                  </summary>
+                  <div className="mt-4 space-y-4 text-sm text-foreground leading-relaxed whitespace-pre-line">
+                    {article.content}
+                  </div>
+                </details>
+                
+                <div onClick={(e) => e.stopPropagation()}>
+                  <ShareToFarcaster
+                    text={`Just read "${article.title}" on @uniquehub 🔥\n\n${article.excerpt}\n\nCheck it out on UniqueHub! 🚀`}
+                    embeds={['https://uniquehub.lovable.app']}
+                    variant="ghost"
+                    size="icon"
+                    buttonText="Share"
+                  />
                 </div>
-              </details>
+              </div>
             </div>
           </Card>
         ))}
