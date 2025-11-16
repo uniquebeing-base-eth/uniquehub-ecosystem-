@@ -7,6 +7,8 @@ import cubeLogo from "@/assets/uniquehub-cube.png";
 import blogWeb3Image from "@/assets/blog-web3.jpg";
 import blogEducationImage from "@/assets/blog-education-web3.jpg";
 import uniqbotAvatar from "@/assets/uniqbot-avatar.png";
+import blogBlueEnergyNFTs from "@/assets/blog-blue-energy-nfts.jpg";
+import blogCreativityCampaign from "@/assets/blog-creativity-campaign.jpg";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -267,6 +269,90 @@ UniqBot is your personal AI guide to mastering Web3 — one question, one course
     date: "November 12, 2025",
     category: "Features",
     readTime: "4 min read"
+  },
+  {
+    id: "blue-energy-nfts",
+    title: "Introducing UniqueHub Blue Energy NFTs: Your Identity, Your Power",
+    excerpt: "At UniqueHub, we are building more than a platform. We are creating a connected family of creators, learners, and innovators. Every member of this family deserves an identity that reflects who they are.",
+    content: `At UniqueHub, we are building more than a platform. We are creating a connected family of creators, learners, and innovators. Every member of this family deserves an identity that reflects who they are.
+
+This is why we introduced the UniqueHub Blue Energy NFTs, a personal avatar that represents your presence across the entire UniqueHub ecosystem.
+
+What Are Blue Energy NFTs?
+
+Blue Energy NFTs are custom avatars powered by the signature UniqueHub blue aura. Each NFT represents:
+
+● Your personal identity on UniqueHub
+● Your membership within the UniqueHub family
+● Your creativity, energy, and contribution
+● Your unique presence that distinguishes you from everyone else
+
+Every user is allowed to mint only one NFT, making it a permanent, recognizable identity that stays with you throughout your journey on the platform.
+
+These avatars function as:
+
+■ Your visual signature
+■ Your identity badge
+■ Your onchain passport within UniqueHub
+
+Why This Matters
+
+● A stronger sense of belonging in the community
+● A clear personal brand across your activities, courses, and interactions
+● A verifiable onchain identity that represents you everywhere
+● Eligibility for future features, gated experiences, and community rewards
+
+Your avatar is your stamp of uniqueness and powered by blue energy and defined by your individuality.
+
+Mint yours and step fully into what makes you truly unique.`,
+    image: blogBlueEnergyNFTs,
+    date: "November 14, 2025",
+    category: "NFTs",
+    readTime: "3 min read"
+  },
+  {
+    id: "creativity-campaign",
+    title: "The UniqueHub Creativity Campaign: Show the World What Makes You Unique",
+    excerpt: "At UniqueHub, we believe everyone has something valuable to share — a skill, a talent, an idea, or a passion. To encourage this, we are launching a Creativity Campaign designed to highlight and reward the unique abilities within our community.",
+    content: `At UniqueHub, we believe everyone has something valuable to share — a skill, a talent, an idea, or a passion.
+
+To encourage this, we are launching a Creativity Campaign designed to highlight and reward the unique abilities within our community.
+
+Purpose of the Campaign
+
+This initiative gives every user the opportunity to express themselves and turn their creativity into a course or project onchain.
+
+It is a stage for originality, authenticity, and skill.
+
+How to Participate
+
+● Create something that is truly unique.
+It could be a talent, a skill, a creative work, or even a short mini-course about something you're good at.
+
+● Upload your creation on UniqueHub as a course.
+This showcases your ability and allows others to learn from you.
+
+● Tag the official channel /uniquehub so your entry is recognized.
+
+Prizes
+
+■ The top 10 most unique entries will receive rewards in USDC.
+Selection will be based on creativity, originality, execution, and uniqueness.
+
+Why You Should Participate
+
+● A chance to showcase your individuality
+● An opportunity to share knowledge or talent with a global audience
+● The ability to build your onchain creative identity
+● A platform to unlock recognition within the UniqueHub community
+
+This campaign is an invitation to step forward and demonstrate what makes you different.
+
+Your uniqueness is your strength — and this is your moment to display it.`,
+    image: blogCreativityCampaign,
+    date: "November 15, 2025",
+    category: "Campaign",
+    readTime: "3 min read"
   }
 ];
 
