@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Download } from "lucide-react";
+import { Sparkles, Download, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
 import { useViemClients } from "@/hooks/useViemClients";
 import { useReadContract } from "wagmi";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   UNIQUE_NFT_ABI,
   UNIQUE_NFT_ADDRESS,
@@ -401,14 +402,23 @@ export const NFTSection = () => {
 
                 <div className="space-y-3">
                   {!hasMintedOnChain ? (
-                    <Button
-                      onClick={mintNFT}
-                      disabled={isMinting || !address}
-                      className="w-full"
-                    >
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      {isMinting ? "Minting..." : "Mint for 0.2 USDC"}
-                    </Button>
+                    <>
+                      <Alert className="border-blue-500/20 bg-blue-500/5">
+                        <AlertCircle className="h-4 w-4 text-blue-500" />
+                        <AlertDescription className="text-xs text-muted-foreground">
+                          Your wallet may show a security warning. This is a false positive for new contracts. 
+                          The transaction is safe and uses official Base USDC. Click "Continue anyway" to proceed.
+                        </AlertDescription>
+                      </Alert>
+                      <Button
+                        onClick={mintNFT}
+                        disabled={isMinting || !address}
+                        className="w-full"
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        {isMinting ? "Minting..." : "Mint for 0.2 USDC"}
+                      </Button>
+                    </>
                   ) : (
                     <>
                       <div className="text-center">

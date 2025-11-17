@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Award, Download, ExternalLink, Loader2 } from 'lucide-react';
+import { Award, Download, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import { useFarcasterWallet } from '@/hooks/useFarcasterWallet';
 import { useViemClients } from '@/hooks/useViemClients';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ShareToFarcaster } from '@/components/ShareToFarcaster';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   CERTIFICATE_CONTRACT_ABI,
   CERTIFICATE_CONTRACT_ADDRESS,
@@ -165,6 +166,13 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
             
             {!certificate.minted_at ? (
               <div className="space-y-2">
+                <Alert className="border-blue-500/20 bg-blue-500/5">
+                  <AlertCircle className="h-3 w-3 text-blue-500" />
+                  <AlertDescription className="text-xs text-muted-foreground">
+                    Your wallet may show a security warning. This is expected for new contracts. 
+                    The transaction is safe. Click "Continue anyway" to proceed.
+                  </AlertDescription>
+                </Alert>
                 <p className="text-xs text-muted-foreground">
                   Mint your certificate as an NFT for 0.0000001 ETH (~$0.0003)
                 </p>
