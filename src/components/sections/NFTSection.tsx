@@ -280,6 +280,31 @@ export const NFTSection = () => {
       toast.info("Mint transaction submitted. Waiting for confirmation...");
       await publicClient.waitForTransactionReceipt({ hash: mintHash });
 
+      // Revoke temporary USDC allowance after mint to reduce wallet risk warnings
+      try {
+        const postAllowance = (await publicClient.readContract({
+          address: USDC_ADDRESS,
+          abi: USDC_ABI,
+          functionName: "allowance",
+          args: [address, UNIQUE_NFT_ADDRESS],
+        } as any)) as bigint;
+
+        if (postAllowance > 0n) {
+          toast.info("Revoking temporary USDC allowance...");
+          const revokeHash = await walletClient.writeContract({
+            address: USDC_ADDRESS,
+            abi: USDC_ABI,
+            functionName: "approve",
+            args: [UNIQUE_NFT_ADDRESS, 0n],
+            account: address,
+            chain: walletClient.chain,
+          } as any);
+          await publicClient.waitForTransactionReceipt({ hash: revokeHash });
+        }
+      } catch (revokeErr) {
+        console.warn("USDC revoke skipped:", revokeErr);
+      }
+
       await Promise.all([refetchHasMinted?.(), refetchUserTokenId?.()]);
       toast.success("NFT minted successfully!");
     } catch (error: any) {
