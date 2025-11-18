@@ -71,53 +71,11 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
     }
   };
 
-  const mintCertificate = async () => {
-    if (!certificate || !address || !walletClient || !publicClient) {
-      toast.error('Wallet not connected');
-      return;
-    }
-
-    setIsMinting(true);
-    try {
-      toast.info('Please confirm the transaction in your wallet...');
-      
-      const hash = await walletClient.writeContract({
-        address: CERTIFICATE_CONTRACT_ADDRESS,
-        abi: CERTIFICATE_CONTRACT_ABI,
-        functionName: 'mintCertificate',
-        args: [
-          address,
-          courseId,
-          courseTitle,
-          certificate.certificate_id,
-          certificate.token_uri || certificate.image_url
-        ],
-        value: CERTIFICATE_MINT_FEE,
-        account: address,
-        chain: walletClient.chain,
-      } as any);
-
-      toast.info('Minting transaction submitted. Waiting for confirmation...');
-      
-      await publicClient.waitForTransactionReceipt({ hash });
-      
-      // Update database with transaction hash
-      await supabase
-        .from('certificates')
-        .update({
-          transaction_hash: hash,
-          minted_at: new Date().toISOString()
-        })
-        .eq('id', certificate.id);
-      
-      await checkExistingCertificate();
-      toast.success("Certificate NFT minted successfully! 🎉");
-    } catch (error: any) {
-      console.error('Mint error:', error);
-      toast.error(error.message || "Failed to mint certificate");
-    } finally {
-      setIsMinting(false);
-    }
+  // Minting temporarily disabled
+  
+  const downloadCertificate = () => {
+    if (!certificate) return;
+    window.open(certificate.image_url, '_blank');
   };
 
   if (!isCompleted) return null;
@@ -164,70 +122,28 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
               />
             </div>
             
-            {!certificate.minted_at ? (
-              <div className="space-y-2">
-                <Alert className="border-blue-500/20 bg-blue-500/5">
-                  <AlertCircle className="h-3 w-3 text-blue-500" />
-                  <AlertDescription className="text-xs text-muted-foreground">
-                    Your wallet may show a security warning. This is expected for new contracts. 
-                    The transaction is safe. Click "Continue anyway" to proceed.
-                  </AlertDescription>
-                </Alert>
-                <p className="text-xs text-muted-foreground">
-                  Mint your certificate as an NFT for 0.0000001 ETH (~$0.0003)
-                </p>
+            <div className="space-y-2">
+              <p className="text-xs text-success font-semibold">✅ Certificate Generated!</p>
+              <div className="flex gap-2">
                 <Button
-                  onClick={mintCertificate}
-                  disabled={isMinting || !address || !walletClient}
-                  className="w-full bg-gradient-primary"
+                  variant="outline"
                   size="sm"
+                  className="flex-1"
+                  onClick={downloadCertificate}
                 >
-                  {isMinting ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                      Minting...
-                    </>
-                  ) : (
-                    <>
-                      <Award className="w-3.5 h-3.5 mr-1.5" />
-                      Mint Certificate NFT (0.0000001 ETH)
-                    </>
-                  )}
+                  <Download className="w-3.5 h-3.5 mr-1.5" />
+                  Download
                 </Button>
               </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-xs text-success font-semibold">✅ Certificate Minted!</p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => window.open(certificate.image_url, '_blank')}
-                  >
-                    <Download className="w-3.5 h-3.5 mr-1.5" />
-                    Download
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => window.open(`https://basescan.org/tx/${certificate.transaction_hash}`, '_blank')}
-                  >
-                    <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-                    View on Basescan
-                  </Button>
-                </div>
-                <ShareToFarcaster
-                  text={`I just earned my certificate for completing "${courseTitle}" on @uniquehub! 🎓✨`}
-                  embeds={[certificate.image_url, 'https://uniqueehub.vercel.app']}
-                  buttonText="Share Certificate"
-                  variant="default"
-                  size="sm"
-                  className="w-full bg-gradient-primary"
-                />
-              </div>
-            )}
+              <ShareToFarcaster
+                text={`I just earned my certificate for completing "${courseTitle}" on @uniquehub! 🎓✨`}
+                embeds={[certificate.image_url, 'https://uniqueehub.vercel.app']}
+                buttonText="Share Certificate"
+                variant="default"
+                size="sm"
+                className="w-full bg-gradient-primary"
+              />
+            </div>
           </div>
         )}
       </div>

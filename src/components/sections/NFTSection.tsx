@@ -1,57 +1,20 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Download, AlertCircle } from "lucide-react";
+import { Sparkles, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
-import { useViemClients } from "@/hooks/useViemClients";
-import { useReadContract } from "wagmi";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  UNIQUE_NFT_ABI,
-  UNIQUE_NFT_ADDRESS,
-  USDC_ABI,
-  USDC_ADDRESS,
-  NFT_MINT_PRICE,
-} from "@/config/wagmi";
 import nftPlaceholder from "@/assets/nft-placeholder.png";
 
 export const NFTSection = () => {
   const { user } = useAuth();
   const { address } = useFarcasterWallet();
-  const { publicClient, walletClient } = useViemClients(address);
   const [isGenerating, setIsGenerating] = useState(false);
   const [nftData, setNftData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isMinting, setIsMinting] = useState(false);
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
-  const FUNCTIONS_BASE = 'https://ucqcrhfcflrepsdlcvpq.functions.supabase.co';
-
-  // Check if user has minted on-chain
-  const { data: hasMintedOnChain, refetch: refetchHasMinted } = useReadContract({
-    address: UNIQUE_NFT_ADDRESS,
-    abi: UNIQUE_NFT_ABI,
-    functionName: "hasUserMinted",
-    args: address ? [address] : undefined,
-  });
-
-  // Get user's token ID
-  const { data: userTokenId, refetch: refetchUserTokenId } = useReadContract({
-    address: UNIQUE_NFT_ADDRESS,
-    abi: UNIQUE_NFT_ABI,
-    functionName: "getUserTokenId",
-    args: address ? [address] : undefined,
-  });
-
-  // Check USDC allowance
-  const { data: allowance, refetch: refetchAllowance } = useReadContract({
-    address: USDC_ADDRESS,
-    abi: USDC_ABI,
-    functionName: "allowance",
-    args: address ? [address, UNIQUE_NFT_ADDRESS] : undefined,
-  });
 
   useEffect(() => {
     loadExistingNFT();
@@ -162,166 +125,8 @@ export const NFTSection = () => {
     }
   };
 
-  const mintNFT = async () => {
-    if (!nftData?.image_url || !address || !walletClient || !publicClient) {
-      toast.error("Please generate an NFT first and connect your wallet");
-      return;
-    }
+  // Minting temporarily disabled
 
-    setIsMinting(true);
-    try {
-      const required = NFT_MINT_PRICE;
-      let currentAllowance: bigint = 0n;
-      try {
-        currentAllowance = (await publicClient.readContract({
-          address: USDC_ADDRESS,
-          abi: USDC_ABI,
-          functionName: "allowance",
-          args: [address, UNIQUE_NFT_ADDRESS],
-        } as any)) as bigint;
-      } catch (e) {
-        // fallback to hook value if read fails
-        currentAllowance = (allowance as bigint | undefined) ?? 0n;
-      }
-
-      if (currentAllowance < required) {
-        // Reset non-zero allowance to 0 first for USDC compatibility
-        if (currentAllowance > 0n) {
-          toast.info("Resetting existing USDC allowance...");
-          const resetHash = await walletClient.writeContract({
-            address: USDC_ADDRESS,
-            abi: USDC_ABI,
-            functionName: "approve",
-            args: [UNIQUE_NFT_ADDRESS, 0n],
-            account: address,
-            chain: walletClient.chain,
-          } as any);
-          await publicClient.waitForTransactionReceipt({ hash: resetHash });
-        }
-
-        toast.info("Approving USDC...");
-        const approveHash = await walletClient.writeContract({
-          address: USDC_ADDRESS,
-          abi: USDC_ABI,
-          functionName: "approve",
-          args: [UNIQUE_NFT_ADDRESS, required],
-          account: address,
-          chain: walletClient.chain,
-        } as any);
-        toast.info("Approval submitted. Waiting for confirmation...");
-        await publicClient.waitForTransactionReceipt({ hash: approveHash });
-        await refetchAllowance?.();
-        toast.success("USDC approved!");
-      }
-
-      // Prepare a short tokenURI (avoid huge base64 in calldata)
-      toast.info("Preparing NFT metadata...");
-      let tokenUri: string | undefined = nftData?.metadata?.token_uri as string | undefined;
-      try {
-        if (!tokenUri) {
-          // Ensure image is a short public URL
-          let imagePublicUrl: string = nftData.image_url as string;
-          if (typeof imagePublicUrl === 'string' && imagePublicUrl.startsWith('data:')) {
-            const res = await fetch(imagePublicUrl);
-            const blob = await res.blob();
-            const avatarId = nftData.id || crypto.randomUUID();
-            const pngPath = `avatars/${user?.id || address}/${avatarId}.png`;
-            const { error: uploadError } = await supabase.storage
-              .from('certificates')
-              .upload(pngPath, blob, { contentType: 'image/png' });
-            if (uploadError && !String(uploadError.message || uploadError).includes('already exists')) {
-              throw uploadError;
-            }
-            const { data: pub } = supabase.storage.from('certificates').getPublicUrl(pngPath);
-            imagePublicUrl = pub.publicUrl;
-          }
-
-          // Create ERC721 metadata JSON
-          const meta = {
-            name: 'UniqueHub Avatar',
-            description: 'Your unique on-chain avatar on UniqueHub',
-            image: imagePublicUrl,
-            attributes: [
-              { trait_type: 'Display Name', value: nftData.metadata?.display_name || nftData.metadata?.displayName || 'User' },
-              { trait_type: 'Hair Style', value: nftData.metadata?.hair_style || nftData.metadata?.hairStyle || 'Blue' },
-            ],
-          };
-          const avatarId = nftData.id || crypto.randomUUID();
-          const metaPath = `avatars/${user?.id || address}/${avatarId}-metadata.json`;
-          const { error: metaError } = await supabase.storage
-            .from('certificates')
-            .upload(metaPath, new Blob([JSON.stringify(meta)], { type: 'application/json' }));
-          if (metaError && !String(metaError.message || metaError).includes('already exists')) {
-            throw metaError;
-          }
-          const { data: metaPub } = supabase.storage.from('certificates').getPublicUrl(metaPath);
-          tokenUri = metaPub.publicUrl;
-
-          // Cache token_uri so next attempt skips uploads
-          setNftData((prev: any) => prev ? { ...prev, metadata: { ...prev.metadata, token_uri: tokenUri } } : prev);
-        }
-      } catch (prepErr) {
-        console.error('Metadata prep error:', prepErr);
-        toast.error('Failed to prepare NFT metadata');
-        throw prepErr;
-      }
-
-      // Directly write without simulate to mirror reliable certificate flow
-      toast.info("Minting your NFT...");
-      const mintHash = await walletClient.writeContract({
-        address: UNIQUE_NFT_ADDRESS,
-        abi: UNIQUE_NFT_ABI,
-        functionName: "mintAvatar",
-        args: [tokenUri || nftData.image_url],
-        account: address,
-        chain: walletClient.chain,
-      } as any);
-
-      toast.info("Mint transaction submitted. Waiting for confirmation...");
-      await publicClient.waitForTransactionReceipt({ hash: mintHash });
-
-      // Revoke temporary USDC allowance after mint to reduce wallet risk warnings
-      try {
-        const postAllowance = (await publicClient.readContract({
-          address: USDC_ADDRESS,
-          abi: USDC_ABI,
-          functionName: "allowance",
-          args: [address, UNIQUE_NFT_ADDRESS],
-        } as any)) as bigint;
-
-        if (postAllowance > 0n) {
-          toast.info("Revoking temporary USDC allowance...");
-          const revokeHash = await walletClient.writeContract({
-            address: USDC_ADDRESS,
-            abi: USDC_ABI,
-            functionName: "approve",
-            args: [UNIQUE_NFT_ADDRESS, 0n],
-            account: address,
-            chain: walletClient.chain,
-          } as any);
-          await publicClient.waitForTransactionReceipt({ hash: revokeHash });
-        }
-      } catch (revokeErr) {
-        console.warn("USDC revoke skipped:", revokeErr);
-      }
-
-      await Promise.all([refetchHasMinted?.(), refetchUserTokenId?.()]);
-      toast.success("NFT minted successfully!");
-    } catch (error: any) {
-      console.error("Minting error:", error);
-      const msg =
-        error?.shortMessage ||
-        error?.message ||
-        (typeof error === "string" ? error : "Failed to mint NFT");
-      if (/timed out|timeout|expired/i.test(msg)) {
-        toast.error("Transaction took too long and may still confirm. Please check BaseScan and try again.");
-      } else {
-        toast.error(msg);
-      }
-    } finally {
-      setIsMinting(false);
-    }
-  };
   const downloadNFT = () => {
     if (!nftData?.image_url) return;
 
@@ -426,55 +231,25 @@ export const NFTSection = () => {
                 </div>
 
                 <div className="space-y-3">
-                  {!hasMintedOnChain ? (
-                    <>
-                      <Alert className="border-blue-500/20 bg-blue-500/5">
-                        <AlertCircle className="h-4 w-4 text-blue-500" />
-                        <AlertDescription className="text-xs text-muted-foreground">
-                          Your wallet may show a security warning. This is a false positive for new contracts. 
-                          The transaction is safe and uses official Base USDC. Click "Continue anyway" to proceed.
-                        </AlertDescription>
-                      </Alert>
-                      <Button
-                        onClick={mintNFT}
-                        disabled={isMinting || !address}
-                        className="w-full"
-                      >
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        {isMinting ? "Minting..." : "Mint for 0.2 USDC"}
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <div className="text-center">
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Minted on-chain #{userTokenId?.toString()}
-                        </p>
-                      </div>
-                      <div className="flex gap-3">
-                        <Button
-                          onClick={() => {
-                            window.open(
-                              `https://basescan.org/token/${UNIQUE_NFT_ADDRESS}?a=${userTokenId}`,
-                              "_blank"
-                            );
-                          }}
-                          className="flex-1"
-                        >
-                          View on BaseScan
-                        </Button>
-                        <ShareToFarcaster
-                          text={`Just minted my unique avatar on @uniquehub.\n\nMint yours — blue energies, unique minds, infinite possibilities.`}
-                          embeds={[shareImageUrl || nftData.image_url, 'https://uniqueehub.vercel.app']}
-                          variant="outline"
-                          size="icon"
-                        />
-                        <Button onClick={downloadNFT} variant="outline" size="icon">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </>
-                  )}
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={downloadNFT}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download
+                    </Button>
+                    <ShareToFarcaster
+                      text="Check out my unique avatar on @uniquehub! 🎨✨"
+                      embeds={
+                        shareImageUrl
+                          ? [shareImageUrl, "https://uniqueehub.vercel.app"]
+                          : ["https://uniqueehub.vercel.app"]
+                      }
+                      variant="outline"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
