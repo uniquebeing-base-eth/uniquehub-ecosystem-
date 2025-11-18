@@ -5,7 +5,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Sun, Moon } from "lucide-react";
 import { HomeSection } from "@/components/sections/HomeSection";
-import { QuestSection } from "@/components/sections/QuestSection";
 import { MarketplaceSection } from "@/components/sections/MarketplaceSection";
 import { CoursesSection } from "@/components/sections/CoursesSection";
 import { ProfileSection } from "@/components/sections/ProfileSection";
@@ -100,8 +99,6 @@ const Dashboard = () => {
     switch (activeTab) {
       case "home":
         return <HomeSection onNavigate={handleTabChange} userName={user?.user_metadata?.display_name || user?.user_metadata?.username || 'Uniquebeing'} />;
-      case "quest":
-        return <QuestSection />;
       case "marketplace":
         return <MarketplaceSection />;
       case "courses":
