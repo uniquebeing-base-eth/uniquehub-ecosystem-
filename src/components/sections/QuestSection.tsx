@@ -15,33 +15,38 @@ export const QuestSection = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12 animate-fade-in">
-          <Trophy className="w-20 h-20 mx-auto mb-4 text-primary animate-pulse" />
-          <h1 className="text-4xl font-bold mb-3 text-primary">Quest Hub</h1>
-          <p className="text-lg text-muted-foreground">
+    <div className="min-h-screen bg-background p-4 pb-24">
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-6 animate-fade-in">
+          <Trophy className="w-16 h-16 mx-auto mb-3 text-primary animate-pulse" />
+          <h1 className="text-3xl font-bold mb-2 text-primary">Quest Hub</h1>
+          <p className="text-sm text-muted-foreground">
             Choose your learning adventure
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-4 mb-4">
           {/* Learning Hub Card */}
           <button
             onClick={() => setActiveHub('learning')}
-            className="group relative overflow-hidden rounded-2xl p-8 bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-primary/30 hover:border-primary transition-all duration-300 hover:scale-105 hover:shadow-glow"
+            className="group relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-primary/30 hover:border-primary transition-all duration-300 hover:shadow-glow"
+            style={{
+              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(/src/assets/anime-bg-learn.jpg)`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
           >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
-            
-            <div className="relative z-10">
-              <BookOpen className="w-16 h-16 mb-4 text-primary group-hover:scale-110 transition-transform" />
-              <h2 className="text-2xl font-bold mb-3 text-foreground">Learning Hub</h2>
-              <p className="text-muted-foreground mb-4">
-                Daily learning streaks, unlock modules, and earn UP points
-              </p>
-              <div className="flex items-center gap-2 text-sm text-primary">
-                <Target className="w-4 h-4" />
-                <span className="font-medium">Build your streak</span>
+            <div className="relative z-10 flex items-center gap-4">
+              <BookOpen className="w-12 h-12 text-primary group-hover:scale-110 transition-transform flex-shrink-0" />
+              <div className="text-left flex-1">
+                <h2 className="text-xl font-bold mb-1 text-foreground">Learning Hub</h2>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Daily learning streaks, unlock modules, and earn UP points
+                </p>
+                <div className="flex items-center gap-2 text-xs text-primary">
+                  <Target className="w-3 h-3" />
+                  <span className="font-medium">Build your streak</span>
+                </div>
               </div>
             </div>
           </button>
@@ -49,42 +54,47 @@ export const QuestSection = () => {
           {/* Learning Pool Card */}
           <button
             onClick={() => setActiveHub('pool')}
-            className="group relative overflow-hidden rounded-2xl p-8 bg-gradient-to-br from-accent/20 to-primary/20 border-2 border-accent/30 hover:border-accent transition-all duration-300 hover:scale-105 hover:shadow-glow"
+            className="group relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-accent/20 to-primary/20 border-2 border-accent/30 hover:border-accent transition-all duration-300 hover:shadow-glow"
+            style={{
+              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(/src/assets/anime-earn-bg.jpg)`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
           >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
-            
-            <div className="relative z-10">
-              <Trophy className="w-16 h-16 mb-4 text-accent group-hover:scale-110 transition-transform" />
-              <h2 className="text-2xl font-bold mb-3 text-foreground">Learning Pool</h2>
-              <p className="text-muted-foreground mb-4">
-                Compete in special campaigns for rewards and prizes
-              </p>
-              <div className="flex items-center gap-2 text-sm text-accent">
-                <Trophy className="w-4 h-4" />
-                <span className="font-medium">Win rewards</span>
+            <div className="relative z-10 flex items-center gap-4">
+              <Trophy className="w-12 h-12 text-accent group-hover:scale-110 transition-transform flex-shrink-0" />
+              <div className="text-left flex-1">
+                <h2 className="text-xl font-bold mb-1 text-foreground">Learning Pool</h2>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Compete in special campaigns for rewards and prizes
+                </p>
+                <div className="flex items-center gap-2 text-xs text-accent">
+                  <Trophy className="w-3 h-3" />
+                  <span className="font-medium">Win rewards</span>
+                </div>
               </div>
             </div>
           </button>
         </div>
 
         {/* Info Cards */}
-        <div className="mt-12 grid md:grid-cols-2 gap-4 animate-fade-in">
-          <div className="p-6 rounded-xl bg-card border border-border">
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
-              <span className="text-2xl">🔥</span>
+        <div className="grid grid-cols-2 gap-3 animate-fade-in">
+          <div className="p-4 rounded-lg bg-card border border-border">
+            <h3 className="font-semibold mb-1 flex items-center gap-1 text-sm">
+              <span className="text-lg">🔥</span>
               Keep Your Streak
             </h3>
-            <p className="text-sm text-muted-foreground">
-              Complete at least one module daily to maintain your learning streak
+            <p className="text-xs text-muted-foreground">
+              Complete at least one module daily
             </p>
           </div>
-          <div className="p-6 rounded-xl bg-card border border-border">
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
-              <span className="text-2xl">⭐</span>
+          <div className="p-4 rounded-lg bg-card border border-border">
+            <h3 className="font-semibold mb-1 flex items-center gap-1 text-sm">
+              <span className="text-lg">⭐</span>
               Earn UP Points
             </h3>
-            <p className="text-sm text-muted-foreground">
-              Every module completion rewards you with UP points
+            <p className="text-xs text-muted-foreground">
+              Every module completion rewards you
             </p>
           </div>
         </div>
