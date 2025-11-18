@@ -2,9 +2,15 @@ import { useState } from "react";
 import { Trophy, BookOpen, Target } from "lucide-react";
 import { LearningHub } from "@/components/quest/LearningHub";
 import { LearningPool } from "@/components/quest/LearningPool";
+import { InitializeCourses } from "@/components/quest/InitializeCourses";
 
 export const QuestSection = () => {
   const [activeHub, setActiveHub] = useState<'learning' | 'pool' | null>(null);
+  const [initialized, setInitialized] = useState(false);
+
+  if (!initialized) {
+    return <InitializeCourses onComplete={() => setInitialized(true)} />;
+  }
 
   if (activeHub === 'learning') {
     return <LearningHub onBack={() => setActiveHub(null)} />;
