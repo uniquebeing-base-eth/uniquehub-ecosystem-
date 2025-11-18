@@ -38,21 +38,37 @@ export const PoolLeaderboard = ({ pool, onBack }: PoolLeaderboardProps) => {
   }, [pool.id]);
 
   const fetchLeaderboard = async () => {
-    const { data, error } = await supabase
+    // First get participants
+    const { data: participantsData, error: participantsError } = await supabase
       .from('pool_participants')
-      .select(`
-        *,
-        profiles!inner(display_name, avatar_url)
-      `)
+      .select('*')
       .eq('pool_id', pool.id)
       .order('total_points', { ascending: false })
       .limit(100);
 
-    if (error) {
-      console.error(error);
-    } else {
-      setParticipants(data || []);
+    if (participantsError) {
+      console.error(participantsError);
+      setLoading(false);
+      return;
     }
+
+    // Then get profiles for these participants
+    const userIds = participantsData?.map(p => p.user_id) || [];
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('user_id, display_name, avatar_url')
+      .in('user_id', userIds);
+
+    // Combine the data
+    const combined = participantsData?.map(participant => ({
+      ...participant,
+      profiles: profilesData?.find(p => p.user_id === participant.user_id) || {
+        display_name: 'Anonymous',
+        avatar_url: '',
+      },
+    })) || [];
+
+    setParticipants(combined);
     setLoading(false);
   };
 
