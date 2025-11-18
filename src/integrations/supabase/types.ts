@@ -404,6 +404,140 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_courses: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          difficulty_level: string | null
+          icon_url: string | null
+          id: string
+          is_active: boolean | null
+          title: string
+          total_modules: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          title: string
+          total_modules?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          total_modules?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      learning_modules: {
+        Row: {
+          content: Json | null
+          course_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_locked: boolean | null
+          module_number: number
+          points_reward: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content?: Json | null
+          course_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_locked?: boolean | null
+          module_number: number
+          points_reward?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: Json | null
+          course_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_locked?: boolean | null
+          module_number?: number
+          points_reward?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_modules_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "learning_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_pools: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          number_of_winners: number | null
+          pool_modules: Json | null
+          required_streak: number | null
+          reward_amount: number | null
+          start_date: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          number_of_winners?: number | null
+          pool_modules?: Json | null
+          required_streak?: number | null
+          reward_amount?: number | null
+          start_date?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          number_of_winners?: number | null
+          pool_modules?: Json | null
+          required_streak?: number | null
+          reward_amount?: number | null
+          start_date?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       marketplace_item_comment_reactions: {
         Row: {
           comment_id: string
@@ -527,6 +661,54 @@ export type Database = {
         }
         Relationships: []
       }
+      module_completions: {
+        Row: {
+          accuracy_percentage: number | null
+          completed_at: string | null
+          course_id: string
+          id: string
+          module_id: string
+          points_earned: number | null
+          time_taken_seconds: number | null
+          user_id: string
+        }
+        Insert: {
+          accuracy_percentage?: number | null
+          completed_at?: string | null
+          course_id: string
+          id?: string
+          module_id: string
+          points_earned?: number | null
+          time_taken_seconds?: number | null
+          user_id: string
+        }
+        Update: {
+          accuracy_percentage?: number | null
+          completed_at?: string | null
+          course_id?: string
+          id?: string
+          module_id?: string
+          points_earned?: number | null
+          time_taken_seconds?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_completions_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "learning_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "module_completions_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "learning_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nft_listings: {
         Row: {
           buyer_user_id: string | null
@@ -616,6 +798,89 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      pool_module_completions: {
+        Row: {
+          completed_at: string | null
+          id: string
+          module_id: string
+          points_earned: number | null
+          pool_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          module_id: string
+          points_earned?: number | null
+          pool_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          module_id?: string
+          points_earned?: number | null
+          pool_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pool_module_completions_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "learning_modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pool_module_completions_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: false
+            referencedRelation: "learning_pools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pool_participants: {
+        Row: {
+          id: string
+          is_winner: boolean | null
+          joined_at: string | null
+          modules_completed: number | null
+          pool_id: string
+          rank: number | null
+          total_points: number | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_winner?: boolean | null
+          joined_at?: string | null
+          modules_completed?: number | null
+          pool_id: string
+          rank?: number | null
+          total_points?: number | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_winner?: boolean | null
+          joined_at?: string | null
+          modules_completed?: number | null
+          pool_id?: string
+          rank?: number | null
+          total_points?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pool_participants_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: false
+            referencedRelation: "learning_pools"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -759,6 +1024,42 @@ export type Database = {
           id?: string
           points_awarded?: number
           task_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_learning_streaks: {
+        Row: {
+          created_at: string | null
+          current_streak: number | null
+          id: string
+          last_activity_date: string | null
+          longest_streak: number | null
+          streak_reset_count: number | null
+          total_modules_completed: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          streak_reset_count?: number | null
+          total_modules_completed?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          streak_reset_count?: number | null
+          total_modules_completed?: number | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
