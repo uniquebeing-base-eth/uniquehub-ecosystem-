@@ -40,19 +40,35 @@ export const PoolLeaderboard = ({ pool, onBack }: PoolLeaderboardProps) => {
   const fetchLeaderboard = async () => {
     const { data, error } = await supabase
       .from('pool_participants')
-      .select(`
-        *,
-        profiles!inner(display_name, avatar_url)
-      `)
+      .select('*')
       .eq('pool_id', pool.id)
       .order('total_points', { ascending: false })
       .limit(100);
 
     if (error) {
       console.error(error);
-    } else {
-      setParticipants(data || []);
+      setLoading(false);
+      return;
     }
+
+    // Fetch profiles separately
+    const userIds = data?.map(p => p.user_id) || [];
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('user_id, display_name, avatar_url')
+      .in('user_id', userIds);
+
+    const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+    
+    const participantsWithProfiles = data?.map(p => ({
+      ...p,
+      profiles: {
+        display_name: profileMap.get(p.user_id)?.display_name || 'Anonymous',
+        avatar_url: profileMap.get(p.user_id)?.avatar_url || ''
+      }
+    })) || [];
+
+    setParticipants(participantsWithProfiles);
     setLoading(false);
   };
 
