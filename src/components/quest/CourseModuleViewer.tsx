@@ -6,6 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
+import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
+import { QUEST_LEARNING_HUB_ABI, QUEST_LEARNING_HUB_ADDRESS, MODULE_COMPLETION_FEE } from '@/config/wagmi';
+import { base } from 'wagmi/chains';
 
 interface Course {
   id: string;
@@ -47,6 +50,11 @@ interface CourseModuleViewerProps {
 
 export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) => {
   const { user } = useAuth();
+  const { address } = useAccount();
+  const { writeContract, data: txHash, isPending: isTxPending } = useWriteContract();
+  const { isLoading: isTxConfirming, isSuccess: isTxSuccess } = useWaitForTransactionReceipt({
+    hash: txHash,
+  });
   const [modules, setModules] = useState<Module[]>([]);
   const [completedModules, setCompletedModules] = useState<Set<string>>(new Set());
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
@@ -103,9 +111,38 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
   };
 
   const handleCompleteModule = async (module: Module) => {
-    if (!user || completing) return;
+    if (!user || !address || completing) return;
 
     setCompleting(true);
+
+    try {
+      toast.info("Initiating transaction...");
+      
+      writeContract({
+        address: QUEST_LEARNING_HUB_ADDRESS,
+        abi: QUEST_LEARNING_HUB_ABI,
+        functionName: 'completeModule',
+        args: [course.id, module.id],
+        value: MODULE_COMPLETION_FEE,
+        chain: base,
+        account: address,
+      });
+    } catch (error) {
+      console.error("Transaction error:", error);
+      toast.error("Transaction failed");
+      setCompleting(false);
+    }
+  };
+
+  // Handle transaction confirmation
+  useEffect(() => {
+    if (isTxSuccess && selectedModule) {
+      recordModuleCompletion(selectedModule);
+    }
+  }, [isTxSuccess]);
+
+  const recordModuleCompletion = async (module: Module) => {
+    if (!user) return;
 
     const { error } = await supabase
       .from('module_completions')
@@ -120,11 +157,10 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
       if (error.code === '23505') {
         toast.info("You've already completed this module!");
       } else {
-        toast.error("Failed to complete module");
+        toast.error("Failed to record completion");
         console.error(error);
       }
     } else {
-      // Success animation
       setCompletedModules(prev => new Set([...prev, module.id]));
       toast.success(`🎉 Module completed! +${finalScore} UP points`, {
         description: "Keep up the great work!",
@@ -343,18 +379,28 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
                 <Button
                   size="lg"
                   onClick={() => handleCompleteModule(selectedModule)}
-                  disabled={completing}
+                  disabled={completing || isTxPending || isTxConfirming}
                   className="w-full text-lg py-6"
                 >
-                  {completing ? (
+                  {isTxPending ? (
                     <>
                       <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Completing...
+                      Confirm in wallet...
+                    </>
+                  ) : isTxConfirming ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Confirming transaction...
+                    </>
+                  ) : completing ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Recording completion...
                     </>
                   ) : (
                     <>
                       <Trophy className="w-5 h-5 mr-2" />
-                      Complete Module
+                      Claim {finalScore} Points (0.0000001 ETH)
                     </>
                   )}
                 </Button>
