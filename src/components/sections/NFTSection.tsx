@@ -9,6 +9,7 @@ import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 import nftPlaceholder from "@/assets/nft-placeholder.png";
 import { useViemClients } from "@/hooks/useViemClients";
 import { UNIQUE_NFT_ABI, UNIQUE_NFT_ADDRESS } from "@/config/wagmi";
+import { base } from "wagmi/chains";
 
 export const NFTSection = () => {
   const { user } = useAuth();
@@ -172,30 +173,20 @@ export const NFTSection = () => {
 
     setIsMinting(true);
     try {
-      // Try to get current price - use MINT_PRICE as fallback
-      let currentPrice: bigint;
-      try {
-        currentPrice = await publicClient.readContract({
-          address: UNIQUE_NFT_ADDRESS,
-          abi: [...UNIQUE_NFT_ABI, {
-            inputs: [],
-            name: 'getCurrentPrice',
-            outputs: [{ name: '', type: 'uint256' }],
-            stateMutability: 'view',
-            type: 'function',
-          }] as any,
-          functionName: "getCurrentPrice",
-        } as any) as bigint;
-      } catch {
-        // Fallback to MINT_PRICE if getCurrentPrice doesn't exist
-        currentPrice = await publicClient.readContract({
-          address: UNIQUE_NFT_ADDRESS,
-          abi: UNIQUE_NFT_ABI,
-          functionName: "MINT_PRICE",
-        } as any) as bigint;
-      }
+      // Get current price from contract
+      const currentPrice = await publicClient.readContract({
+        address: UNIQUE_NFT_ADDRESS,
+        abi: [...UNIQUE_NFT_ABI, {
+          inputs: [],
+          name: 'getCurrentPrice',
+          outputs: [{ name: '', type: 'uint256' }],
+          stateMutability: 'view',
+          type: 'function',
+        }] as any,
+        functionName: "getCurrentPrice",
+      } as any) as bigint;
 
-      console.log("Minting with price:", currentPrice);
+      console.log("Minting with price:", currentPrice.toString());
 
       // Use the image URL as the token URI
       const tokenURI = nftData.image_url;
@@ -205,8 +196,9 @@ export const NFTSection = () => {
         abi: UNIQUE_NFT_ABI,
         functionName: "mintAvatar",
         args: [tokenURI],
-        account: address,
         value: currentPrice,
+        chain: base,
+        account: address,
       } as any);
 
       toast.success("Minting transaction submitted!");
