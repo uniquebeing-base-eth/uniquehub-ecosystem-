@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import uniqbotAvatar from "@/assets/uniqbot-avatar.png";
 interface Message {
@@ -13,6 +14,7 @@ interface Message {
 }
 
 export const UniqBot = () => {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -28,6 +30,8 @@ export const UniqBot = () => {
   });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [currentPage, setCurrentPage] = useState("home");
+  const [userData, setUserData] = useState<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Load chat history from localStorage
@@ -62,6 +66,70 @@ export const UniqBot = () => {
     }
   }, [messages]);
 
+  // Track current page/section
+  useEffect(() => {
+    const handleNavigation = (event: any) => {
+      const section = event.detail?.section || event.detail;
+      if (section) {
+        setCurrentPage(section.toLowerCase());
+      }
+    };
+
+    window.addEventListener('navigate', handleNavigation);
+    window.addEventListener('navigateToSection', handleNavigation);
+
+    return () => {
+      window.removeEventListener('navigate', handleNavigation);
+      window.removeEventListener('navigateToSection', handleNavigation);
+    };
+  }, []);
+
+  // Fetch user progress data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch user points and streaks
+        const { data: pointsData } = await supabase
+          .from('user_points')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        // Fetch enrolled courses
+        const { data: enrollmentsData } = await supabase
+          .from('enrollments')
+          .select('*, courses(*)')
+          .eq('user_id', user.id);
+
+        // Fetch completed modules
+        const { data: completionsData } = await supabase
+          .from('module_completions')
+          .select('*')
+          .eq('user_id', user.id);
+
+        // Fetch learning streak
+        const { data: streakData } = await supabase
+          .from('user_learning_streaks')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        setUserData({
+          points: pointsData,
+          enrollments: enrollmentsData || [],
+          completedModules: completionsData?.length || 0,
+          streak: streakData
+        });
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
+
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -77,7 +145,11 @@ export const UniqBot = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("uniqbot-chat", {
-        body: { messages: [...messages, userMessage] },
+        body: { 
+          messages: [...messages, userMessage],
+          currentPage,
+          userData
+        },
       });
 
       if (error) {
