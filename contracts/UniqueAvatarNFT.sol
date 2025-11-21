@@ -6,13 +6,19 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
- * @title CertificateNFT
- * @dev Simple, transparent NFT certificate minting with fixed ETH price
+ * @title UniqueAvatarNFT
+ * @dev Unique avatar NFTs with dynamic pricing (5% increase every 10 mints)
  * Designed to avoid wallet scam warnings by keeping all logic minimal and clear
  */
-contract CertificateNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
-    // Fixed mint price in ETH
-    uint256 public constant MINT_PRICE = 0.000003 ether;
+contract UniqueAvatarNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
+    // Base price in ETH
+    uint256 public constant BASE_PRICE = 0.0002 ether;
+    
+    // Price increase percentage (5%)
+    uint256 public constant PRICE_INCREASE_PERCENTAGE = 5;
+    
+    // Mints per tier before price increase
+    uint256 public constant MINTS_PER_TIER = 10;
     
     // Token counter
     uint256 private _tokenIdCounter;
@@ -25,21 +31,39 @@ contract CertificateNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
     
     // Events for transparency
     event PaymentReceived(address indexed sender, uint256 amount);
-    event NFTMinted(address indexed minter, uint256 indexed tokenId, string uri);
+    event NFTMinted(address indexed minter, uint256 indexed tokenId, string uri, uint256 price);
     event FundsWithdrawn(address indexed owner, uint256 amount);
     
-    constructor() ERC721("UniqueHub Certificate", "UHCERT") Ownable(msg.sender) {
+    constructor() ERC721("UniqueHub Avatar", "UHAVATAR") Ownable(msg.sender) {
         _tokenIdCounter = 1; // Start from 1
     }
     
     /**
-     * @dev Mint a certificate NFT
-     * @param tokenURI The metadata URI for the certificate
+     * @dev Calculate current mint price based on total mints
      */
-    function mintCertificate(string memory tokenURI) external payable nonReentrant {
-        require(!hasMinted[msg.sender], "Already minted certificate");
+    function getCurrentPrice() public view returns (uint256) {
+        uint256 totalMints = _tokenIdCounter - 1;
+        uint256 tier = totalMints / MINTS_PER_TIER;
+        
+        // Price = BASE_PRICE * (1.05 ^ tier)
+        uint256 price = BASE_PRICE;
+        for (uint256 i = 0; i < tier; i++) {
+            price = (price * (100 + PRICE_INCREASE_PERCENTAGE)) / 100;
+        }
+        
+        return price;
+    }
+    
+    /**
+     * @dev Mint a unique avatar NFT
+     * @param tokenURI The metadata URI for the avatar
+     */
+    function mintAvatar(string memory tokenURI) external payable nonReentrant {
+        require(!hasMinted[msg.sender], "Already minted avatar");
         require(bytes(tokenURI).length > 0, "Token URI cannot be empty");
-        require(msg.value >= MINT_PRICE, "Insufficient payment");
+        
+        uint256 currentPrice = getCurrentPrice();
+        require(msg.value >= currentPrice, "Insufficient payment");
         
         uint256 tokenId = _tokenIdCounter;
         _tokenIdCounter++;
@@ -54,11 +78,11 @@ contract CertificateNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
         
         // Emit events for transparency
         emit PaymentReceived(msg.sender, msg.value);
-        emit NFTMinted(msg.sender, tokenId, tokenURI);
+        emit NFTMinted(msg.sender, tokenId, tokenURI, currentPrice);
         
         // Refund excess payment
-        if (msg.value > MINT_PRICE) {
-            uint256 refund = msg.value - MINT_PRICE;
+        if (msg.value > currentPrice) {
+            uint256 refund = msg.value - currentPrice;
             (bool success, ) = msg.sender.call{value: refund}("");
             require(success, "Refund failed");
         }
@@ -105,24 +129,5 @@ contract CertificateNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
         require(success, "Withdrawal failed");
         
         emit FundsWithdrawn(owner(), balance);
-    }
-    
-    /**
-     * @dev Override to prevent transfers (soulbound)
-     */
-    function _update(address to, uint256 tokenId, address auth)
-        internal
-        override
-        returns (address)
-    {
-        address from = _ownerOf(tokenId);
-        
-        // Allow minting (from == address(0))
-        // Block all transfers (from != address(0) && to != address(0))
-        if (from != address(0) && to != address(0)) {
-            revert("Certificate NFTs are non-transferable");
-        }
-        
-        return super._update(to, tokenId, auth);
     }
 }
