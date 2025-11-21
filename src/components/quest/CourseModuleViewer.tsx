@@ -1,16 +1,28 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Lock, Star, Trophy, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowLeft, Lock, Star, Trophy, CheckCircle2, Loader2, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
 
 interface Course {
   id: string;
   title: string;
   category: string;
   total_modules: number;
+}
+
+interface QuizQuestion {
+  question: string;
+  options: string[];
+  correct: number;
+}
+
+interface ModuleContent {
+  lesson: string;
+  quiz: QuizQuestion[];
 }
 
 interface Module {
@@ -20,6 +32,7 @@ interface Module {
   module_number: number;
   points_reward: number;
   is_locked: boolean;
+  content: ModuleContent | null;
 }
 
 interface ModuleCompletion {
@@ -39,6 +52,9 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [completing, setCompleting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [viewState, setViewState] = useState<'lesson' | 'quiz' | 'complete'>('lesson');
+  const [userAnswers, setUserAnswers] = useState<number[]>([]);
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -58,7 +74,11 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
       toast.error("Failed to load modules");
       console.error(error);
     } else {
-      setModules(data || []);
+      const modulesWithContent = (data || []).map(module => ({
+        ...module,
+        content: module.content as unknown as ModuleContent | null
+      }));
+      setModules(modulesWithContent);
     }
     setLoading(false);
   };
@@ -118,51 +138,184 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
     return completedModules.has(modules.find(m => m.module_number === moduleNumber - 1)?.id || '');
   };
 
+  const handleQuizAnswer = (questionIndex: number, answerIndex: number) => {
+    const newAnswers = [...userAnswers];
+    newAnswers[questionIndex] = answerIndex;
+    setUserAnswers(newAnswers);
+  };
+
+  const handleSubmitQuiz = () => {
+    if (!selectedModule?.content?.quiz) return;
+    
+    const allAnswered = userAnswers.length === selectedModule.content.quiz.length;
+    if (!allAnswered) {
+      toast.error("Please answer all questions");
+      return;
+    }
+
+    const correctAnswers = selectedModule.content.quiz.filter(
+      (q, i) => q.correct === userAnswers[i]
+    ).length;
+
+    const passed = correctAnswers >= Math.ceil(selectedModule.content.quiz.length * 0.7);
+    
+    if (passed) {
+      setQuizSubmitted(true);
+      setViewState('complete');
+      toast.success(`Great job! You got ${correctAnswers}/${selectedModule.content.quiz.length} correct!`);
+    } else {
+      toast.error(`You need at least ${Math.ceil(selectedModule.content.quiz.length * 0.7)} correct answers. Try again!`);
+      setUserAnswers([]);
+    }
+  };
+
+  const resetModuleView = () => {
+    setSelectedModule(null);
+    setViewState('lesson');
+    setUserAnswers([]);
+    setQuizSubmitted(false);
+  };
+
   if (selectedModule) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <div className="max-w-2xl w-full">
-          <div className="bg-gradient-to-br from-primary/20 to-accent/20 p-12 rounded-3xl border-2 border-primary/30 text-center animate-scale-in">
-            <Star className="w-24 h-24 mx-auto mb-6 text-primary animate-pulse" />
-            <h2 className="text-3xl font-bold mb-4">{selectedModule.title}</h2>
-            <p className="text-muted-foreground mb-8 text-lg">
-              Complete this module to earn {selectedModule.points_reward} UP points
-            </p>
-            
-            <div className="space-y-4">
-              <Button
-                size="lg"
-                onClick={() => handleCompleteModule(selectedModule)}
-                disabled={completing}
-                className="w-full text-lg py-6"
-              >
-                {completing ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Completing...
-                  </>
-                ) : (
-                  <>
-                    <Trophy className="w-5 h-5 mr-2" />
-                    Complete Module
-                  </>
-                )}
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => setSelectedModule(null)}
-                disabled={completing}
+    const content = selectedModule.content;
+
+    // Lesson View
+    if (viewState === 'lesson' && content?.lesson) {
+      return (
+        <div className="min-h-screen bg-background">
+          <div className="max-w-3xl mx-auto p-6">
+            <Button variant="ghost" onClick={resetModuleView} className="mb-4">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+
+            <Card className="p-8 bg-gradient-card border-2">
+              <div className="flex items-center gap-3 mb-6">
+                <BookOpen className="w-8 h-8 text-primary" />
+                <div>
+                  <h2 className="text-2xl font-bold">{selectedModule.title}</h2>
+                  <p className="text-sm text-muted-foreground">Module {selectedModule.module_number}</p>
+                </div>
+              </div>
+
+              <div className="prose prose-invert max-w-none mb-8">
+                <p className="text-lg leading-relaxed">{content.lesson}</p>
+              </div>
+
+              <Button 
+                size="lg" 
+                onClick={() => setViewState('quiz')}
                 className="w-full"
               >
-                Go Back
+                Continue to Quiz
               </Button>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+
+    // Quiz View
+    if (viewState === 'quiz' && content?.quiz) {
+      return (
+        <div className="min-h-screen bg-background">
+          <div className="max-w-3xl mx-auto p-6">
+            <Button variant="ghost" onClick={() => setViewState('lesson')} className="mb-4">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Lesson
+            </Button>
+
+            <Card className="p-8 bg-gradient-card border-2">
+              <h2 className="text-2xl font-bold mb-6">Quiz Time! 📝</h2>
+
+              <div className="space-y-6 mb-8">
+                {content.quiz.map((question, qIndex) => (
+                  <div key={qIndex} className="space-y-3">
+                    <p className="font-semibold text-lg">
+                      {qIndex + 1}. {question.question}
+                    </p>
+                    <div className="space-y-2">
+                      {question.options.map((option, oIndex) => (
+                        <button
+                          key={oIndex}
+                          onClick={() => handleQuizAnswer(qIndex, oIndex)}
+                          className={`
+                            w-full p-4 text-left rounded-lg border-2 transition-all
+                            ${userAnswers[qIndex] === oIndex
+                              ? 'bg-primary/20 border-primary'
+                              : 'bg-card border-border hover:border-primary/50'
+                            }
+                          `}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <Button 
+                size="lg" 
+                onClick={handleSubmitQuiz}
+                disabled={userAnswers.length !== content.quiz.length}
+                className="w-full"
+              >
+                Submit Quiz
+              </Button>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+
+    // Complete View
+    if (viewState === 'complete') {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center p-6">
+          <div className="max-w-2xl w-full">
+            <div className="bg-gradient-to-br from-primary/20 to-accent/20 p-12 rounded-3xl border-2 border-primary/30 text-center animate-scale-in">
+              <Star className="w-24 h-24 mx-auto mb-6 text-primary animate-pulse" />
+              <h2 className="text-3xl font-bold mb-4">{selectedModule.title}</h2>
+              <p className="text-muted-foreground mb-8 text-lg">
+                Complete this module to earn {selectedModule.points_reward} UP points
+              </p>
+              
+              <div className="space-y-4">
+                <Button
+                  size="lg"
+                  onClick={() => handleCompleteModule(selectedModule)}
+                  disabled={completing}
+                  className="w-full text-lg py-6"
+                >
+                  {completing ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Completing...
+                    </>
+                  ) : (
+                    <>
+                      <Trophy className="w-5 h-5 mr-2" />
+                      Complete Module
+                    </>
+                  )}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={resetModuleView}
+                  disabled={completing}
+                  className="w-full"
+                >
+                  Go Back
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   return (
