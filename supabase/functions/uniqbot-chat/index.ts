@@ -14,9 +14,66 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, currentPage, userData } = await req.json();
+
+    // Build context-aware information
+    let contextInfo = '';
+    
+    if (currentPage) {
+      contextInfo += `\n\n=== CURRENT USER CONTEXT ===\n`;
+      contextInfo += `User is currently on: ${currentPage.toUpperCase()} section\n`;
+      
+      // Add page-specific guidance
+      const pageGuidance = {
+        home: 'Help them understand the platform overview and get started.',
+        quest: 'Focus on learning courses, modules, and earning points through education.',
+        courses: 'Guide them on browsing, purchasing, or creating courses.',
+        marketplace: 'Assist with NFT marketplace, buying/selling items.',
+        profile: 'Help with viewing stats, achievements, and created content.',
+        earn: 'Guide them on earning UP points through various activities.',
+        wallet: 'Assist with wallet balance, transactions, and blockchain info.',
+        certificates: 'Help with viewing and managing earned certificates.',
+        nfts: 'Guide on NFT creation, collection, and marketplace.'
+      };
+      
+      if (pageGuidance[currentPage as keyof typeof pageGuidance]) {
+        contextInfo += `Context: ${pageGuidance[currentPage as keyof typeof pageGuidance]}\n`;
+      }
+    }
+    
+    if (userData) {
+      contextInfo += `\n=== USER PROGRESS DATA ===\n`;
+      
+      if (userData.points) {
+        contextInfo += `Total UP Points: ${userData.points.total_points}\n`;
+        contextInfo += `Daily Streak: ${userData.points.daily_streak} days\n`;
+        contextInfo += `Weekly Streak: ${userData.points.weekly_streak} weeks\n`;
+        contextInfo += `Monthly Streak: ${userData.points.monthly_streak} months\n`;
+      }
+      
+      if (userData.streak) {
+        contextInfo += `Current Learning Streak: ${userData.streak.current_streak} days\n`;
+        contextInfo += `Longest Learning Streak: ${userData.streak.longest_streak} days\n`;
+        contextInfo += `Total Modules Completed: ${userData.streak.total_modules_completed}\n`;
+      }
+      
+      if (userData.enrollments && userData.enrollments.length > 0) {
+        contextInfo += `Enrolled Courses: ${userData.enrollments.length}\n`;
+        const courseNames = userData.enrollments.map((e: any) => e.courses?.title).filter(Boolean);
+        if (courseNames.length > 0) {
+          contextInfo += `Course Names: ${courseNames.join(', ')}\n`;
+        }
+      }
+      
+      if (userData.completedModules) {
+        contextInfo += `Completed Modules: ${userData.completedModules}\n`;
+      }
+      
+      contextInfo += `\nUse this data to provide personalized advice and encouragement!\n`;
+    }
 
     const systemPrompt = `You are UniqBot, the official AI assistant of UniqueHub, a Web3 learning and earning platform.
+${contextInfo}
 
 Your purpose is to help users:
 - Understand how UniqueHub works (courses, points, earnings, marketplace, NFTs, wallet features, etc.)
