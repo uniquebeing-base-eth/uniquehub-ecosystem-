@@ -7,18 +7,25 @@ import { toast } from "sonner";
 import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 import nftPlaceholder from "@/assets/nft-placeholder.png";
+import { useViemClients } from "@/hooks/useViemClients";
+import { UNIQUE_NFT_ABI, UNIQUE_NFT_ADDRESS } from "@/config/wagmi";
 
 export const NFTSection = () => {
   const { user } = useAuth();
   const { address } = useFarcasterWallet();
+  const { publicClient, walletClient } = useViemClients(address);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isMinting, setIsMinting] = useState(false);
+  const [hasMinted, setHasMinted] = useState(false);
+  const [tokenId, setTokenId] = useState<bigint | null>(null);
   const [nftData, setNftData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     loadExistingNFT();
-  }, [user]);
+    checkMintStatus();
+  }, [user, address]);
 
   const loadExistingNFT = async () => {
     if (!user) {
@@ -40,6 +47,33 @@ export const NFTSection = () => {
       console.error("Error loading NFT:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const checkMintStatus = async () => {
+    if (!address || !publicClient) return;
+
+    try {
+      const minted = await publicClient.readContract({
+        address: UNIQUE_NFT_ADDRESS,
+        abi: UNIQUE_NFT_ABI,
+        functionName: "hasUserMinted",
+        args: [address],
+      } as any);
+
+      setHasMinted(minted as boolean);
+
+      if (minted) {
+        const tokenIdResult = await publicClient.readContract({
+          address: UNIQUE_NFT_ADDRESS,
+          abi: UNIQUE_NFT_ABI,
+          functionName: "getUserTokenId",
+          args: [address],
+        } as any);
+        setTokenId(tokenIdResult as bigint);
+      }
+    } catch (error) {
+      console.error("Error checking mint status:", error);
     }
   };
 
@@ -125,7 +159,72 @@ export const NFTSection = () => {
     }
   };
 
-  // Minting temporarily disabled
+  const mintNFT = async () => {
+    if (!address || !walletClient || !publicClient || !nftData?.image_url) {
+      toast.error("Please connect wallet and generate avatar first");
+      return;
+    }
+
+    if (hasMinted) {
+      toast.error("You have already minted your NFT");
+      return;
+    }
+
+    setIsMinting(true);
+    try {
+      // Try to get current price - use MINT_PRICE as fallback
+      let currentPrice: bigint;
+      try {
+        currentPrice = await publicClient.readContract({
+          address: UNIQUE_NFT_ADDRESS,
+          abi: [...UNIQUE_NFT_ABI, {
+            inputs: [],
+            name: 'getCurrentPrice',
+            outputs: [{ name: '', type: 'uint256' }],
+            stateMutability: 'view',
+            type: 'function',
+          }] as any,
+          functionName: "getCurrentPrice",
+        } as any) as bigint;
+      } catch {
+        // Fallback to MINT_PRICE if getCurrentPrice doesn't exist
+        currentPrice = await publicClient.readContract({
+          address: UNIQUE_NFT_ADDRESS,
+          abi: UNIQUE_NFT_ABI,
+          functionName: "MINT_PRICE",
+        } as any) as bigint;
+      }
+
+      console.log("Minting with price:", currentPrice);
+
+      // Use the image URL as the token URI
+      const tokenURI = nftData.image_url;
+
+      const hash = await walletClient.writeContract({
+        address: UNIQUE_NFT_ADDRESS,
+        abi: UNIQUE_NFT_ABI,
+        functionName: "mintAvatar",
+        args: [tokenURI],
+        account: address,
+        value: currentPrice,
+      } as any);
+
+      toast.success("Minting transaction submitted!");
+
+      await publicClient.waitForTransactionReceipt({ hash });
+      toast.success("NFT minted successfully!");
+
+      // Refresh mint status
+      await checkMintStatus();
+    } catch (error: any) {
+      console.error("Error minting NFT:", error);
+      toast.error(error.message || "Failed to mint NFT");
+    } finally {
+      setIsMinting(false);
+    }
+  };
+
+  // Minting functionality added
 
   if (isLoading) {
     return (
@@ -236,6 +335,41 @@ export const NFTSection = () => {
                       </>
                     )}
                   </Button>
+                )}
+
+                {!hasMinted && (
+                  <Button
+                    onClick={mintNFT}
+                    disabled={isMinting || !address}
+                    variant="default"
+                    className="w-full"
+                  >
+                    {isMinting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                        Minting...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-5 w-5" />
+                        Mint as NFT on Base
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {hasMinted && tokenId !== null && (
+                  <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+                    <p className="text-sm font-medium text-primary mb-2">✨ Minted on Base!</p>
+                    <a
+                      href={`https://basescan.org/nft/${UNIQUE_NFT_ADDRESS}/${tokenId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-muted-foreground hover:text-primary underline"
+                    >
+                      View on Basescan →
+                    </a>
+                  </div>
                 )}
 
                 <div className="space-y-3">
