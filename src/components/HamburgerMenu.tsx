@@ -14,7 +14,7 @@ export const HamburgerMenu = ({ onNavigate }: HamburgerMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { id: "earning", icon: Wallet, label: "Wallet" },
+    { id: "wallet", icon: Wallet, label: "Wallet" },
     { id: "nft", icon: GraduationCap, label: "Unique NFTs" },
     { id: "certificates", icon: GraduationCap, label: "Certificates" },
     { id: "leaderboard", icon: Trophy, label: "Leaderboard" },
