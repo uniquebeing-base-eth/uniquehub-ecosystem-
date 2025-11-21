@@ -30,27 +30,13 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    console.log('Checking if user already has NFT generation:', user.id);
+    console.log('Generating NFT for user:', user.id);
 
-    // Check if user already generated an NFT
-    const { data: existingNFT, error: checkError } = await supabase
+    // Delete any existing NFT generation to allow re-generation with new contract
+    await supabase
       .from('user_nft_generations')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
-    if (existingNFT) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'You have already generated your unique NFT character',
-          existing: existingNFT 
-        }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
+      .delete()
+      .eq('user_id', user.id);
 
     // Get user profile for gender detection
     const { data: profile } = await supabase
@@ -72,17 +58,18 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const prompt = `Create a unique anime-style character portrait with these exact specifications:
-- Vibrant electric blue hair (${hairStyle === "short" ? "short, spiky style" : "long, flowing style reaching shoulders"})
-- Glowing blue energy aura surrounding the character
+    const prompt = `Create a unique anime-style NFT avatar selfie with these exact specifications:
+- Vibrant electric blue hair (${hairStyle === "short" ? "short, spiky style" : "long, flowing style"})
+- Glowing blue energy aura around the face
 - Deep blue eyes with a mystical glow
-- Modern street-style clothing with blue accents and neon highlights
-- Confident, friendly expression
-- Dark gradient background (deep navy to black) with floating blue energy particles
-- High quality digital art style, professional illustration
+- Close-up selfie shot: face and head only, tight crop like a profile picture
+- Confident, friendly expression with personality
+- Dark gradient background (deep navy to black) with subtle blue energy particles
+- High quality digital art, professional NFT avatar quality
 - Character name visual element: "${displayName}"
-- UniqueHub branding aesthetic with cyberpunk blue theme
-- Ultra high resolution, 16:9 aspect ratio, hero image quality`;
+- UniqueHub cyberpunk blue aesthetic
+- Square aspect ratio 1:1, perfect for profile picture
+- Minimal shoulders visible, focus entirely on face and head`;
 
     console.log('Calling Lovable AI with prompt:', prompt);
 
