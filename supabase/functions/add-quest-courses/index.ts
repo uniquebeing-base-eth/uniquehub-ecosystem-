@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
             { question: "Is Web3 decentralized?", options: ["Yes", "No"], correct: 0 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: false
       },
       {
@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
             { question: "Can blockchain data be changed easily?", options: ["Yes", "No"], correct: 1 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
             { question: "Hot wallet vs cold wallet:", options: ["Hot = online, Cold = offline", "Hot = offline, Cold = online", "Both are the same"], correct: 0 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
             { question: "Non-fungible means:", options: ["Unique", "Same as others", "Physical"], correct: 0 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
             { question: "What is a gas fee?", options: ["Fee for cooking", "Fee for blockchain transactions", "Fee for internet"], correct: 1 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
             { question: "Smart contracts are stored on:", options: ["Blockchain", "Your computer", "A server"], correct: 0 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
             { question: "DApps use:", options: ["Blockchain", "Only the internet", "USB drives"], correct: 0 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
             { question: "Governance is:", options: ["Centralized", "Decentralized", "Random"], correct: 1 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -193,7 +193,7 @@ Deno.serve(async (req) => {
             { question: "Can Web3 transactions be reversed?", options: ["Yes", "No", "Sometimes"], correct: 1 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -209,7 +209,7 @@ Deno.serve(async (req) => {
             { question: "DeFi means:", options: ["Decentralized finance", "Digital files", "Data federation"], correct: 0 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       }
     ]
@@ -229,7 +229,7 @@ Deno.serve(async (req) => {
             { question: "What technology keeps crypto secure?", options: ["Blockchain", "WiFi", "Cloud storage"], correct: 0 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: false
       },
       {
@@ -245,7 +245,7 @@ Deno.serve(async (req) => {
             { question: "Bitcoin can be used to:", options: ["Store value", "Send money", "Both A and B"], correct: 2 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -261,7 +261,7 @@ Deno.serve(async (req) => {
             { question: "Ethereum allows:", options: ["NFTs", "DApps", "Both A and B"], correct: 2 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -277,7 +277,7 @@ Deno.serve(async (req) => {
             { question: "Altcoins are:", options: ["All identical", "Different cryptocurrencies", "Cash"], correct: 1 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -293,7 +293,7 @@ Deno.serve(async (req) => {
             { question: "Why use stablecoins?", options: ["Trading", "Savings", "Both A and B"], correct: 2 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -309,7 +309,7 @@ Deno.serve(async (req) => {
             { question: "Cold wallet = ?", options: ["Online", "Offline", "Cloud"], correct: 1 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -325,7 +325,7 @@ Deno.serve(async (req) => {
             { question: "Crypto transactions are:", options: ["Instant", "Verified on blockchain", "Both A and B"], correct: 2 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -341,7 +341,7 @@ Deno.serve(async (req) => {
             { question: "Exchanges can be:", options: ["Centralized", "Decentralized", "Both A and B"], correct: 2 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -357,7 +357,7 @@ Deno.serve(async (req) => {
             { question: "Invest only:", options: ["What you can afford to lose", "Everything you have", "Randomly"], correct: 0 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       },
       {
@@ -373,7 +373,7 @@ Deno.serve(async (req) => {
             { question: "DeFi stands for:", options: ["Decentralized finance", "Digital files", "Data federation"], correct: 0 }
           ]
         },
-        points_reward: 10,
+        points_reward: 100,
         is_locked: true
       }
     ]
@@ -382,7 +382,7 @@ Deno.serve(async (req) => {
     const allModules = [...web3Modules, ...cryptoModules]
     const { data: modulesData, error: modulesError } = await supabase
       .from('learning_modules')
-      .upsert(allModules)
+      .upsert(allModules, { onConflict: 'course_id,module_number' })
       .select()
 
     if (modulesError) throw modulesError
