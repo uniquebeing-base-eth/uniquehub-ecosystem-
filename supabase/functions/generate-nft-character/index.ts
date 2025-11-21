@@ -73,18 +73,19 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const prompt = `Create a unique anime-style NFT avatar selfie with these exact specifications:
+    const prompt = `Create a unique anime-style NFT avatar portrait with these exact specifications:
 - Vibrant electric blue hair (${hairStyle === "short" ? "short, spiky style" : "long, flowing style"})
-- Glowing blue energy aura around the face
+- Glowing blue energy aura around the character
 - Deep blue eyes with a mystical glow
-- Close-up selfie shot: face and head only, tight crop like a profile picture
+- Composition: Portrait from waist up, showing upper body, chest, and head
+- Modern street-style clothing with blue accents and neon highlights
 - Confident, friendly expression with personality
 - Dark gradient background (deep navy to black) with subtle blue energy particles
 - High quality digital art, professional NFT avatar quality
 - Character name visual element: "${displayName}"
 - UniqueHub cyberpunk blue aesthetic
-- Square aspect ratio 1:1, perfect for profile picture
-- Minimal shoulders visible, focus entirely on face and head`;
+- Vertical portrait orientation suitable for profile picture
+- Show character from waist to head with clear upper body visibility`;
 
     console.log('Calling Lovable AI with prompt:', prompt);
 
