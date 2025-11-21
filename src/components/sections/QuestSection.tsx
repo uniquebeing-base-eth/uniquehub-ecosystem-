@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { LearningHub } from "@/components/quest/LearningHub";
 import { LearningPool } from "@/components/quest/LearningPool";
-import learningHubBg from "@/assets/quest-learning-hub-bg.jpg";
-import learningPoolBg from "@/assets/quest-learning-pool-bg.jpg";
+import learningHubBg from "@/assets/quest-learning-hub-bg-blue.jpg";
+import learningPoolBg from "@/assets/quest-learning-pool-bg-blue.jpg";
 
 export const QuestSection = () => {
   const [activeView, setActiveView] = useState<"menu" | "learning-hub" | "learning-pool">("menu");

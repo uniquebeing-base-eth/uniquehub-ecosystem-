@@ -6,6 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { CourseModuleViewer } from "./CourseModuleViewer";
+import cryptoBg from "@/assets/course-crypto-basics-bg.jpg";
+import web3Bg from "@/assets/course-web3-basics-bg.jpg";
+import placeholderBg from "@/assets/course-placeholder-bg.jpg";
 
 interface LearningHubProps {
   onBack: () => void;
@@ -39,6 +42,13 @@ export const LearningHub = ({ onBack }: LearningHubProps) => {
       fetchStreak();
     }
   }, [user]);
+
+  const getCourseBackground = (title: string) => {
+    const lowerTitle = title.toLowerCase();
+    if (lowerTitle.includes('crypto')) return cryptoBg;
+    if (lowerTitle.includes('web3')) return web3Bg;
+    return placeholderBg;
+  };
 
   const fetchCourses = async () => {
     const { data, error } = await supabase
@@ -137,15 +147,24 @@ export const LearningHub = ({ onBack }: LearningHubProps) => {
               <button
                 key={course.id}
                 onClick={() => setSelectedCourse(course)}
-                className="group relative p-6 rounded-xl bg-gradient-card border border-border hover:border-primary/50 transition-all duration-300 text-left hover:scale-[1.02] hover:shadow-glow"
+                className="group relative overflow-hidden p-6 rounded-xl border border-border hover:border-primary/50 transition-all duration-300 text-left hover:scale-[1.02] hover:shadow-glow"
               >
-                <div className="flex items-start justify-between">
+                {/* Background Image */}
+                <div 
+                  className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-40 transition-opacity duration-300"
+                  style={{ backgroundImage: `url(${getCourseBackground(course.title)})` }}
+                />
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/90 to-background/80 group-hover:from-background/90 group-hover:via-background/85 group-hover:to-background/75 transition-all duration-300" />
+                
+                {/* Content */}
+                <div className="relative flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary font-medium">
+                      <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary font-medium backdrop-blur-sm">
                         {course.category}
                       </span>
-                      <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">
+                      <span className="text-xs px-2 py-1 rounded-full bg-muted/80 text-muted-foreground backdrop-blur-sm">
                         {course.difficulty_level}
                       </span>
                     </div>
