@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Download } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -127,18 +127,6 @@ export const NFTSection = () => {
 
   // Minting temporarily disabled
 
-  const downloadNFT = () => {
-    if (!nftData?.image_url) return;
-
-    const link = document.createElement("a");
-    link.href = nftData.image_url;
-    link.download = `uniquehub-nft-${Date.now()}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success("NFT image downloaded!");
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -197,7 +185,7 @@ export const NFTSection = () => {
                 )}
               </Button>
               <p className="text-xs text-muted-foreground">
-                One generation per account
+                You can generate 3 times total (1 original + 2 regenerations)
               </p>
             </div>
           </div>
@@ -223,33 +211,44 @@ export const NFTSection = () => {
                     </p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Hair Style</p>
+                    <p className="text-muted-foreground">Generations Used</p>
                     <p className="font-medium">
-                      {nftData.metadata?.hairStyle || nftData.metadata?.hair_style || "Blue"}
+                      {nftData.metadata?.generation_count || 1} / 3
                     </p>
                   </div>
                 </div>
 
+                {(nftData.metadata?.generation_count || 1) < 3 && (
+                  <Button
+                    onClick={generateNFT}
+                    disabled={isGenerating}
+                    className="w-full"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                        Regenerating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-5 w-5" />
+                        Regenerate Avatar ({3 - (nftData.metadata?.generation_count || 1)} left)
+                      </>
+                    )}
+                  </Button>
+                )}
+
                 <div className="space-y-3">
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={downloadNFT}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      Download
-                    </Button>
-                    <ShareToFarcaster
-                      text="Check out my unique avatar on @uniquehub! 🎨✨"
-                      embeds={
-                        shareImageUrl
-                          ? [shareImageUrl, "https://uniqueehub.vercel.app"]
-                          : ["https://uniqueehub.vercel.app"]
-                      }
-                      variant="outline"
-                    />
-                  </div>
+                  <ShareToFarcaster
+                    text="Check out my unique avatar on @uniquehub! 🎨✨"
+                    embeds={
+                      shareImageUrl
+                        ? [shareImageUrl, "https://uniqueehub.vercel.app"]
+                        : ["https://uniqueehub.vercel.app"]
+                    }
+                    variant="default"
+                    className="w-full"
+                  />
                 </div>
               </div>
             </div>
