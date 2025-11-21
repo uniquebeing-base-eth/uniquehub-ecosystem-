@@ -345,31 +345,31 @@ export const NFTSection = () => {
                 )}
 
                 {hasMinted && tokenId !== null && (
-                  <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-                    <p className="text-sm font-medium text-primary mb-2">✨ Minted on Base!</p>
+                  <>
                     <a
                       href={`https://basescan.org/nft/${UNIQUE_NFT_ADDRESS}/${tokenId}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-muted-foreground hover:text-primary underline"
                     >
-                      View on Basescan →
+                      <Button variant="default" className="w-full">
+                        View on Basescan
+                      </Button>
                     </a>
-                  </div>
-                )}
 
-                <div className="space-y-3">
-                  <ShareToFarcaster
-                    text="Check out my unique avatar on @uniquehub! 🎨✨"
-                    embeds={
-                      shareImageUrl
-                        ? [shareImageUrl, "https://uniqueehub.vercel.app"]
-                        : ["https://uniqueehub.vercel.app"]
-                    }
-                    variant="default"
-                    className="w-full"
-                  />
-                </div>
+                    <div className="mt-3">
+                      <ShareToFarcaster
+                        text="Check out my unique avatar on @uniquehub! 🎨✨"
+                        embeds={
+                          shareImageUrl
+                            ? [shareImageUrl, "https://uniqueehub.vercel.app"]
+                            : ["https://uniqueehub.vercel.app"]
+                        }
+                        variant="default"
+                        className="w-full"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
