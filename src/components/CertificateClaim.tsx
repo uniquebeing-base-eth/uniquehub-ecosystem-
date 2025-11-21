@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import { base } from 'wagmi/chains';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Award, Download, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
+import { Award, ExternalLink, Loader2 } from 'lucide-react';
 import { useFarcasterWallet } from '@/hooks/useFarcasterWallet';
 import { useViemClients } from '@/hooks/useViemClients';
 import { supabase } from '@/integrations/supabase/client';
@@ -71,11 +72,47 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
     }
   };
 
-  // Minting temporarily disabled
-  
-  const downloadCertificate = () => {
-    if (!certificate) return;
-    window.open(certificate.image_url, '_blank');
+  const mintCertificate = async () => {
+    if (!certificate || !address || !walletClient || !publicClient) {
+      toast.error("Please connect your wallet");
+      return;
+    }
+
+    setIsMinting(true);
+    try {
+      // Call the mint function on the contract
+      const hash = await walletClient.writeContract({
+        address: CERTIFICATE_CONTRACT_ADDRESS,
+        abi: CERTIFICATE_CONTRACT_ABI,
+        functionName: 'mintCertificate',
+        args: [certificate.image_url],
+        value: CERTIFICATE_MINT_FEE,
+        chain: base,
+        account: address,
+      });
+
+      toast.success("Minting transaction submitted!");
+
+      // Wait for transaction confirmation
+      await publicClient.waitForTransactionReceipt({ hash });
+
+      // Update certificate record with transaction hash
+      await supabase
+        .from('certificates')
+        .update({ 
+          transaction_hash: hash,
+          minted_at: new Date().toISOString()
+        })
+        .eq('id', certificate.id);
+
+      toast.success("Certificate minted successfully!");
+      await checkExistingCertificate();
+    } catch (error: any) {
+      console.error('Mint error:', error);
+      toast.error(error.message || "Failed to mint certificate");
+    } finally {
+      setIsMinting(false);
+    }
   };
 
   if (!isCompleted) return null;
@@ -123,26 +160,54 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
             </div>
             
             <div className="space-y-2">
-              <p className="text-xs text-success font-semibold">✅ Certificate Generated!</p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={downloadCertificate}
-                >
-                  <Download className="w-3.5 h-3.5 mr-1.5" />
-                  Download
-                </Button>
-              </div>
-              <ShareToFarcaster
-                text={`I just earned my certificate for completing "${courseTitle}" on @uniquehub! 🎓✨`}
-                embeds={[certificate.image_url, 'https://uniqueehub.vercel.app']}
-                buttonText="Share Certificate"
-                variant="default"
-                size="sm"
-                className="w-full bg-gradient-primary"
-              />
+              {!certificate.minted_at ? (
+                <>
+                  <p className="text-xs text-muted-foreground">
+                    Certificate generated! Mint it as an NFT on Base blockchain.
+                  </p>
+                  <Button
+                    onClick={mintCertificate}
+                    disabled={isMinting || !address}
+                    className="w-full bg-gradient-primary"
+                    size="sm"
+                  >
+                    {isMinting ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                        Minting NFT...
+                      </>
+                    ) : (
+                      <>
+                        <Award className="w-3.5 h-3.5 mr-1.5" />
+                        Mint Certificate NFT (0.000003 ETH)
+                      </>
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs text-success font-semibold">✅ Certificate Minted!</p>
+                  {certificate.transaction_hash && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => window.open(`https://basescan.org/tx/${certificate.transaction_hash}`, '_blank')}
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+                      View on Basescan
+                    </Button>
+                  )}
+                  <ShareToFarcaster
+                    text={`I just minted my certificate NFT for completing "${courseTitle}" on @uniquehub! 🎓✨`}
+                    embeds={[certificate.image_url, 'https://uniqueehub.vercel.app']}
+                    buttonText="Share Certificate"
+                    variant="default"
+                    size="sm"
+                    className="w-full bg-gradient-primary"
+                  />
+                </>
+              )}
             </div>
           </div>
         )}
