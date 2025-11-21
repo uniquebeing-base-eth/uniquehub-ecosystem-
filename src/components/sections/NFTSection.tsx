@@ -181,22 +181,29 @@ export const NFTSection = () => {
       // If it's a data URL, upload to storage first
       if (tokenURI.startsWith('data:')) {
         console.log("Converting data URL to public URL...");
-        const res = await fetch(tokenURI);
-        const blob = await res.blob();
-        const avatarId = nftData?.id || crypto.randomUUID();
-        const pngPath = `avatars/${user?.id || address}/${avatarId}.png`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('certificates')
-          .upload(pngPath, blob, { contentType: 'image/png', upsert: true });
-        
-        if (uploadError && !String(uploadError.message).includes('already exists')) {
-          throw new Error('Failed to upload image');
+        try {
+          const res = await fetch(tokenURI);
+          const blob = await res.blob();
+          const avatarId = nftData?.id || crypto.randomUUID();
+          const pngPath = `avatars/${user?.id || address}/${avatarId}.png`;
+          
+          // Try to upload - if it exists, just use the existing URL
+          const { error: uploadError } = await supabase.storage
+            .from('certificates')
+            .upload(pngPath, blob, { contentType: 'image/png', upsert: true });
+          
+          if (uploadError) {
+            console.log("Upload note:", uploadError.message);
+            // Even if there's an error, try to get the public URL as it might already exist
+          }
+          
+          const { data: pub } = supabase.storage.from('certificates').getPublicUrl(pngPath);
+          tokenURI = pub.publicUrl;
+          console.log("Using public URL:", tokenURI);
+        } catch (uploadErr) {
+          console.error("Upload error (will try to mint anyway):", uploadErr);
+          // Continue with data URL if upload fails - some contracts accept it
         }
-        
-        const { data: pub } = supabase.storage.from('certificates').getPublicUrl(pngPath);
-        tokenURI = pub.publicUrl;
-        console.log("Using public URL:", tokenURI);
       }
 
       // Use base price: 0.0002 ETH
