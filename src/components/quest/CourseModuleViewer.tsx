@@ -23,9 +23,17 @@ interface QuizQuestion {
   correct: number;
 }
 
+interface Section {
+  type: string;
+  content?: string;
+  questions?: QuizQuestion[];
+}
+
 interface ModuleContent {
-  lesson: string;
-  quiz: QuizQuestion[];
+  type: string;
+  sections?: Section[];
+  lesson?: string;
+  quiz?: QuizQuestion[];
 }
 
 interface Module {
@@ -178,9 +186,13 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
   };
 
   const handleAnswerSubmit = () => {
-    if (!selectedModule?.content?.quiz || selectedAnswer === null) return;
+    if (!selectedModule?.content) return;
+    
+    const quizSection = selectedModule.content.sections?.find(s => s.type === 'quiz');
+    const quizQuestions = selectedModule.content.quiz || quizSection?.questions;
+    if (!quizQuestions || selectedAnswer === null) return;
 
-    const currentQuestion = selectedModule.content.quiz[currentQuestionIndex];
+    const currentQuestion = quizQuestions[currentQuestionIndex];
     const isCorrect = currentQuestion.correct === selectedAnswer;
 
     if (!isCorrect) {
@@ -193,12 +205,16 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
   };
 
   const handleNextQuestion = () => {
-    if (!selectedModule?.content?.quiz) return;
+    if (!selectedModule?.content) return;
+    
+    const quizSection = selectedModule.content.sections?.find(s => s.type === 'quiz');
+    const quizQuestions = selectedModule.content.quiz || quizSection?.questions;
+    if (!quizQuestions) return;
 
     setSelectedAnswer(null);
     setShowCorrectAnswer(false);
 
-    if (currentQuestionIndex < selectedModule.content.quiz.length - 1) {
+    if (currentQuestionIndex < quizQuestions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     } else {
       // Quiz complete
@@ -221,9 +237,15 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
 
   if (selectedModule) {
     const content = selectedModule.content;
+    
+    // Extract lesson and quiz from sections if present
+    const lessonSection = content?.sections?.find(s => s.type === 'explanation');
+    const quizSection = content?.sections?.find(s => s.type === 'quiz');
+    const lessonContent = content?.lesson || lessonSection?.content;
+    const quizQuestions = content?.quiz || quizSection?.questions;
 
     // Lesson View
-    if (viewState === 'lesson' && content?.lesson) {
+    if (viewState === 'lesson' && lessonContent) {
       return (
         <div className="min-h-screen bg-background">
           <div className="max-w-3xl mx-auto p-6">
@@ -242,7 +264,7 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
               </div>
 
               <div className="prose prose-invert max-w-none mb-8">
-                <p className="text-lg leading-relaxed">{content.lesson}</p>
+                <p className="text-lg leading-relaxed">{lessonContent}</p>
               </div>
 
               <Button 
@@ -259,9 +281,9 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
     }
 
     // Quiz View
-    if (viewState === 'quiz' && content?.quiz) {
-      const currentQuestion = content.quiz[currentQuestionIndex];
-      const totalQuestions = content.quiz.length;
+    if (viewState === 'quiz' && quizQuestions && quizQuestions.length > 0) {
+      const currentQuestion = quizQuestions[currentQuestionIndex];
+      const totalQuestions = quizQuestions.length;
       const currentScore = 100 - (wrongAnswersCount * 10);
 
       return (
