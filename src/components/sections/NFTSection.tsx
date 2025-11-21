@@ -176,13 +176,7 @@ export const NFTSection = () => {
       // Get current price from contract
       const currentPrice = await publicClient.readContract({
         address: UNIQUE_NFT_ADDRESS,
-        abi: [...UNIQUE_NFT_ABI, {
-          inputs: [],
-          name: 'getCurrentPrice',
-          outputs: [{ name: '', type: 'uint256' }],
-          stateMutability: 'view',
-          type: 'function',
-        }] as any,
+        abi: UNIQUE_NFT_ABI,
         functionName: "getCurrentPrice",
       } as any) as bigint;
 
