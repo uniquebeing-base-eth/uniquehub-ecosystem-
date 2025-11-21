@@ -1,5 +1,8 @@
 project_id = "ucqcrhfcflrepsdlcvpq"
 
+[functions.add-quest-courses]
+verify_jwt = false
+
 [functions.generate-nft-character]
 verify_jwt = true
 
