@@ -152,27 +152,42 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
   const recordModuleCompletion = async (module: Module) => {
     if (!user) return;
 
-    const { error } = await supabase
-      .from('module_completions')
-      .insert({
-        user_id: user.id,
-        module_id: module.id,
-        course_id: course.id,
-        points_earned: finalScore,
+    try {
+      const { data, error } = await supabase.functions.invoke('complete-module', {
+        body: {
+          moduleId: module.id,
+          courseId: course.id,
+          pointsEarned: finalScore,
+        },
       });
 
-    if (error) {
-      if (error.code === '23505') {
-        toast.info("You've already completed this module!");
-      } else {
-        toast.error("Failed to record completion");
-        console.error(error);
+      if (error) throw error;
+
+      if (data?.success) {
+        setCompletedModules(prev => new Set([...prev, module.id]));
+        
+        const streak = data.streak;
+        let description = "Keep up the great work!";
+        
+        if (streak) {
+          description = `🔥 ${streak.current_streak} day streak!`;
+          if (streak.current_streak === streak.longest_streak && streak.current_streak > 1) {
+            description += " New record! 🏆";
+          }
+        }
+        
+        toast.success(`🎉 Module completed! +${finalScore} UP points`, {
+          description,
+        });
+
+        // Refresh streak data in parent component
+        onBack();
+      } else if (data?.message) {
+        toast.info(data.message);
       }
-    } else {
-      setCompletedModules(prev => new Set([...prev, module.id]));
-      toast.success(`🎉 Module completed! +${finalScore} UP points`, {
-        description: "Keep up the great work!",
-      });
+    } catch (error: any) {
+      toast.error("Failed to record completion");
+      console.error(error);
     }
 
     setCompleting(false);
