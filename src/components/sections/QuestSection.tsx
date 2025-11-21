@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { BookOpen, Trophy } from "lucide-react";
 import { LearningHub } from "@/components/quest/LearningHub";
 import { LearningPool } from "@/components/quest/LearningPool";
 import learningHubBg from "@/assets/quest-learning-hub-bg.jpg";
@@ -31,7 +30,6 @@ export const QuestSection = () => {
       {/* Content */}
       <div className="relative z-10 max-w-2xl mx-auto">
         <div className="text-center mb-8 animate-fade-in">
-          <Trophy className="w-16 h-16 mx-auto mb-4 text-primary" />
           <h1 className="text-4xl font-bold mb-3 text-primary">Quest Hub</h1>
           <p className="text-lg text-muted-foreground">
             Choose your learning adventure
@@ -41,7 +39,7 @@ export const QuestSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div 
             onClick={() => setActiveView("learning-hub")} 
-            className="cursor-pointer rounded-xl overflow-hidden shadow-card border border-border hover:border-primary/50 transition-all duration-300 group"
+            className="cursor-pointer rounded-xl overflow-hidden shadow-card border border-border hover:border-primary/50 transition-all duration-300 group animate-fade-in"
           >
             <div 
               className="relative h-48 flex items-center justify-center"
@@ -51,17 +49,16 @@ export const QuestSection = () => {
                 backgroundPosition: 'center'
               }}
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/50 to-background/30 group-hover:from-background/80 transition-all duration-300" />
-              <div className="relative z-10 text-center">
-                <BookOpen className="w-16 h-16 mx-auto mb-3 text-primary drop-shadow-lg" />
-                <h3 className="text-xl font-bold text-foreground drop-shadow-lg">Learning Hub</h3>
+              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-background/20 group-hover:from-background/95 transition-all duration-300" />
+              <div className="relative z-10 text-center px-4">
+                <h3 className="text-2xl font-bold text-foreground drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">Learning Hub</h3>
               </div>
             </div>
           </div>
           
           <div 
             onClick={() => setActiveView("learning-pool")} 
-            className="cursor-pointer rounded-xl overflow-hidden shadow-card border border-border hover:border-primary/50 transition-all duration-300 group"
+            className="cursor-pointer rounded-xl overflow-hidden shadow-card border border-border hover:border-primary/50 transition-all duration-300 group animate-fade-in"
           >
             <div 
               className="relative h-48 flex items-center justify-center"
@@ -71,10 +68,9 @@ export const QuestSection = () => {
                 backgroundPosition: 'center'
               }}
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/50 to-background/30 group-hover:from-background/80 transition-all duration-300" />
-              <div className="relative z-10 text-center">
-                <Trophy className="w-16 h-16 mx-auto mb-3 text-primary drop-shadow-lg" />
-                <h3 className="text-xl font-bold text-foreground drop-shadow-lg">Learning Pool</h3>
+              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-background/20 group-hover:from-background/95 transition-all duration-300" />
+              <div className="relative z-10 text-center px-4">
+                <h3 className="text-2xl font-bold text-foreground drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">Learning Pool</h3>
               </div>
             </div>
           </div>
