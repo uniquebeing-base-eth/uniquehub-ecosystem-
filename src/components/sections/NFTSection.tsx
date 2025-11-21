@@ -174,14 +174,34 @@ export const NFTSection = () => {
     setIsMinting(true);
     try {
       console.log("Starting mint process...");
-      console.log("Contract address:", UNIQUE_NFT_ADDRESS);
-      console.log("User address:", address);
       
-      // Use base price: 0.0002 ETH
-      const mintPrice = 200000000000000n; // 0.0002 ETH in wei
-      console.log("Mint price:", mintPrice.toString());
+      // Ensure we have a public HTTP URL for the tokenURI
+      let tokenURI = nftData.image_url;
+      
+      // If it's a data URL, upload to storage first
+      if (tokenURI.startsWith('data:')) {
+        console.log("Converting data URL to public URL...");
+        const res = await fetch(tokenURI);
+        const blob = await res.blob();
+        const avatarId = nftData?.id || crypto.randomUUID();
+        const pngPath = `avatars/${user?.id || address}/${avatarId}.png`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('certificates')
+          .upload(pngPath, blob, { contentType: 'image/png', upsert: true });
+        
+        if (uploadError && !String(uploadError.message).includes('already exists')) {
+          throw new Error('Failed to upload image');
+        }
+        
+        const { data: pub } = supabase.storage.from('certificates').getPublicUrl(pngPath);
+        tokenURI = pub.publicUrl;
+        console.log("Using public URL:", tokenURI);
+      }
 
-      const tokenURI = nftData.image_url;
+      // Use base price: 0.0002 ETH
+      const mintPrice = 200000000000000n;
+      console.log("Minting with price:", mintPrice.toString());
       console.log("Token URI:", tokenURI);
 
       const hash = await walletClient.writeContract({
@@ -294,33 +314,7 @@ export const NFTSection = () => {
                       {nftData.metadata?.displayName || nftData.metadata?.display_name || "UniqueHub User"}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-muted-foreground">Generations Used</p>
-                    <p className="font-medium">
-                      {nftData.metadata?.generation_count || 1} / 3
-                    </p>
-                  </div>
                 </div>
-
-                {(nftData.metadata?.generation_count || 1) < 3 && (
-                  <Button
-                    onClick={generateNFT}
-                    disabled={isGenerating}
-                    className="w-full"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                        Regenerating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="mr-2 h-5 w-5" />
-                        Regenerate Avatar ({3 - (nftData.metadata?.generation_count || 1)} left)
-                      </>
-                    )}
-                  </Button>
-                )}
 
                 {!hasMinted && (
                   <Button
@@ -337,7 +331,7 @@ export const NFTSection = () => {
                     ) : (
                       <>
                         <Sparkles className="mr-2 h-5 w-5" />
-                        Mint as NFT on Base
+                        Mint as NFT on Base (0.0002 ETH)
                       </>
                     )}
                   </Button>
