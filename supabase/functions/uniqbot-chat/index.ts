@@ -45,16 +45,25 @@ serve(async (req) => {
       contextInfo += `\n=== USER PROGRESS DATA ===\n`;
       
       if (userData.points) {
-        contextInfo += `Total UP Points: ${userData.points.total_points}\n`;
-        contextInfo += `Daily Streak: ${userData.points.daily_streak} days\n`;
-        contextInfo += `Weekly Streak: ${userData.points.weekly_streak} weeks\n`;
-        contextInfo += `Monthly Streak: ${userData.points.monthly_streak} months\n`;
+        const totalPoints = userData.points.total_points || 0;
+        const dailyStreak = userData.points.daily_streak || 0;
+        const weeklyStreak = userData.points.weekly_streak || 0;
+        const monthlyStreak = userData.points.monthly_streak || 0;
+        
+        contextInfo += `Total UP Points: ${totalPoints}\n`;
+        contextInfo += `Daily Streak: ${dailyStreak} ${dailyStreak === 1 ? 'day' : 'days'}\n`;
+        contextInfo += `Weekly Streak: ${weeklyStreak} ${weeklyStreak === 1 ? 'week' : 'weeks'}\n`;
+        contextInfo += `Monthly Streak: ${monthlyStreak} ${monthlyStreak === 1 ? 'month' : 'months'}\n`;
       }
       
       if (userData.streak) {
-        contextInfo += `Current Learning Streak: ${userData.streak.current_streak} days\n`;
-        contextInfo += `Longest Learning Streak: ${userData.streak.longest_streak} days\n`;
-        contextInfo += `Total Modules Completed: ${userData.streak.total_modules_completed}\n`;
+        const currentStreak = userData.streak.current_streak || 0;
+        const longestStreak = userData.streak.longest_streak || 0;
+        const totalModules = userData.streak.total_modules_completed || 0;
+        
+        contextInfo += `Current Learning Streak: ${currentStreak} ${currentStreak === 1 ? 'day' : 'days'}\n`;
+        contextInfo += `Longest Learning Streak: ${longestStreak} ${longestStreak === 1 ? 'day' : 'days'}\n`;
+        contextInfo += `Total Modules Completed: ${totalModules}\n`;
       }
       
       if (userData.enrollments && userData.enrollments.length > 0) {
@@ -63,9 +72,11 @@ serve(async (req) => {
         if (courseNames.length > 0) {
           contextInfo += `Course Names: ${courseNames.join(', ')}\n`;
         }
+      } else {
+        contextInfo += `Enrolled Courses: 0\n`;
       }
       
-      if (userData.completedModules) {
+      if (userData.completedModules !== undefined) {
         contextInfo += `Completed Modules: ${userData.completedModules}\n`;
       }
       

@@ -75,12 +75,21 @@ export const UniqBot = () => {
       }
     };
 
+    // Check hash on mount and changes
+    const updateFromHash = () => {
+      const hash = window.location.hash.replace('#', '') || 'home';
+      setCurrentPage(hash.toLowerCase());
+    };
+
+    updateFromHash();
     window.addEventListener('navigate', handleNavigation);
     window.addEventListener('navigateToSection', handleNavigation);
+    window.addEventListener('hashchange', updateFromHash);
 
     return () => {
       window.removeEventListener('navigate', handleNavigation);
       window.removeEventListener('navigateToSection', handleNavigation);
+      window.removeEventListener('hashchange', updateFromHash);
     };
   }, []);
 
