@@ -123,41 +123,37 @@ export const MARKETPLACE_CONTRACT_ABI = [
 // Certificate NFT Contract ABI
 export const CERTIFICATE_CONTRACT_ABI = [
   {
-    inputs: [
-      { name: 'recipient', type: 'address' },
-      { name: 'courseId', type: 'string' },
-      { name: 'courseName', type: 'string' },
-      { name: 'certificateId', type: 'string' },
-      { name: 'tokenURI', type: 'string' }
-    ],
+    inputs: [{ name: 'tokenURI', type: 'string' }],
     name: 'mintCertificate',
-    outputs: [{ name: '', type: 'uint256' }],
+    outputs: [],
     stateMutability: 'payable',
     type: 'function',
   },
   {
-    inputs: [{ name: 'tokenId', type: 'uint256' }],
-    name: 'getCertificate',
-    outputs: [
-      {
-        components: [
-          { name: 'recipient', type: 'address' },
-          { name: 'courseId', type: 'string' },
-          { name: 'courseName', type: 'string' },
-          { name: 'issuedAt', type: 'uint256' },
-          { name: 'certificateId', type: 'string' }
-        ],
-        name: '',
-        type: 'tuple'
-      }
-    ],
+    inputs: [{ name: 'user', type: 'address' }],
+    name: 'hasUserMinted',
+    outputs: [{ name: '', type: 'bool' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
-    inputs: [{ name: 'user', type: 'address' }, { name: 'courseId', type: 'string' }],
-    name: 'hasCertificate',
-    outputs: [{ name: '', type: 'bool' }],
+    inputs: [{ name: 'user', type: 'address' }],
+    name: 'getUserTokenId',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'totalMinted',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'MINT_PRICE',
+    outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',
   },
@@ -205,11 +201,11 @@ export const UNIQUE_NFT_ABI = [
 // Contract Addresses on Base Mainnet
 export const COURSE_CONTRACT_ADDRESS = '0x237b0cdC89A75B329f1b650D844F20497698a48A' as const;
 export const MARKETPLACE_CONTRACT_ADDRESS = '0x08A8A1E3E9E74005f764f449C62FCEdC5f3E9421' as const;
-export const CERTIFICATE_CONTRACT_ADDRESS = '0x3b224A9254ebdB475CDbC12693a1F33Db9E12105' as const;
+export const CERTIFICATE_CONTRACT_ADDRESS = '0x14c3899962C0E8C89e4903c9d1035a54190b18fF' as const;
 export const UNIQUE_NFT_ADDRESS = '0xA4a6AEC95Ffee4F0d2551dC12B63F3ebf45097c7' as const;
 export const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
 export const LISTING_FEE = 100000n; // 0.1 USDC (6 decimals)
 export const FREE_COURSE_FEE = 100000000000n; // 0.0000001 ETH
 export const MARKETPLACE_LISTING_FEE = 100000n; // 0.1 USDC (6 decimals)
-export const CERTIFICATE_MINT_FEE = 100000000000n; // 0.0000001 ETH
+export const CERTIFICATE_MINT_FEE = 3000000000000n; // 0.000003 ETH
 export const NFT_MINT_PRICE = 200000n; // 0.2 USDC (6 decimals)
