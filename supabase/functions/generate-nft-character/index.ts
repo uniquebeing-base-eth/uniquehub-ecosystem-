@@ -135,6 +135,8 @@ serve(async (req) => {
           prompt: prompt,
           generation_count: newCount
         }
+      }, {
+        onConflict: 'user_id'
       })
       .select()
       .single();
