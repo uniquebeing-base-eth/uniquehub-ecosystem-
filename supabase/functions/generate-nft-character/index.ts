@@ -32,11 +32,26 @@ serve(async (req) => {
 
     console.log('Generating NFT for user:', user.id);
 
-    // Delete any existing NFT generation to allow re-generation with new contract
-    await supabase
+    // Check existing generation count (max 3: original + 2 regenerations)
+    const { data: existingNFT } = await supabase
       .from('user_nft_generations')
-      .delete()
-      .eq('user_id', user.id);
+      .select('metadata')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    const currentCount = (existingNFT?.metadata as any)?.generation_count || 0;
+    
+    if (currentCount >= 3) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Generation limit reached. You can only generate 3 times (1 original + 2 regenerations).'
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     // Get user profile for gender detection
     const { data: profile } = await supabase
@@ -106,25 +121,27 @@ serve(async (req) => {
       throw new Error('No image URL in AI response');
     }
 
-    // Store in database
-    const { data: nftData, error: insertError } = await supabase
+    // Store or update in database with incremented generation count
+    const newCount = currentCount + 1;
+    const { data: nftData, error: upsertError } = await supabase
       .from('user_nft_generations')
-      .insert({
+      .upsert({
         user_id: user.id,
         image_url: imageUrl,
         metadata: {
           display_name: displayName,
           hair_style: hairStyle,
           generated_at: new Date().toISOString(),
-          prompt: prompt
+          prompt: prompt,
+          generation_count: newCount
         }
       })
       .select()
       .single();
 
-    if (insertError) {
-      console.error('Database insert error:', insertError);
-      throw insertError;
+    if (upsertError) {
+      console.error('Database upsert error:', upsertError);
+      throw upsertError;
     }
 
     console.log('NFT generation complete for user:', user.id);
