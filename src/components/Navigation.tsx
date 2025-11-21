@@ -11,6 +11,7 @@ const tabs = [
   { id: "earning", label: "Earn" },
   { id: "marketplace", label: "Market" },
   { id: "courses", label: "Courses" },
+  { id: "quest", label: "Quest" },
   { id: "nft", label: "Unique NFTs" },
   { id: "profile", label: "Profile" },
   { id: "tutor", label: "Tutor" },

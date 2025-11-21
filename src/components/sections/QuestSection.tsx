@@ -1,6 +1,20 @@
-import { Trophy } from "lucide-react";
+import { useState } from "react";
+import { BookOpen, Trophy } from "lucide-react";
+import { LearningHub } from "@/components/quest/LearningHub";
+import { LearningPool } from "@/components/quest/LearningPool";
+import { CourseCard } from "@/components/CourseCard";
 
 export const QuestSection = () => {
+  const [activeView, setActiveView] = useState<"menu" | "learning-hub" | "learning-pool">("menu");
+
+  if (activeView === "learning-hub") {
+    return <LearningHub onBack={() => setActiveView("menu")} />;
+  }
+
+  if (activeView === "learning-pool") {
+    return <LearningPool onBack={() => setActiveView("menu")} />;
+  }
+
   return (
     <div className="min-h-screen bg-background p-4 pb-24 relative overflow-hidden">
       {/* Background with anime aesthetic */}
@@ -14,19 +28,28 @@ export const QuestSection = () => {
       />
       
       {/* Content */}
-      <div className="relative z-10 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-6rem)]">
-        <div className="text-center animate-fade-in backdrop-blur-md bg-card/50 p-8 rounded-2xl border-2 border-primary/30">
-          <Trophy className="w-20 h-20 mx-auto mb-4 text-primary animate-pulse" />
+      <div className="relative z-10 max-w-2xl mx-auto">
+        <div className="text-center mb-8 animate-fade-in">
+          <Trophy className="w-16 h-16 mx-auto mb-4 text-primary" />
           <h1 className="text-4xl font-bold mb-3 text-primary">Quest Hub</h1>
-          <p className="text-lg text-muted-foreground mb-6">
-            Epic learning adventures await
+          <p className="text-lg text-muted-foreground">
+            Choose your learning adventure
           </p>
-          <div className="inline-block px-6 py-3 rounded-full bg-primary/20 border border-primary/50">
-            <span className="text-xl font-bold text-primary">Coming Soon</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div onClick={() => setActiveView("learning-hub")} className="cursor-pointer">
+            <CourseCard
+              title="Learning Hub"
+              icon={<BookOpen className="w-full h-full" />}
+            />
           </div>
-          <p className="text-sm text-muted-foreground mt-4 max-w-md">
-            We're crafting an amazing learning experience with daily streaks, rewards, and competitions. Stay tuned!
-          </p>
+          <div onClick={() => setActiveView("learning-pool")} className="cursor-pointer">
+            <CourseCard
+              title="Learning Pool"
+              icon={<Trophy className="w-full h-full" />}
+            />
+          </div>
         </div>
       </div>
     </div>
