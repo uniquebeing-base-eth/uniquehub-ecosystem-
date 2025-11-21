@@ -165,7 +165,7 @@ export const UNIQUE_NFT_ABI = [
     inputs: [{ name: '_tokenURI', type: 'string' }],
     name: 'mintAvatar',
     outputs: [],
-    stateMutability: 'nonpayable',
+    stateMutability: 'payable',
     type: 'function',
   },
   {
