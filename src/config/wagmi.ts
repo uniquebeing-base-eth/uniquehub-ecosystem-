@@ -191,7 +191,7 @@ export const UNIQUE_NFT_ABI = [
   },
   {
     inputs: [],
-    name: 'MINT_PRICE',
+    name: 'getCurrentPrice',
     outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',
