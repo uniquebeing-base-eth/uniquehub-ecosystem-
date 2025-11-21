@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, GraduationCap, Info, Mail, BookOpen, Trophy } from "lucide-react";
+import { Menu, GraduationCap, Info, Mail, BookOpen, Trophy, Wallet } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -14,7 +14,7 @@ export const HamburgerMenu = ({ onNavigate }: HamburgerMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { id: "quest", icon: Trophy, label: "Quest" },
+    { id: "earning", icon: Wallet, label: "Wallet" },
     { id: "nft", icon: GraduationCap, label: "Unique NFTs" },
     { id: "certificates", icon: GraduationCap, label: "Certificates" },
     { id: "leaderboard", icon: Trophy, label: "Leaderboard" },
