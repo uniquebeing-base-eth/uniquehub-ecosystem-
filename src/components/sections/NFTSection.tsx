@@ -173,38 +173,37 @@ export const NFTSection = () => {
 
     setIsMinting(true);
     try {
-      // Get current price from contract
-      const currentPrice = await publicClient.readContract({
-        address: UNIQUE_NFT_ADDRESS,
-        abi: UNIQUE_NFT_ABI,
-        functionName: "getCurrentPrice",
-      } as any) as bigint;
+      console.log("Starting mint process...");
+      console.log("Contract address:", UNIQUE_NFT_ADDRESS);
+      console.log("User address:", address);
+      
+      // Use base price: 0.0002 ETH
+      const mintPrice = 200000000000000n; // 0.0002 ETH in wei
+      console.log("Mint price:", mintPrice.toString());
 
-      console.log("Minting with price:", currentPrice.toString());
-
-      // Use the image URL as the token URI
       const tokenURI = nftData.image_url;
+      console.log("Token URI:", tokenURI);
 
       const hash = await walletClient.writeContract({
         address: UNIQUE_NFT_ADDRESS,
         abi: UNIQUE_NFT_ABI,
         functionName: "mintAvatar",
         args: [tokenURI],
-        value: currentPrice,
+        value: mintPrice,
         chain: base,
         account: address,
       } as any);
 
+      console.log("Transaction hash:", hash);
       toast.success("Minting transaction submitted!");
 
       await publicClient.waitForTransactionReceipt({ hash });
       toast.success("NFT minted successfully!");
 
-      // Refresh mint status
       await checkMintStatus();
     } catch (error: any) {
-      console.error("Error minting NFT:", error);
-      toast.error(error.message || "Failed to mint NFT");
+      console.error("Full mint error:", error);
+      toast.error(error.shortMessage || error.message || "Failed to mint NFT");
     } finally {
       setIsMinting(false);
     }
