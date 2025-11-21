@@ -53,8 +53,11 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
   const [completing, setCompleting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [viewState, setViewState] = useState<'lesson' | 'quiz' | 'complete'>('lesson');
-  const [userAnswers, setUserAnswers] = useState<number[]>([]);
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [wrongAnswersCount, setWrongAnswersCount] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
+  const [finalScore, setFinalScore] = useState(100);
 
   useEffect(() => {
     if (user) {
@@ -110,7 +113,7 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
         user_id: user.id,
         module_id: module.id,
         course_id: course.id,
-        points_earned: module.points_reward,
+        points_earned: finalScore,
       });
 
     if (error) {
@@ -123,8 +126,8 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
     } else {
       // Success animation
       setCompletedModules(prev => new Set([...prev, module.id]));
-      toast.success(`🎉 Module completed! +${module.points_reward} UP points`, {
-        description: "You've earned today's streak!",
+      toast.success(`🎉 Module completed! +${finalScore} UP points`, {
+        description: "Keep up the great work!",
       });
     }
 
@@ -138,42 +141,46 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
     return completedModules.has(modules.find(m => m.module_number === moduleNumber - 1)?.id || '');
   };
 
-  const handleQuizAnswer = (questionIndex: number, answerIndex: number) => {
-    const newAnswers = [...userAnswers];
-    newAnswers[questionIndex] = answerIndex;
-    setUserAnswers(newAnswers);
+  const handleAnswerSubmit = () => {
+    if (!selectedModule?.content?.quiz || selectedAnswer === null) return;
+
+    const currentQuestion = selectedModule.content.quiz[currentQuestionIndex];
+    const isCorrect = currentQuestion.correct === selectedAnswer;
+
+    if (!isCorrect) {
+      setWrongAnswersCount(prev => prev + 1);
+      setShowCorrectAnswer(true);
+    } else {
+      // Move to next question or complete
+      handleNextQuestion();
+    }
   };
 
-  const handleSubmitQuiz = () => {
+  const handleNextQuestion = () => {
     if (!selectedModule?.content?.quiz) return;
-    
-    const allAnswered = userAnswers.length === selectedModule.content.quiz.length;
-    if (!allAnswered) {
-      toast.error("Please answer all questions");
-      return;
-    }
 
-    const correctAnswers = selectedModule.content.quiz.filter(
-      (q, i) => q.correct === userAnswers[i]
-    ).length;
+    setSelectedAnswer(null);
+    setShowCorrectAnswer(false);
 
-    const passed = correctAnswers >= Math.ceil(selectedModule.content.quiz.length * 0.7);
-    
-    if (passed) {
-      setQuizSubmitted(true);
-      setViewState('complete');
-      toast.success(`Great job! You got ${correctAnswers}/${selectedModule.content.quiz.length} correct!`);
+    if (currentQuestionIndex < selectedModule.content.quiz.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
     } else {
-      toast.error(`You need at least ${Math.ceil(selectedModule.content.quiz.length * 0.7)} correct answers. Try again!`);
-      setUserAnswers([]);
+      // Quiz complete
+      const score = 100 - (wrongAnswersCount * 10);
+      setFinalScore(score);
+      setViewState('complete');
+      toast.success(`Quiz complete! Score: ${score} points`);
     }
   };
 
   const resetModuleView = () => {
     setSelectedModule(null);
     setViewState('lesson');
-    setUserAnswers([]);
-    setQuizSubmitted(false);
+    setCurrentQuestionIndex(0);
+    setWrongAnswersCount(0);
+    setSelectedAnswer(null);
+    setShowCorrectAnswer(false);
+    setFinalScore(100);
   };
 
   if (selectedModule) {
@@ -217,6 +224,10 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
 
     // Quiz View
     if (viewState === 'quiz' && content?.quiz) {
+      const currentQuestion = content.quiz[currentQuestionIndex];
+      const totalQuestions = content.quiz.length;
+      const currentScore = 100 - (wrongAnswersCount * 10);
+
       return (
         <div className="min-h-screen bg-background">
           <div className="max-w-3xl mx-auto p-6">
@@ -226,42 +237,79 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
             </Button>
 
             <Card className="p-8 bg-gradient-card border-2">
-              <h2 className="text-2xl font-bold mb-6">Quiz Time! 📝</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">Quiz Time! 📝</h2>
+                <div className="text-sm text-muted-foreground">
+                  Question {currentQuestionIndex + 1} of {totalQuestions}
+                </div>
+              </div>
+
+              <div className="mb-6 p-4 bg-primary/10 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Current Score:</span>
+                  <span className="text-xl font-bold text-primary">{currentScore} points</span>
+                </div>
+              </div>
 
               <div className="space-y-6 mb-8">
-                {content.quiz.map((question, qIndex) => (
-                  <div key={qIndex} className="space-y-3">
-                    <p className="font-semibold text-lg">
-                      {qIndex + 1}. {question.question}
-                    </p>
-                    <div className="space-y-2">
-                      {question.options.map((option, oIndex) => (
-                        <button
-                          key={oIndex}
-                          onClick={() => handleQuizAnswer(qIndex, oIndex)}
-                          className={`
-                            w-full p-4 text-left rounded-lg border-2 transition-all
-                            ${userAnswers[qIndex] === oIndex
-                              ? 'bg-primary/20 border-primary'
-                              : 'bg-card border-border hover:border-primary/50'
-                            }
-                          `}
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                <p className="font-semibold text-xl">
+                  {currentQuestion.question}
+                </p>
+                <div className="space-y-3">
+                  {currentQuestion.options.map((option, oIndex) => {
+                    const isSelected = selectedAnswer === oIndex;
+                    const isCorrect = currentQuestion.correct === oIndex;
+                    const showResult = showCorrectAnswer;
+
+                    return (
+                      <button
+                        key={oIndex}
+                        onClick={() => !showCorrectAnswer && setSelectedAnswer(oIndex)}
+                        disabled={showCorrectAnswer}
+                        className={`
+                          w-full p-4 text-left rounded-lg border-2 transition-all
+                          ${showResult && isCorrect
+                            ? 'bg-green-500/20 border-green-500'
+                            : showResult && isSelected && !isCorrect
+                              ? 'bg-red-500/20 border-red-500'
+                              : isSelected
+                                ? 'bg-primary/20 border-primary'
+                                : 'bg-card border-border hover:border-primary/50'
+                          }
+                          ${showCorrectAnswer ? 'cursor-not-allowed' : ''}
+                        `}
+                      >
+                        {option}
+                        {showResult && isCorrect && (
+                          <span className="ml-2 text-green-500">✓ Correct Answer</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
+
+              {showCorrectAnswer && (
+                <div className="mb-6 p-4 bg-red-500/10 border-2 border-red-500/30 rounded-lg">
+                  <p className="text-red-400 font-semibold mb-2">Incorrect! -10 points</p>
+                  <p className="text-sm text-muted-foreground">
+                    The correct answer is highlighted above. Review it before continuing.
+                  </p>
+                </div>
+              )}
 
               <Button 
                 size="lg" 
-                onClick={handleSubmitQuiz}
-                disabled={userAnswers.length !== content.quiz.length}
+                onClick={showCorrectAnswer ? handleNextQuestion : handleAnswerSubmit}
+                disabled={selectedAnswer === null && !showCorrectAnswer}
                 className="w-full"
               >
-                Submit Quiz
+                {showCorrectAnswer 
+                  ? currentQuestionIndex < totalQuestions - 1 
+                    ? 'Next Question' 
+                    : 'Complete Quiz'
+                  : 'Submit Answer'
+                }
               </Button>
             </Card>
           </div>
@@ -275,11 +323,21 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
         <div className="min-h-screen bg-background flex items-center justify-center p-6">
           <div className="max-w-2xl w-full">
             <div className="bg-gradient-to-br from-primary/20 to-accent/20 p-12 rounded-3xl border-2 border-primary/30 text-center animate-scale-in">
-              <Star className="w-24 h-24 mx-auto mb-6 text-primary animate-pulse" />
-              <h2 className="text-3xl font-bold mb-4">{selectedModule.title}</h2>
-              <p className="text-muted-foreground mb-8 text-lg">
-                Complete this module to earn {selectedModule.points_reward} UP points
-              </p>
+              <Trophy className="w-24 h-24 mx-auto mb-6 text-primary animate-pulse" />
+              <h2 className="text-3xl font-bold mb-4">Module Complete! 🎉</h2>
+              <div className="mb-8">
+                <p className="text-muted-foreground mb-4 text-lg">
+                  {selectedModule.title}
+                </p>
+                <div className="text-5xl font-bold text-primary mb-2">
+                  {finalScore} Points
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {wrongAnswersCount > 0 
+                    ? `${wrongAnswersCount} wrong answer${wrongAnswersCount > 1 ? 's' : ''} (-${wrongAnswersCount * 10} points)`
+                    : 'Perfect score!'}
+                </p>
+              </div>
               
               <div className="space-y-4">
                 <Button
