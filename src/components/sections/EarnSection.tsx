@@ -267,19 +267,28 @@ export const EarnSection = () => {
         task.id === 'read-blog-meet-uniqbot' ||
         task.id === 'read-blog-blue-energy-nfts' ||
         task.id === 'read-blog-creativity-campaign') {
-      // Navigate to blog section
-      const event = new CustomEvent('navigateToSection', { detail: 'blog' });
-      window.dispatchEvent(event);
       
+      // First click - open blog section
+      if (!clickedTasks.includes(task.id)) {
+        setClickedTasks(prev => [...prev, task.id]);
+        
+        // Navigate to blog section
+        const event = new CustomEvent('navigateToSection', { detail: 'blog' });
+        window.dispatchEvent(event);
+        
+        toast({
+          title: "Opening blog section",
+          description: "Read the article, then come back and click Complete again",
+        });
+        return;
+      }
+      
+      // Second click - mark as verified and ready to claim
+      setVerifiedTasks(prev => [...prev, task.id]);
       toast({
-        title: "Opening blog section",
-        description: "Read the article, then come back to claim points",
+        title: "Verified! ✓",
+        description: "Click 'Claim Points' to receive your reward",
       });
-      
-      // Mark as ready to claim after user returns
-      setTimeout(() => {
-        setVerifiedTasks(prev => [...prev, task.id]);
-      }, 2000);
       return;
     }
 
