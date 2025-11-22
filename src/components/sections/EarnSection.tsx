@@ -451,7 +451,7 @@ export const EarnSection = () => {
   };
 
   const handleClaimPoints = async (task: Task) => {
-    if (!user || !address || !walletClient) {
+    if (!user || !address || !walletClient || !publicClient) {
       toast({
         title: "Wallet required",
         description: "Please connect your wallet to claim points",
@@ -463,9 +463,14 @@ export const EarnSection = () => {
     setLoading(task.id);
 
     try {
-      console.log(`Claiming points on-chain for task: ${task.id}`);
+      console.log(`Starting claim process for task: ${task.id}`);
       
-      // Call the smart contract to claim points
+      // Step 1: Call the smart contract to claim points on-chain
+      toast({
+        title: "Preparing transaction",
+        description: "Please confirm in your wallet...",
+      });
+
       const hash = await walletClient.writeContract({
         address: EARN_POINTS_CLAIM_ADDRESS,
         abi: EARN_POINTS_CLAIM_ABI,
@@ -476,79 +481,93 @@ export const EarnSection = () => {
         account: address,
       });
 
+      console.log(`Transaction submitted: ${hash}`);
+
       toast({
         title: "Transaction submitted",
-        description: "Waiting for confirmation...",
+        description: "Waiting for blockchain confirmation...",
       });
 
-      // Wait for transaction confirmation
-      const receipt = await publicClient!.waitForTransactionReceipt({ hash });
+      // Step 2: Wait for transaction confirmation
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
-      if (receipt.status === 'success') {
-        console.log('On-chain claim successful, calling backend...');
-        
-        // Now call the backend to record the completion
-        const { data, error } = await supabase.functions.invoke('complete-task', {
-          body: { taskId: task.id },
-        });
+      console.log(`Transaction receipt:`, receipt);
 
-        if (error) throw error;
-
-        if (data?.success) {
-          setCompletedTasks(prev => [...prev, task.id]);
-          // Clear from verified and clicked tasks
-          setVerifiedTasks(prev => {
-            const updated = prev.filter(id => id !== task.id);
-            localStorage.setItem('verifiedTasks', JSON.stringify(updated));
-            return updated;
-          });
-          setClickedTasks(prev => {
-            const updated = prev.filter(id => id !== task.id);
-            localStorage.setItem('clickedTasks', JSON.stringify(updated));
-            return updated;
-          });
-          
-          const newTotalPoints = totalPoints + data.pointsAwarded;
-          setTotalPoints(newTotalPoints);
-          setLastClaimedPoints(data.pointsAwarded);
-          
-          await loadUserPoints();
-          
-          toast({
-            title: "Points claimed! 🎉",
-            description: `You earned ${data.pointsAwarded} UP points`,
-          });
-
-          setShowShareDialog(true);
-        } else {
-          toast({
-            title: "Backend update failed",
-            description: data?.message || "Points claimed on-chain but backend update failed",
-            variant: "destructive",
-          });
-        }
-      } else {
-        throw new Error('Transaction failed');
+      // Step 3: Only proceed if transaction succeeded on-chain
+      if (receipt.status !== 'success') {
+        throw new Error('Transaction failed on blockchain');
       }
+
+      console.log('✅ On-chain claim successful, recording in backend...');
+        
+      // Step 4: Call backend ONLY after on-chain success
+      const { data, error } = await supabase.functions.invoke('complete-task', {
+        body: { 
+          taskId: task.id,
+          transactionHash: hash,
+        },
+      });
+
+      if (error) {
+        console.error('Backend error:', error);
+        throw error;
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.message || 'Backend failed to record completion');
+      }
+
+      // Step 5: Only mark as complete after BOTH on-chain AND backend success
+      console.log('✅ Backend recorded successfully, updating UI...');
+      
+      setCompletedTasks(prev => [...prev, task.id]);
+      
+      // Clear from verified and clicked tasks
+      setVerifiedTasks(prev => {
+        const updated = prev.filter(id => id !== task.id);
+        localStorage.setItem('verifiedTasks', JSON.stringify(updated));
+        return updated;
+      });
+      setClickedTasks(prev => {
+        const updated = prev.filter(id => id !== task.id);
+        localStorage.setItem('clickedTasks', JSON.stringify(updated));
+        return updated;
+      });
+      
+      const newTotalPoints = totalPoints + data.pointsAwarded;
+      setTotalPoints(newTotalPoints);
+      setLastClaimedPoints(data.pointsAwarded);
+      
+      await loadUserPoints();
+      
+      toast({
+        title: "Success! 🎉",
+        description: `You earned ${data.pointsAwarded} UP points`,
+      });
+
+      setShowShareDialog(true);
+
     } catch (error: any) {
-      console.error('Error claiming points:', error);
+      console.error('❌ Error in claim process:', error);
       
       let errorMessage = "Failed to claim points. Please try again.";
       
       if (error.message) {
-        if (error.message.includes('User rejected')) {
-          errorMessage = "Transaction cancelled";
-        } else if (error.message.includes('already completed')) {
-          errorMessage = "You've already completed this task.";
-        } else if (error.message.includes('Points already claimed')) {
-          errorMessage = "Points already claimed for this task.";
+        if (error.message.includes('User rejected') || error.message.includes('User denied')) {
+          errorMessage = "Transaction cancelled by user";
+        } else if (error.message.includes('already completed') || error.message.includes('already claimed')) {
+          errorMessage = "You've already claimed this task";
+          // If already claimed on-chain, reload completed tasks from database
+          await loadCompletedTasks();
+        } else if (error.message.includes('insufficient funds')) {
+          errorMessage = "Insufficient ETH for transaction fee";
         } else {
           errorMessage = error.message;
         }
       }
       
       toast({
-        title: "Error",
+        title: "Claim Failed",
         description: errorMessage,
         variant: "destructive",
       });
