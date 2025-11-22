@@ -369,8 +369,10 @@ export const BlogSection = () => {
       'education-in-web3': 'read-blog-education',
       'web3-terms-definitions': 'read-blog-web3-terms',
       'about-uniquehub': 'read-blog-about-uniquehub',
-      'uniquehub-features-updates': 'read-blog-features-updates',
-      'meet-uniqbot': 'read-blog-uniqbot',
+      'uniquehub-features-updates': 'read-blog-uniquehub-features',
+      'meet-uniqbot': 'read-blog-meet-uniqbot',
+      'blue-energy-nfts': 'read-blog-blue-energy-nfts',
+      'creativity-campaign': 'read-blog-creativity-campaign',
     };
 
     const taskId = taskIdMap[articleId];
