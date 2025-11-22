@@ -75,6 +75,54 @@ export const EarnSection = () => {
       type: 'app',
     },
     {
+      id: "read-blog-web3-terms",
+      title: "Read Web3 Terms & Definitions",
+      description: "Master essential Web3 terminology",
+      points: 100,
+      icon: BookOpen,
+      type: 'app',
+    },
+    {
+      id: "read-blog-about-uniquehub",
+      title: "Read About UniqueHub",
+      description: "Discover the UniqueHub ecosystem",
+      points: 100,
+      icon: BookOpen,
+      type: 'app',
+    },
+    {
+      id: "read-blog-uniquehub-features",
+      title: "Read UniqueHub Features",
+      description: "Explore platform features and updates",
+      points: 100,
+      icon: BookOpen,
+      type: 'app',
+    },
+    {
+      id: "read-blog-meet-uniqbot",
+      title: "Read Meet UniqBot",
+      description: "Learn about your AI assistant",
+      points: 100,
+      icon: BookOpen,
+      type: 'app',
+    },
+    {
+      id: "read-blog-blue-energy-nfts",
+      title: "Read Blue Energy NFTs",
+      description: "Discover UniqueHub avatars",
+      points: 100,
+      icon: BookOpen,
+      type: 'app',
+    },
+    {
+      id: "read-blog-creativity-campaign",
+      title: "Read Creativity Campaign",
+      description: "Join the creativity challenge",
+      points: 100,
+      icon: BookOpen,
+      type: 'app',
+    },
+    {
       id: "finish-1-course",
       title: "Finish 1 Course",
       description: "Complete your first course",
@@ -194,7 +242,14 @@ export const EarnSection = () => {
     }
 
     // Handle blog reading tasks - navigate to blog section
-    if (task.id === 'read-blog-web3' || task.id === 'read-blog-education') {
+    if (task.id === 'read-blog-web3' || 
+        task.id === 'read-blog-education' ||
+        task.id === 'read-blog-web3-terms' ||
+        task.id === 'read-blog-about-uniquehub' ||
+        task.id === 'read-blog-uniquehub-features' ||
+        task.id === 'read-blog-meet-uniqbot' ||
+        task.id === 'read-blog-blue-energy-nfts' ||
+        task.id === 'read-blog-creativity-campaign') {
       // Navigate to blog section
       const event = new CustomEvent('navigateToSection', { detail: 'blog' });
       window.dispatchEvent(event);
