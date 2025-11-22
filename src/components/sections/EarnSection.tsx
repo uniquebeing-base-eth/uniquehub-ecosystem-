@@ -270,21 +270,29 @@ export const EarnSection = () => {
       
       // First click - open blog section
       if (!clickedTasks.includes(task.id)) {
-        setClickedTasks(prev => [...prev, task.id]);
-        
-        // Navigate to blog section
-        const event = new CustomEvent('navigateToSection', { detail: 'blog' });
-        window.dispatchEvent(event);
+        // Update localStorage immediately before navigation
+        const updated = [...clickedTasks, task.id];
+        localStorage.setItem('clickedTasks', JSON.stringify(updated));
+        setClickedTasks(updated);
         
         toast({
           title: "Opening blog section",
           description: "Read the article, then come back and click Complete again",
         });
+        
+        // Navigate to blog section after a short delay to ensure state is saved
+        setTimeout(() => {
+          const event = new CustomEvent('navigateToSection', { detail: 'blog' });
+          window.dispatchEvent(event);
+        }, 100);
         return;
       }
       
       // Second click - mark as verified and ready to claim
-      setVerifiedTasks(prev => [...prev, task.id]);
+      const updatedVerified = [...verifiedTasks, task.id];
+      localStorage.setItem('verifiedTasks', JSON.stringify(updatedVerified));
+      setVerifiedTasks(updatedVerified);
+      
       toast({
         title: "Verified! ✓",
         description: "Click 'Claim Points' to receive your reward",
