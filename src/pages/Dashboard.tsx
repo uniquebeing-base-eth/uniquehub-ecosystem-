@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useAccount } from "wagmi";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { HamburgerMenu } from "@/components/HamburgerMenu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,7 +19,8 @@ import { QuestSection } from "@/components/sections/QuestSection";
 import { Leaderboard } from "@/components/Leaderboard";
 import { MiniAppPrompt } from "@/components/MiniAppPrompt";
 import { UniqBot } from "@/components/UniqBot";
-import { WalletLogin } from "@/components/WalletLogin";
+import { AuthPage } from "@/components/AuthPage";
+import { PWAInstall } from "@/components/PWAInstall";
 import cubeLogo from "@/assets/uniquehub-cube.png";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -28,7 +28,6 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const { user, loading } = useAuth();
-  const { isConnected } = useAccount();
 
   // Toggle theme
   const toggleTheme = () => {
@@ -88,9 +87,9 @@ const Dashboard = () => {
     };
   }, []);
 
-  // Show wallet login if not connected
-  if (!isConnected) {
-    return <WalletLogin />;
+  // Show auth page if not signed in
+  if (!user) {
+    return <AuthPage />;
   }
 
   if (loading) {
@@ -206,6 +205,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen flex flex-col anime-bg-main">
+      <PWAInstall />
       <MiniAppPrompt />
       <UniqBot />
       <div className="flex-1 mx-auto max-w-2xl w-full">
