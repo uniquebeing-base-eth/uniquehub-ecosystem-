@@ -30,8 +30,16 @@ export const EarnSection = () => {
   const { address } = useFarcasterWallet();
   const { publicClient, walletClient } = useViemClients(address);
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
-  const [verifiedTasks, setVerifiedTasks] = useState<string[]>([]); // Tasks verified and ready to claim
-  const [clickedTasks, setClickedTasks] = useState<string[]>([]); // Tasks where user clicked once
+  const [verifiedTasks, setVerifiedTasks] = useState<string[]>(() => {
+    // Load from localStorage on mount
+    const saved = localStorage.getItem('verifiedTasks');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [clickedTasks, setClickedTasks] = useState<string[]>(() => {
+    // Load from localStorage on mount
+    const saved = localStorage.getItem('clickedTasks');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [loading, setLoading] = useState<string | null>(null);
   const [totalPoints, setTotalPoints] = useState(0);
   const [showShareDialog, setShowShareDialog] = useState(false);
@@ -155,6 +163,15 @@ export const EarnSection = () => {
       type: 'app',
     },
   ];
+
+  // Persist verified and clicked tasks to localStorage
+  useEffect(() => {
+    localStorage.setItem('verifiedTasks', JSON.stringify(verifiedTasks));
+  }, [verifiedTasks]);
+
+  useEffect(() => {
+    localStorage.setItem('clickedTasks', JSON.stringify(clickedTasks));
+  }, [clickedTasks]);
 
   useEffect(() => {
     if (user) {
@@ -388,8 +405,17 @@ export const EarnSection = () => {
 
         if (data?.success) {
           setCompletedTasks(prev => [...prev, task.id]);
-          setVerifiedTasks(prev => prev.filter(id => id !== task.id));
-          setClickedTasks(prev => prev.filter(id => id !== task.id));
+          // Clear from verified and clicked tasks
+          setVerifiedTasks(prev => {
+            const updated = prev.filter(id => id !== task.id);
+            localStorage.setItem('verifiedTasks', JSON.stringify(updated));
+            return updated;
+          });
+          setClickedTasks(prev => {
+            const updated = prev.filter(id => id !== task.id);
+            localStorage.setItem('clickedTasks', JSON.stringify(updated));
+            return updated;
+          });
           
           const newTotalPoints = totalPoints + data.pointsAwarded;
           setTotalPoints(newTotalPoints);

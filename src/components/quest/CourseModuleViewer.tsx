@@ -437,7 +437,7 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
                   ) : (
                     <>
                       <Trophy className="w-5 h-5 mr-2" />
-                      Claim {finalScore} Points (0.0000001 ETH)
+                      Claim {finalScore} Points
                     </>
                   )}
                 </Button>
