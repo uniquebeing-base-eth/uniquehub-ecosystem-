@@ -7,6 +7,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { useViemClients } from "@/hooks/useViemClients";
+import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
+import { EARN_POINTS_CLAIM_ABI, EARN_POINTS_CLAIM_ADDRESS, EARN_CLAIM_FEE } from "@/config/wagmi";
+import { base } from "viem/chains";
 import animeEarnBg from '@/assets/anime-earn-bg.jpg';
 import cardBgEarn from '@/assets/card-bg-earn.jpg';
 
@@ -23,6 +27,8 @@ interface Task {
 export const EarnSection = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { address } = useFarcasterWallet();
+  const { publicClient, walletClient } = useViemClients(address);
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
   const [verifiedTasks, setVerifiedTasks] = useState<string[]>([]); // Tasks verified and ready to claim
   const [clickedTasks, setClickedTasks] = useState<string[]>([]); // Tasks where user clicked once
@@ -282,65 +288,88 @@ export const EarnSection = () => {
   };
 
   const handleClaimPoints = async (task: Task) => {
-    if (!user) return;
+    if (!user || !address || !walletClient) {
+      toast({
+        title: "Wallet required",
+        description: "Please connect your wallet to claim points",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(task.id);
 
     try {
-      console.log(`Claiming points for task: ${task.id}`);
+      console.log(`Claiming points on-chain for task: ${task.id}`);
       
-      const { data, error } = await supabase.functions.invoke('complete-task', {
-        body: { taskId: task.id },
+      // Call the smart contract to claim points
+      const hash = await walletClient.writeContract({
+        address: EARN_POINTS_CLAIM_ADDRESS,
+        abi: EARN_POINTS_CLAIM_ABI,
+        functionName: 'claimPoints',
+        args: [task.id, BigInt(task.points)],
+        value: EARN_CLAIM_FEE,
+        chain: base,
+        account: address,
       });
 
-      console.log('Complete task response:', data, error);
+      toast({
+        title: "Transaction submitted",
+        description: "Waiting for confirmation...",
+      });
 
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw error;
-      }
+      // Wait for transaction confirmation
+      const receipt = await publicClient!.waitForTransactionReceipt({ hash });
 
-      if (data?.success) {
-        setCompletedTasks(prev => [...prev, task.id]);
-        setVerifiedTasks(prev => prev.filter(id => id !== task.id));
-        setClickedTasks(prev => prev.filter(id => id !== task.id));
+      if (receipt.status === 'success') {
+        console.log('On-chain claim successful, calling backend...');
         
-        // Update local points state
-        const newTotalPoints = totalPoints + data.pointsAwarded;
-        setTotalPoints(newTotalPoints);
-        setLastClaimedPoints(data.pointsAwarded);
-        
-        // Reload points from DB to ensure accuracy
-        await loadUserPoints();
-        
-        toast({
-          title: "Points claimed! 🎉",
-          description: `You earned ${data.pointsAwarded} UP points`,
+        // Now call the backend to record the completion
+        const { data, error } = await supabase.functions.invoke('complete-task', {
+          body: { taskId: task.id },
         });
 
-        // Show share dialog
-        setShowShareDialog(true);
+        if (error) throw error;
+
+        if (data?.success) {
+          setCompletedTasks(prev => [...prev, task.id]);
+          setVerifiedTasks(prev => prev.filter(id => id !== task.id));
+          setClickedTasks(prev => prev.filter(id => id !== task.id));
+          
+          const newTotalPoints = totalPoints + data.pointsAwarded;
+          setTotalPoints(newTotalPoints);
+          setLastClaimedPoints(data.pointsAwarded);
+          
+          await loadUserPoints();
+          
+          toast({
+            title: "Points claimed! 🎉",
+            description: `You earned ${data.pointsAwarded} UP points`,
+          });
+
+          setShowShareDialog(true);
+        } else {
+          toast({
+            title: "Backend update failed",
+            description: data?.message || "Points claimed on-chain but backend update failed",
+            variant: "destructive",
+          });
+        }
       } else {
-        console.error('Claim failed:', data?.message);
-        toast({
-          title: "Failed to claim",
-          description: data?.message || "Unable to claim points",
-          variant: "destructive",
-        });
+        throw new Error('Transaction failed');
       }
     } catch (error: any) {
       console.error('Error claiming points:', error);
       
-      // Provide more specific error messages
       let errorMessage = "Failed to claim points. Please try again.";
       
       if (error.message) {
-        if (error.message.includes('already completed')) {
+        if (error.message.includes('User rejected')) {
+          errorMessage = "Transaction cancelled";
+        } else if (error.message.includes('already completed')) {
           errorMessage = "You've already completed this task.";
-        } else if (error.message.includes('not completed yet')) {
-          errorMessage = "Please complete the task requirements first.";
-        } else if (error.message.includes('Invalid task')) {
-          errorMessage = "Task verification failed. Please try again.";
+        } else if (error.message.includes('Points already claimed')) {
+          errorMessage = "Points already claimed for this task.";
         } else {
           errorMessage = error.message;
         }
