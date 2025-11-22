@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+
 interface BlogArticle {
   id: string;
   title: string;
@@ -23,6 +24,7 @@ interface BlogArticle {
   category: string;
   readTime: string;
 }
+
 
 const articles: BlogArticle[] = [
   {
