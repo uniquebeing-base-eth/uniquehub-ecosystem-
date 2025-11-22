@@ -28,7 +28,18 @@ Deno.serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { taskId } = await req.json();
+    const { taskId, transactionHash } = await req.json();
+
+    // Validate that transaction hash is provided for on-chain claims
+    if (!transactionHash) {
+      console.error('No transaction hash provided');
+      return new Response(
+        JSON.stringify({ success: false, message: 'Transaction hash required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    console.log(`Processing task ${taskId} with tx hash: ${transactionHash}`);
 
     // Check if task already completed
     const { data: existingTask } = await supabase
@@ -148,7 +159,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Record task completion
+    // Record task completion with transaction hash
     const { error: taskError } = await supabase
       .from('task_completions')
       .insert({
@@ -161,13 +172,14 @@ Deno.serve(async (req) => {
       throw taskError;
     }
 
-    // Create point event for task completion
+    // Create point event for task completion with transaction hash
     const { error: pointEventError } = await supabase
       .from('point_events')
       .insert({
         user_id: user.id,
         event_type: 'task_completion',
         points_earned: pointsToAward,
+        transaction_hash: transactionHash,
       });
 
     if (pointEventError) {
