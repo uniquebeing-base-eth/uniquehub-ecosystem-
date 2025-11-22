@@ -211,27 +211,48 @@ export const EarnSection = () => {
   const loadUserEarnings = async () => {
     if (!user) return;
 
-    const { data: payments } = await supabase
-      .from('course_payments')
-      .select('amount, currency, status')
-      .eq('seller_user_id', user.id)
-      .eq('status', 'completed');
-    
-    let eth_earned = 0;
-    let usdc_earned = 0;
-    
-    payments?.forEach(payment => {
-      if (payment.currency === 'ETH') {
-        // Convert from Wei to ETH (divide by 10^18)
-        eth_earned += Number(payment.amount) / 1e18;
-      } else if (payment.currency === 'USDC') {
-        // Convert from base units to USDC (divide by 10^6 for 6 decimals)
-        usdc_earned += Number(payment.amount) / 1e6;
+    try {
+      // Fetch all completed course payments where user is the seller
+      const { data: payments, error } = await supabase
+        .from('course_payments')
+        .select('amount, currency, status, completed_at')
+        .eq('seller_user_id', user.id)
+        .eq('status', 'completed')
+        .order('completed_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error loading earnings:', error);
+        return;
       }
-    });
-    
-    setTotalEthEarned(eth_earned);
-    setTotalUsdcEarned(usdc_earned);
+
+      let eth_earned = 0;
+      let usdc_earned = 0;
+      
+      console.log('Total payments found:', payments?.length || 0);
+      
+      payments?.forEach(payment => {
+        console.log('Processing payment:', payment);
+        if (payment.currency === 'ETH') {
+          // Convert from Wei to ETH (divide by 10^18)
+          const ethAmount = Number(payment.amount) / 1e18;
+          eth_earned += ethAmount;
+          console.log(`ETH payment: ${payment.amount} Wei = ${ethAmount} ETH`);
+        } else if (payment.currency === 'USDC') {
+          // Convert from base units to USDC (divide by 10^6 for 6 decimals)
+          const usdcAmount = Number(payment.amount) / 1e6;
+          usdc_earned += usdcAmount;
+          console.log(`USDC payment: ${payment.amount} base units = ${usdcAmount} USDC`);
+        }
+      });
+      
+      console.log('Total ETH earned:', eth_earned);
+      console.log('Total USDC earned:', usdc_earned);
+      
+      setTotalEthEarned(eth_earned);
+      setTotalUsdcEarned(usdc_earned);
+    } catch (error) {
+      console.error('Error in loadUserEarnings:', error);
+    }
   };
 
   const checkFollowStatus = async (taskId: string, username: string) => {
