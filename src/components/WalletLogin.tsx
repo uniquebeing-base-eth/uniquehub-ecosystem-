@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useConnect, useAccount } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Loader2, Wallet } from 'lucide-react';
+import { Loader2, Wallet, Link2, CircleDot } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const WalletLogin = () => {
@@ -15,9 +15,10 @@ export const WalletLogin = () => {
       setIsConnecting(true);
       await connectAsync({ connector });
       toast.success('Wallet connected successfully!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Connection error:', error);
-      toast.error(error?.message || 'Failed to connect wallet');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to connect wallet';
+      toast.error(errorMessage);
     } finally {
       setIsConnecting(false);
     }
@@ -36,10 +37,10 @@ export const WalletLogin = () => {
 
   const getConnectorIcon = (connector: any) => {
     const name = connector.name.toLowerCase();
-    if (name.includes('farcaster')) return '🎭';
-    if (name.includes('walletconnect')) return '🔗';
-    if (name.includes('coinbase')) return '🔵';
-    return '🔐';
+    if (name.includes('farcaster')) return <Wallet className="w-5 h-5" />;
+    if (name.includes('walletconnect')) return <Link2 className="w-5 h-5" />;
+    if (name.includes('coinbase')) return <CircleDot className="w-5 h-5" />;
+    return <Wallet className="w-5 h-5" />;
   };
 
   return (
@@ -65,11 +66,13 @@ export const WalletLogin = () => {
               size="lg"
               className="w-full justify-start text-left h-auto py-4 hover:bg-primary/10 hover:border-primary/50 transition-all"
             >
-              {isConnecting ? (
-                <Loader2 className="w-5 h-5 mr-3 animate-spin" />
-              ) : (
-                <span className="text-2xl mr-3">{getConnectorIcon(connector)}</span>
-              )}
+              <div className="mr-3">
+                {isConnecting ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  getConnectorIcon(connector)
+                )}
+              </div>
               <div>
                 <div className="font-semibold">{getConnectorName(connector)}</div>
                 <div className="text-xs text-muted-foreground">

@@ -9,18 +9,19 @@ export const wagmiConfig = createConfig({
   connectors: [
     farcasterMiniApp(),
     walletConnect({
-      projectId: '3f8b7d0c9a5e4b1f6d2c8a9e5b3f7d1a', // Demo project ID
+      // Get your projectId from https://cloud.walletconnect.com/
+      projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '3f8b7d0c9a5e4b1f6d2c8a9e5b3f7d1a',
       metadata: {
         name: 'UniqueHub',
         description: 'Web3 Learning and Trading Platform',
-        url: 'https://uniqueehub.vercel.app',
-        icons: ['https://uniqueehub.vercel.app/icon.png']
+        url: typeof window !== 'undefined' ? window.location.origin : 'https://uniqueehub.vercel.app',
+        icons: [typeof window !== 'undefined' ? `${window.location.origin}/icon.png` : 'https://uniqueehub.vercel.app/icon.png']
       },
       showQrModal: true,
     }),
     coinbaseWallet({
       appName: 'UniqueHub',
-      appLogoUrl: 'https://uniqueehub.vercel.app/icon.png',
+      appLogoUrl: typeof window !== 'undefined' ? `${window.location.origin}/icon.png` : 'https://uniqueehub.vercel.app/icon.png',
     }),
   ],
   transports: {
