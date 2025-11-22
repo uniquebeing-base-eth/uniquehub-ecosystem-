@@ -351,12 +351,63 @@ export const EarnSection = () => {
     }
 
     // Handle other app-based tasks (courses, listings, etc.)
-    // These can be verified and claimed directly
-    setVerifiedTasks(prev => [...prev, task.id]);
-    toast({
-      title: "Task ready!",
-      description: "Click 'Claim Points' to receive your reward",
-    });
+    setLoading(task.id);
+    
+    try {
+      // Verify the task was actually completed
+      let isVerified = false;
+      
+      if (task.id === 'finish-1-course') {
+        const { data: enrollments } = await supabase
+          .from('enrollments')
+          .select('id')
+          .eq('user_id', user.id)
+          .not('completed_at', 'is', null);
+        isVerified = (enrollments?.length || 0) >= 1;
+      } else if (task.id === 'finish-5-courses') {
+        const { data: enrollments } = await supabase
+          .from('enrollments')
+          .select('id')
+          .eq('user_id', user.id)
+          .not('completed_at', 'is', null);
+        isVerified = (enrollments?.length || 0) >= 5;
+      } else if (task.id === 'list-item') {
+        const { data: items } = await supabase
+          .from('marketplace_items')
+          .select('id')
+          .eq('user_id', user.id);
+        isVerified = (items?.length || 0) >= 1;
+      } else if (task.id === 'list-nft') {
+        const { data: nfts } = await supabase
+          .from('nft_listings')
+          .select('id')
+          .eq('user_id', user.id);
+        isVerified = (nfts?.length || 0) >= 1;
+      }
+      
+      if (isVerified) {
+        setVerifiedTasks(prev => [...prev, task.id]);
+        toast({
+          title: "Verified! ✓",
+          description: "Click 'Claim Points' to receive your reward",
+        });
+      } else {
+        toast({
+          title: "Not completed yet",
+          description: "Complete this task first, then come back to claim",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error verifying task:', error);
+      toast({
+        title: "Verification failed",
+        description: "Unable to verify. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(null);
+    }
   };
 
   const handleClaimPoints = async (task: Task) => {
