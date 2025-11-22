@@ -520,9 +520,7 @@ export const EarnSection = () => {
       // Step 5: Only mark as complete after BOTH on-chain AND backend success
       console.log('✅ Backend recorded successfully, updating UI...');
       
-      setCompletedTasks(prev => [...prev, task.id]);
-      
-      // Clear from verified and clicked tasks
+      // Clear from verified and clicked tasks first
       setVerifiedTasks(prev => {
         const updated = prev.filter(id => id !== task.id);
         localStorage.setItem('verifiedTasks', JSON.stringify(updated));
@@ -534,11 +532,13 @@ export const EarnSection = () => {
         return updated;
       });
       
-      const newTotalPoints = totalPoints + data.pointsAwarded;
-      setTotalPoints(newTotalPoints);
       setLastClaimedPoints(data.pointsAwarded);
       
-      await loadUserPoints();
+      // Reload all data from database to ensure consistency
+      await Promise.all([
+        loadCompletedTasks(),
+        loadUserPoints(),
+      ]);
       
       toast({
         title: "Success! 🎉",
