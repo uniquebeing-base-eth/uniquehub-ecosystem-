@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useAccount } from "wagmi";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { HamburgerMenu } from "@/components/HamburgerMenu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,6 +20,7 @@ import { QuestSection } from "@/components/sections/QuestSection";
 import { Leaderboard } from "@/components/Leaderboard";
 import { MiniAppPrompt } from "@/components/MiniAppPrompt";
 import { UniqBot } from "@/components/UniqBot";
+import { WalletLogin } from "@/components/WalletLogin";
 import cubeLogo from "@/assets/uniquehub-cube.png";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -26,6 +28,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const { user, loading } = useAuth();
+  const { isConnected } = useAccount();
 
   // Toggle theme
   const toggleTheme = () => {
@@ -84,6 +87,11 @@ const Dashboard = () => {
       window.removeEventListener('navigateToSection', navigateHandler);
     };
   }, []);
+
+  // Show wallet login if not connected
+  if (!isConnected) {
+    return <WalletLogin />;
+  }
 
   if (loading) {
     return (
