@@ -13,6 +13,15 @@ import './index.css'
 
 const queryClient = new QueryClient();
 
+// Register service worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // Service worker registration handled by vite-plugin-pwa
+    });
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <PlatformGuard>
