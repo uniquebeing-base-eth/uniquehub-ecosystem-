@@ -75,7 +75,7 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
     calculateETH();
   }, [publicClient, isFree, selectedCurrency, priceInUSDC]);
 
-  const handleEnrollmentInDB = async () => {
+  const handleEnrollmentInDB = async (transactionHash: string, currency: 'USDC' | 'ETH') => {
     if (!user) return;
     
     try {
@@ -92,6 +92,7 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
         return;
       }
 
+      // Create enrollment
       await supabase.from('enrollments').insert({
         user_id: user.id,
         course_id: course.id,
@@ -101,6 +102,66 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
       await supabase.rpc('increment_enrollment_count', { 
         course_id: course.id 
       });
+
+      // Record the payment for tutor earnings tracking
+      if (!isFree) {
+        const { error: paymentError } = await supabase
+          .from('course_payments')
+          .insert({
+            course_id: course.id,
+            buyer_user_id: user.id,
+            seller_user_id: course.user_id,
+            amount: priceInUSDC,
+            currency: currency,
+            chain: 'base',
+            status: 'completed',
+            transaction_hash: transactionHash,
+            completed_at: new Date().toISOString(),
+          });
+
+        if (paymentError) {
+          console.error('Failed to record payment:', paymentError);
+          // Don't fail enrollment if payment recording fails
+        }
+
+        // Award points for course purchase (10 UP per $1 spent, max 1000 UP)
+        const pointsToAward = Math.min(Math.floor(priceInUSDC * 10), 1000);
+        
+        // Get or create user points record
+        let { data: userPoints } = await supabase
+          .from('user_points')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (!userPoints) {
+          const { data: newPoints } = await supabase
+            .from('user_points')
+            .insert({ user_id: user.id, total_points: 0 })
+            .select()
+            .single();
+          userPoints = newPoints;
+        }
+
+        // Update total points
+        if (userPoints) {
+          await supabase
+            .from('user_points')
+            .update({ total_points: (userPoints.total_points || 0) + pointsToAward })
+            .eq('user_id', user.id);
+
+          // Record point event
+          await supabase
+            .from('point_events')
+            .insert({
+              user_id: user.id,
+              event_type: 'course_purchase',
+              points_earned: pointsToAward,
+              transaction_amount: priceInUSDC,
+              transaction_hash: transactionHash,
+            });
+        }
+      }
 
       toast.success('Successfully enrolled! You can now access the course.');
       setIsProcessing(false);
@@ -139,7 +200,7 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
       toast.info('Approval transaction submitted. Waiting for confirmation...');
       
       // Wait for transaction confirmation
-      await publicClient!.waitForTransactionReceipt({ hash });
+      const receipt = await publicClient!.waitForTransactionReceipt({ hash });
       
       // Refetch allowance
       const newAllowance = await publicClient!.readContract({
@@ -186,10 +247,10 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
       toast.info('Enrollment transaction submitted!');
       
       // Wait for confirmation
-      await publicClient!.waitForTransactionReceipt({ hash });
+      const receipt = await publicClient!.waitForTransactionReceipt({ hash });
       
       toast.success('Transaction confirmed!');
-      await handleEnrollmentInDB();
+      await handleEnrollmentInDB(receipt.transactionHash, 'USDC');
     } catch (error: any) {
       console.error('Enrollment error:', error);
       toast.error(error.message || 'Failed to enroll');
@@ -227,10 +288,10 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
       toast.info('Enrollment transaction submitted!');
       
       // Wait for confirmation
-      await publicClient!.waitForTransactionReceipt({ hash });
+      const receipt = await publicClient!.waitForTransactionReceipt({ hash });
       
       toast.success('Transaction confirmed!');
-      await handleEnrollmentInDB();
+      await handleEnrollmentInDB(receipt.transactionHash, 'ETH');
     } catch (error: any) {
       console.error('Enrollment error:', error);
       toast.error(error.message || 'Failed to enroll with ETH');
@@ -262,10 +323,10 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
       toast.info('Enrollment transaction submitted!');
       
       // Wait for confirmation
-      await publicClient!.waitForTransactionReceipt({ hash });
+      const receipt = await publicClient!.waitForTransactionReceipt({ hash });
       
       toast.success('Transaction confirmed!');
-      await handleEnrollmentInDB();
+      await handleEnrollmentInDB(receipt.transactionHash, 'ETH');
     } catch (error: any) {
       console.error('Free enrollment error:', error);
       toast.error(error.message || 'Failed to enroll in free course');
