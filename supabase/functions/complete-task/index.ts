@@ -54,6 +54,12 @@ Deno.serve(async (req) => {
     switch (taskId) {
       case 'read-blog-web3':
       case 'read-blog-education':
+      case 'read-blog-web3-terms':
+      case 'read-blog-about-uniquehub':
+      case 'read-blog-uniquehub-features':
+      case 'read-blog-meet-uniqbot':
+      case 'read-blog-blue-energy-nfts':
+      case 'read-blog-creativity-campaign':
         // For blog reading tasks, trust client-side verification
         isCompleted = true;
         pointsToAward = 100;
