@@ -2,10 +2,27 @@ import { createConfig, http } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { fallback } from 'viem';
 import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
+import { walletConnect, coinbaseWallet } from 'wagmi/connectors';
 
 export const wagmiConfig = createConfig({
   chains: [base],
-  connectors: [farcasterMiniApp()],
+  connectors: [
+    farcasterMiniApp(),
+    walletConnect({
+      projectId: '3f8b7d0c9a5e4b1f6d2c8a9e5b3f7d1a', // Demo project ID
+      metadata: {
+        name: 'UniqueHub',
+        description: 'Web3 Learning and Trading Platform',
+        url: 'https://uniqueehub.vercel.app',
+        icons: ['https://uniqueehub.vercel.app/icon.png']
+      },
+      showQrModal: true,
+    }),
+    coinbaseWallet({
+      appName: 'UniqueHub',
+      appLogoUrl: 'https://uniqueehub.vercel.app/icon.png',
+    }),
+  ],
   transports: {
     [base.id]: fallback([http('https://mainnet.base.org')]),
   },
