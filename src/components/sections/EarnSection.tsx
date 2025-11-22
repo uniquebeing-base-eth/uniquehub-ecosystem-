@@ -222,9 +222,11 @@ export const EarnSection = () => {
     
     payments?.forEach(payment => {
       if (payment.currency === 'ETH') {
-        eth_earned += Number(payment.amount);
+        // Convert from Wei to ETH (divide by 10^18)
+        eth_earned += Number(payment.amount) / 1e18;
       } else if (payment.currency === 'USDC') {
-        usdc_earned += Number(payment.amount);
+        // Convert from base units to USDC (divide by 10^6 for 6 decimals)
+        usdc_earned += Number(payment.amount) / 1e6;
       }
     });
     
