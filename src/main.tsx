@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WagmiProvider } from 'wagmi';
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from '@/hooks/useAuth';
+import { PlatformGuard } from '@/components/PlatformGuard';
 import { wagmiConfig } from '@/config/wagmi';
 import Dashboard from './pages/Dashboard.tsx'
 import NotFound from './pages/NotFound.tsx'
@@ -26,13 +27,15 @@ createRoot(document.getElementById('root')!).render(
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Toaster />
-          </BrowserRouter>
+          <PlatformGuard>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <Toaster />
+            </BrowserRouter>
+          </PlatformGuard>
         </AuthProvider>
       </QueryClientProvider>
     </WagmiProvider>
