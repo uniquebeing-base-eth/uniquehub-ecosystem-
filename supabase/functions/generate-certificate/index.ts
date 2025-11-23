@@ -81,144 +81,56 @@ serve(async (req) => {
     // Generate certificate using HTML/CSS for better rendering
     console.log("Generating certificate image...");
     
-    // Create an HTML template that can be rendered as an image
-    const certificateHTML = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      width: 1200px;
-      height: 800px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: Arial, sans-serif;
+    // Use Lovable AI API to generate a beautiful certificate image
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY not configured");
     }
-    .certificate {
-      width: 1120px;
-      height: 720px;
-      background: transparent;
-      border: 8px solid #FFD700;
-      border-radius: 10px;
-      padding: 20px;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .inner-border {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      right: 20px;
-      bottom: 20px;
-      border: 2px solid #FFD700;
-      border-radius: 5px;
-    }
-    .content {
-      z-index: 1;
-      text-align: center;
-      color: white;
-    }
-    h1 {
-      font-size: 48px;
-      color: #FFD700;
-      margin-bottom: 30px;
-      font-weight: bold;
-    }
-    .subtitle {
-      font-size: 24px;
-      margin-bottom: 40px;
-    }
-    .name {
-      font-size: 42px;
-      font-weight: bold;
-      margin: 40px 0;
-    }
-    .course {
-      font-size: 36px;
-      color: #FFD700;
-      font-weight: bold;
-      margin: 40px 0;
-      padding: 0 40px;
-    }
-    .date {
-      font-size: 20px;
-      margin: 40px 0;
-    }
-    .issuer {
-      font-size: 24px;
-      font-weight: bold;
-      margin-top: 40px;
-    }
-  </style>
-</head>
-<body>
-  <div class="certificate">
-    <div class="inner-border"></div>
-    <div class="content">
-      <h1>CERTIFICATE OF COMPLETION</h1>
-      <p class="subtitle">This certifies that</p>
-      <p class="name">${userName}</p>
-      <p class="subtitle">has successfully completed</p>
-      <p class="course">${course.title}</p>
-      <p class="date">Completion Date: ${completionDate}</p>
-      <p class="issuer">Issued by UniqueHub</p>
-    </div>
-  </div>
-</body>
-</html>`;
 
-    // Convert HTML to image using an external service (Cloudinary or similar)
-    // For now, we'll use SVG but with a data URL that Farcaster can handle
-    const svgCertificate = `<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  
-  <rect width="1200" height="800" fill="url(#bgGradient)"/>
-  <rect x="40" y="40" width="1120" height="720" fill="none" stroke="#FFD700" stroke-width="8" rx="10"/>
-  <rect x="60" y="60" width="1080" height="680" fill="none" stroke="#FFD700" stroke-width="2" rx="5"/>
-  
-  <text x="600" y="150" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#FFD700" text-anchor="middle">CERTIFICATE OF COMPLETION</text>
-  
-  <text x="600" y="220" font-family="Arial, sans-serif" font-size="24" fill="#FFFFFF" text-anchor="middle">This certifies that</text>
-  
-  <text x="600" y="320" font-family="Arial, sans-serif" font-size="42" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${userName}</text>
-  
-  <text x="600" y="400" font-family="Arial, sans-serif" font-size="24" fill="#FFFFFF" text-anchor="middle">has successfully completed</text>
-  
-  <text x="600" y="480" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#FFD700" text-anchor="middle">${course.title}</text>
-  
-  <text x="600" y="580" font-family="Arial, sans-serif" font-size="20" fill="#FFFFFF" text-anchor="middle">Completion Date: ${completionDate}</text>
-  
-  <text x="600" y="680" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Issued by UniqueHub</text>
-</svg>`;
+    const certificatePrompt = `Create a professional, elegant certificate of completion with the following details:
+- Title: "CERTIFICATE OF COMPLETION" in gold/yellow text
+- Subtitle: "This certifies that"
+- Student name: "${userName}" in large, bold white text
+- Course completed: "${course.title}" in prominent gold/yellow text
+- Completion date: "${completionDate}"
+- Issued by: "UniqueHub"
+- Style: Purple gradient background (from #667eea to #764ba2), gold border (#FFD700), professional and formal design
+- Layout: Centered, well-spaced text, looks like an official certificate
+- Size: 1200x800 pixels, landscape orientation`;
 
-    // Convert SVG to PNG using an image conversion API for better Farcaster compatibility
+    console.log("Calling Lovable AI API to generate certificate...");
+    
+    const imageResponse = await fetch("https://api.lovable.app/v1/imagine", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        prompt: certificatePrompt,
+        width: 1200,
+        height: 800,
+        model: "flux.schnell"
+      })
+    });
+
+    if (!imageResponse.ok) {
+      const errorText = await imageResponse.text();
+      console.error("Lovable API error:", errorText);
+      throw new Error(`Failed to generate certificate image: ${imageResponse.status}`);
+    }
+
+    const imageBlob = await imageResponse.blob();
     const certificateId = crypto.randomUUID();
-    
-    // Use SVG to PNG conversion service
-    const svgBase64 = btoa(unescape(encodeURIComponent(svgCertificate)));
-    
-    // Try using a conversion service or store as data URL
-    // For now, we'll upload the SVG but serve it as PNG via Supabase transform
-    const binaryData = Uint8Array.from(atob(svgBase64), c => c.charCodeAt(0));
-    
-    const fileName = `${user.id}/${certificateId}.svg`;
+    const fileName = `${user.id}/${certificateId}.png`;
 
+    // Upload the PNG image to Supabase storage
+    const imageBuffer = await imageBlob.arrayBuffer();
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from("certificates")
-      .upload(fileName, binaryData, {
-        contentType: "image/svg+xml",
+      .upload(fileName, imageBuffer, {
+        contentType: "image/png",
         cacheControl: "3600",
         upsert: false
       });
@@ -228,16 +140,10 @@ serve(async (req) => {
       throw new Error("Failed to upload certificate image");
     }
 
-    // Get public URL with transformation to PNG for better compatibility
+    // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from("certificates")
-      .getPublicUrl(fileName, {
-        transform: {
-          width: 1200,
-          height: 800,
-          format: 'origin'
-        }
-      });
+      .getPublicUrl(fileName);
 
     // Create metadata JSON for NFT
     const metadata = {
