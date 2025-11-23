@@ -27,7 +27,6 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
   const [certificate, setCertificate] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
-  const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
 
   // Check if certificate already exists
   useEffect(() => {
@@ -35,26 +34,6 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
       checkExistingCertificate();
     }
   }, [isCompleted, address]);
-
-  // Ensure we have a proper public HTTP URL for Farcaster embeds
-  useEffect(() => {
-    if (!certificate?.image_url) {
-      setShareImageUrl(null);
-      return;
-    }
-    
-    const url = certificate.image_url;
-    
-    // If it's already a proper HTTP/HTTPS URL, use it directly
-    if (/^https?:\/\//i.test(url)) {
-      // For SVG files, we need to ensure they're accessible
-      // Supabase storage URLs should work if the bucket is public
-      setShareImageUrl(url);
-    } else {
-      // Fallback
-      setShareImageUrl(url);
-    }
-  }, [certificate?.image_url]);
 
   const checkExistingCertificate = async () => {
     const { data } = await supabase
@@ -221,11 +200,7 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
                   )}
                   <ShareToFarcaster
                     text={`I just earned my "${courseTitle}" certificate NFT on @uniquehub! 🎓✨`}
-                    embeds={
-                      shareImageUrl
-                        ? [shareImageUrl, 'https://uniqueehub.vercel.app']
-                        : ['https://uniqueehub.vercel.app']
-                    }
+                    embeds={[certificate.image_url, 'https://uniqueehub.vercel.app']}
                     buttonText="Share Certificate"
                     variant="default"
                     size="sm"
