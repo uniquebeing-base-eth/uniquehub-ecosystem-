@@ -17,6 +17,16 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    console.log('Starting course generation...');
+
+    // Check existing courses
+    const { data: existingCourses } = await supabaseClient
+      .from('learning_courses')
+      .select('title');
+    
+    const existingTitles = new Set(existingCourses?.map(c => c.title) || []);
+    console.log('Found existing courses:', existingTitles.size);
+
     const courses = [
       // Web2 Courses
       {
