@@ -199,8 +199,8 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
                     </Button>
                   )}
                   <ShareToFarcaster
-                    text={`I just minted my certificate NFT for completing "${courseTitle}" on @uniquehub! 🎓✨\n\nView: ${certificate.image_url}`}
-                    embeds={['https://uniqueehub.vercel.app']}
+                    text={`I just minted my certificate NFT for completing "${courseTitle}" on @uniquehub! 🎓`}
+                    embeds={[certificate.image_url, 'https://uniqueehub.vercel.app']}
                     buttonText="Share Certificate"
                     variant="default"
                     size="sm"
