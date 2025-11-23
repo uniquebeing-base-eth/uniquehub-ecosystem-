@@ -60,6 +60,3 @@ verify_jwt = true
 [functions.farcaster-mention-handler]
 verify_jwt = false
 
-[functions.generate-learning-courses]
-verify_jwt = false
-

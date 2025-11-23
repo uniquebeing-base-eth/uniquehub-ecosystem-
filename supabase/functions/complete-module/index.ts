@@ -151,58 +151,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Update user_points table for leaderboard
-    const { data: userPoints } = await supabase
-      .from('user_points')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!userPoints) {
-      // Create new user_points record
-      console.log('Creating new user_points record');
-      const { error: insertPointsError } = await supabase
-        .from('user_points')
-        .insert({
-          user_id: user.id,
-          total_points: pointsEarned,
-        });
-
-      if (insertPointsError) {
-        console.error('Error creating user_points:', insertPointsError);
-        throw insertPointsError;
-      }
-    } else {
-      // Update existing user_points
-      console.log(`Adding ${pointsEarned} points to existing total of ${userPoints.total_points}`);
-      const { error: updatePointsError } = await supabase
-        .from('user_points')
-        .update({
-          total_points: (userPoints.total_points || 0) + pointsEarned,
-          updated_at: now.toISOString(),
-        })
-        .eq('user_id', user.id);
-
-      if (updatePointsError) {
-        console.error('Error updating user_points:', updatePointsError);
-        throw updatePointsError;
-      }
-    }
-
-    // Create point event for tracking
-    const { error: pointEventError } = await supabase
-      .from('point_events')
-      .insert({
-        user_id: user.id,
-        event_type: 'course_completion',
-        points_earned: pointsEarned,
-      });
-
-    if (pointEventError) {
-      console.error('Error creating point event:', pointEventError);
-      // Don't throw - this is just for tracking
-    }
-
     // Fetch updated streak data
     const { data: updatedStreak } = await supabase
       .from('user_learning_streaks')
@@ -210,18 +158,9 @@ Deno.serve(async (req) => {
       .eq('user_id', user.id)
       .single();
 
-    // Fetch updated points
-    const { data: updatedPoints } = await supabase
-      .from('user_points')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
     console.log('Module completion successful:', {
       currentStreak: updatedStreak?.current_streak,
       totalModules: updatedStreak?.total_modules_completed,
-      totalPoints: updatedPoints?.total_points,
-      pointsEarned,
     });
 
     return new Response(
@@ -229,7 +168,6 @@ Deno.serve(async (req) => {
         success: true,
         pointsEarned,
         streak: updatedStreak,
-        totalPoints: updatedPoints?.total_points,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
