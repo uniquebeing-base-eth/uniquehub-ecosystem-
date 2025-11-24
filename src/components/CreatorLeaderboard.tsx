@@ -16,7 +16,7 @@ interface CreatorEntry {
   total_students: number;
   total_courses: number;
   total_views: number;
-  total_likes: number;
+  total_ratings: number;
   rank: number;
 }
 
@@ -141,7 +141,7 @@ export const CreatorLeaderboard = () => {
               </span>
               <span className="flex items-center gap-1">
                 <Heart className="w-3 h-3" />
-                {creator.total_likes}
+                {creator.total_ratings}
               </span>
             </div>
           </div>
