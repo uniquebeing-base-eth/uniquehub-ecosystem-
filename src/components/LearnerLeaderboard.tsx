@@ -13,9 +13,7 @@ interface LearnerEntry {
   farcaster_username: string | null;
   avatar_url: string | null;
   total_points: number;
-  daily_streak: number;
-  weekly_streak: number;
-  monthly_streak: number;
+  current_streak: number;
   rank: number;
 }
 
@@ -130,25 +128,11 @@ export const LearnerLeaderboard = () => {
               </p>
             )}
             <div className="flex items-center gap-2 mt-1">
-              {learner.daily_streak > 0 && (
+              {learner.current_streak > 0 && (
                 <div className="flex items-center gap-1 px-2 py-0.5 bg-orange-500/20 rounded-full">
                   <Flame className="w-3 h-3 text-orange-500" />
                   <span className="text-xs font-bold text-orange-500">
-                    {learner.daily_streak}
-                  </span>
-                </div>
-              )}
-              {learner.weekly_streak > 0 && (
-                <div className="px-2 py-0.5 bg-blue-500/20 rounded-full">
-                  <span className="text-xs font-bold text-blue-500">
-                    {learner.weekly_streak}W
-                  </span>
-                </div>
-              )}
-              {learner.monthly_streak > 0 && (
-                <div className="px-2 py-0.5 bg-purple-500/20 rounded-full">
-                  <span className="text-xs font-bold text-purple-500">
-                    {learner.monthly_streak}M
+                    {learner.current_streak} {learner.current_streak === 1 ? 'day' : 'days'}
                   </span>
                 </div>
               )}
