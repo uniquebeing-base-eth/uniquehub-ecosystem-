@@ -16,6 +16,7 @@ import { NFTSection } from "@/components/sections/NFTSection";
 import { BlogSection } from "@/components/sections/BlogSection";
 import { CertificatesSection } from "@/components/sections/CertificatesSection";
 import { QuestSection } from "@/components/sections/QuestSection";
+import { RewardsSection } from "@/components/sections/RewardsSection";
 import { Leaderboard } from "@/components/Leaderboard";
 import { MiniAppPrompt } from "@/components/MiniAppPrompt";
 import { UniqBot } from "@/components/UniqBot";
@@ -124,6 +125,8 @@ const Dashboard = () => {
         return <CertificatesSection />;
       case "quest":
         return <QuestSection />;
+      case "rewards":
+        return <RewardsSection />;
       case "about":
         return (
           <div className="space-y-4 pb-24 animate-fade-in">

@@ -1,4 +1,4 @@
-import { Home, BookOpen, Box, ShoppingBag, User, Trophy, DollarSign } from "lucide-react";
+import { Home, BookOpen, Box, ShoppingBag, User, Trophy, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BottomNavigationProps {
@@ -9,7 +9,7 @@ interface BottomNavigationProps {
 const navItems = [
   { id: "home", icon: Home, label: "Home" },
   { id: "courses", icon: BookOpen, label: "Courses" },
-  { id: "earn", icon: DollarSign, label: "Earn" },
+  { id: "rewards", icon: Gift, label: "Rewards" },
   { id: "upload", icon: Box, label: "Upload" },
   { id: "quest", icon: Trophy, label: "Quest" },
   { id: "marketplace", icon: ShoppingBag, label: "Market" },
