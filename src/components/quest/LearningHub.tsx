@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Flame, Lock, Star, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Flame, Lock, Star, CheckCircle2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ export const LearningHub = ({ onBack }: LearningHubProps) => {
   const [streak, setStreak] = useState<UserStreak | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -115,6 +117,23 @@ export const LearningHub = ({ onBack }: LearningHubProps) => {
     }
   };
 
+  const filteredCourses = courses.filter(course => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    const matchesTitle = course.title.toLowerCase().includes(query);
+    const matchesCategory = course.category.toLowerCase().includes(query);
+    
+    // Check for common keywords
+    const keywords = query.split(' ').filter(k => k.length > 0);
+    const matchesKeywords = keywords.some(keyword => 
+      course.title.toLowerCase().includes(keyword) ||
+      course.category.toLowerCase().includes(keyword)
+    );
+    
+    return matchesTitle || matchesCategory || matchesKeywords;
+  });
+
   if (selectedCourse) {
     return (
       <CourseModuleViewer
@@ -122,6 +141,7 @@ export const LearningHub = ({ onBack }: LearningHubProps) => {
         onBack={() => {
           setSelectedCourse(null);
           fetchStreak();
+          fetchCourseCompletions();
         }}
       />
     );
@@ -165,18 +185,39 @@ export const LearningHub = ({ onBack }: LearningHubProps) => {
 
       {/* Course Selection */}
       <div className="max-w-4xl mx-auto p-6">
-        <h2 className="text-2xl font-bold mb-6">Choose a Course</h2>
+        <h2 className="text-2xl font-bold mb-4">Choose a Course</h2>
+        
+        {/* Search Bar */}
+        <div className="relative mb-6">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search courses by keyword (e.g., NFTs, web3, blockchain, crypto)..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 h-12"
+          />
+        </div>
 
         {loading ? (
           <div className="text-center py-12 text-muted-foreground">Loading courses...</div>
-        ) : courses.length === 0 ? (
+        ) : filteredCourses.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">No courses available yet</p>
-            <p className="text-sm text-muted-foreground">Check back soon for new learning content!</p>
+            <p className="text-muted-foreground mb-4">
+              {searchQuery.trim() ? `No courses found for "${searchQuery}"` : "No courses available yet"}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {searchQuery.trim() ? "Try a different search term" : "Check back soon for new learning content!"}
+            </p>
+            {searchQuery.trim() && (
+              <Button variant="outline" onClick={() => setSearchQuery("")} className="mt-4">
+                Clear Search
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid gap-4">
-            {courses.map((course) => {
+            {filteredCourses.map((course) => {
               const isCompleted = isCourseCompleted(course.id, course.total_modules);
               return (
                 <button
