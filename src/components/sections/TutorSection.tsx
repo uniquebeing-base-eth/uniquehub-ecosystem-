@@ -5,6 +5,7 @@ import { Plus, BookOpen, Users, Star, DollarSign, Coins } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { CourseUpload } from "@/components/CourseUpload";
+import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 import cardBgTutor from '@/assets/card-bg-tutor.jpg';
 
 export const TutorSection = () => {
@@ -184,17 +185,28 @@ export const TutorSection = () => {
                     <span className="text-xs text-muted-foreground">{course.enrollment_count || 0}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    course.status === 'published' 
-                      ? 'bg-success/20 text-success' 
-                      : 'bg-warning/20 text-warning'
-                  }`}>
-                    {course.status}
-                  </span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                    {course.category}
-                  </span>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      course.status === 'published' 
+                        ? 'bg-success/20 text-success' 
+                        : 'bg-warning/20 text-warning'
+                    }`}>
+                      {course.status}
+                    </span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                      {course.category}
+                    </span>
+                  </div>
+                  {course.status === 'published' && (
+                    <ShareToFarcaster
+                      text={`Check out my course: ${course.title} on @uniquehub! 🎓 Learn now for just $${course.price_usdc} USDC! 💎`}
+                      embeds={course.thumbnail_url ? [course.thumbnail_url, 'https://uniqueehub.vercel.app'] : ['https://uniqueehub.vercel.app']}
+                      buttonText="Share"
+                      size="sm"
+                      variant="ghost"
+                    />
+                  )}
                 </div>
               </div>
             ))}

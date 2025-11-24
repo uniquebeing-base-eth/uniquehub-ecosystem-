@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { User, BookOpen, ShoppingBag, Trophy, Star } from "lucide-react";
+import { BookOpen, ShoppingBag, Trophy } from "lucide-react";
 import penguinAvatar from "@/assets/penguin-avatar.png";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { ShareToFarcaster } from "@/components/ShareToFarcaster";
+import { useUnclaimedAchievements } from "@/hooks/useUnclaimedAchievements";
+import { AchievementClaimModal } from "@/components/AchievementClaimModal";
 import cardBgProfile from '@/assets/card-bg-profile.jpg';
 
 export const ProfileSection = () => {
@@ -16,6 +17,11 @@ export const ProfileSection = () => {
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [createdCourses, setCreatedCourses] = useState<any[]>([]);
   const [marketplaceItems, setMarketplaceItems] = useState<any[]>([]);
+  const [achievements, setAchievements] = useState<any[]>([]);
+  const [creatorLevel, setCreatorLevel] = useState<any>(null);
+  
+  // Hook for unclaimed achievements modal
+  const { achievements: unclaimedAchievements, showModal, setShowModal, refetch } = useUnclaimedAchievements();
 
   useEffect(() => {
     if (user) {
@@ -24,6 +30,8 @@ export const ProfileSection = () => {
       fetchEnrollments();
       fetchCreatedCourses();
       fetchMarketplaceItems();
+      fetchAchievements();
+      fetchCreatorLevel();
     }
   }, [user]);
 
@@ -98,6 +106,65 @@ export const ProfileSection = () => {
     setMarketplaceItems(data || []);
   };
 
+  const fetchAchievements = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('creator_achievements')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_claimed', true)
+      .order('achievement_level', { ascending: true });
+    setAchievements(data || []);
+  };
+
+  const fetchCreatorLevel = async () => {
+    if (!user) return;
+    
+    // Get user points
+    const { data: userPoints } = await supabase
+      .from('user_points')
+      .select('creator_points')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    
+    // Get course count
+    const { data: courses } = await supabase
+      .from('courses')
+      .select('id')
+      .eq('user_id', user.id);
+    
+    const courseCount = courses?.length || 0;
+    const creatorPoints = userPoints?.creator_points || 0;
+    
+    // Determine creator level based on points and courses
+    let level = {
+      number: 1,
+      name: 'Level 1 Creator',
+      icon: '🌱',
+      color: 'green'
+    };
+    
+    if (courseCount >= 50) {
+      level = { number: 10, name: 'Level 10 Creator', icon: '👑', color: 'purple' };
+    } else if (courseCount >= 20) {
+      level = { number: 7, name: 'Level 7 Creator', icon: '⭐', color: 'yellow' };
+    } else if (courseCount >= 10) {
+      level = { number: 5, name: 'Level 5 Creator', icon: '🔥', color: 'orange' };
+    } else if (courseCount >= 5) {
+      level = { number: 3, name: 'Level 3 Creator', icon: '💎', color: 'blue' };
+    } else if (courseCount >= 1) {
+      level = { number: 2, name: 'Level 2 Creator', icon: '🎯', color: 'green' };
+    }
+    
+    setCreatorLevel(level);
+  };
+
+  const handleAchievementsClaimed = () => {
+    // Refetch achievements after claiming
+    fetchAchievements();
+    refetch();
+  };
+
   if (!user) {
     return (
       <div className="text-center py-12">
@@ -107,7 +174,15 @@ export const ProfileSection = () => {
   }
 
   return (
-    <div className="space-y-4 pb-24">
+    <>
+      <AchievementClaimModal
+        open={showModal}
+        onOpenChange={setShowModal}
+        achievements={unclaimedAchievements}
+        onClaimed={handleAchievementsClaimed}
+      />
+      
+      <div className="space-y-4 pb-24">
       <h1 className="text-2xl font-bold text-foreground">Profile</h1>
       
       {/* User Info */}
@@ -131,10 +206,12 @@ export const ProfileSection = () => {
                 {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
               </p>
             )}
-            <div className="flex items-center gap-1.5 mt-1">
-              <Star className="w-3 h-3 text-primary fill-current" />
-              <span className="text-xs font-medium text-foreground">Level 1 Creator</span>
-            </div>
+            {creatorLevel && (
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="text-sm">{creatorLevel.icon}</span>
+                <span className="text-xs font-medium text-foreground">{creatorLevel.name}</span>
+              </div>
+            )}
           </div>
         </div>
       </Card>
@@ -191,66 +268,38 @@ export const ProfileSection = () => {
         </Card>
       )}
 
-      {/* My Courses - Compact */}
-      {createdCourses.length > 0 && (
-        <Card className="p-4 relative overflow-hidden">
-          <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgProfile})` }} />
-          <div className="relative z-10">
-          <h3 className="text-base font-bold text-foreground mb-3">My Courses</h3>
-          <div className="space-y-2">
-            {createdCourses.slice(0, 4).map((course) => (
-              <div key={course.id} className="p-3 border border-border rounded-lg space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-xs font-medium text-foreground line-clamp-2">{course.title}</h4>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
-                      ${course.price_usdc}
-                    </p>
-                  </div>
-                </div>
-                <ShareToFarcaster
-                  text={`Check out my course: ${course.title} on @uniquehub! 🎓 Learn now for just $${course.price_usdc} USDC! 💎`}
-                  embeds={course.thumbnail_url ? [course.thumbnail_url, 'https://uniqueehub.vercel.app'] : ['https://uniqueehub.vercel.app']}
-                  buttonText="Share Course"
-                  size="sm"
-                  variant="secondary"
-                  className="w-full"
-                />
-              </div>
-            ))}
-          </div>
-          </div>
-        </Card>
-      )}
-
       {/* Achievements - Compact */}
       <Card className="p-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${cardBgProfile})` }} />
         <div className="relative z-10">
         <h3 className="text-base font-bold text-foreground mb-3">Achievements</h3>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex items-center gap-2 p-2 bg-card-hover rounded-lg">
-            <div className="w-7 h-7 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
-              <User className="w-3.5 h-3.5 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">First Steps</Badge>
-              <p className="text-[10px] text-muted-foreground mt-0.5 truncate">Profile created</p>
-            </div>
+        {achievements.length > 0 ? (
+          <div className="grid grid-cols-2 gap-2">
+            {achievements.slice(0, 6).map((achievement) => (
+              <div key={achievement.id} className="flex items-center gap-2 p-2 bg-card-hover rounded-lg">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xl">
+                  {achievement.badge_icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                    {achievement.achievement_type === 'courses' ? 'Creator' : 'Teacher'}
+                  </Badge>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                    {achievement.milestone_value} {achievement.achievement_type === 'courses' ? 'courses' : 'students'}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
-          
-          <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg opacity-50">
-            <div className="w-7 h-7 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
-              <BookOpen className="w-3.5 h-3.5 text-muted-foreground" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">Course Master</Badge>
-              <p className="text-[10px] text-muted-foreground mt-0.5 truncate">Complete 5</p>
-            </div>
+        ) : (
+          <div className="text-center py-4">
+            <Trophy className="w-10 h-10 text-muted-foreground mx-auto mb-2 opacity-50" />
+            <p className="text-xs text-muted-foreground">Create courses to earn achievements</p>
           </div>
-        </div>
+        )}
         </div>
       </Card>
     </div>
+    </>
   );
 };
