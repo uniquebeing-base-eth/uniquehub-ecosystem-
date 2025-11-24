@@ -1198,14 +1198,12 @@ export type Database = {
       leaderboard: {
         Row: {
           avatar_url: string | null
-          daily_streak: number | null
+          current_streak: number | null
           display_name: string | null
           farcaster_username: string | null
-          monthly_streak: number | null
           rank: number | null
           total_points: number | null
           user_id: string | null
-          weekly_streak: number | null
         }
         Relationships: []
       }
