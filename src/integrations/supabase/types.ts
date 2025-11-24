@@ -351,6 +351,42 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_achievements: {
+        Row: {
+          achievement_level: number
+          achievement_type: string
+          awarded_at: string | null
+          badge_color: string | null
+          badge_icon: string | null
+          id: string
+          milestone_value: number
+          points_awarded: number | null
+          user_id: string
+        }
+        Insert: {
+          achievement_level?: number
+          achievement_type: string
+          awarded_at?: string | null
+          badge_color?: string | null
+          badge_icon?: string | null
+          id?: string
+          milestone_value: number
+          points_awarded?: number | null
+          user_id: string
+        }
+        Update: {
+          achievement_level?: number
+          achievement_type?: string
+          awarded_at?: string | null
+          badge_color?: string | null
+          badge_icon?: string | null
+          id?: string
+          milestone_value?: number
+          points_awarded?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       enrollments: {
         Row: {
           completed_at: string | null
@@ -1175,6 +1211,7 @@ export type Database = {
       }
     }
     Functions: {
+      get_creator_level: { Args: { course_count: number }; Returns: Json }
       increment_course_views: {
         Args: { course_id_param: string }
         Returns: undefined
