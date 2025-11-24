@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
 import { QUEST_LEARNING_HUB_ABI, QUEST_LEARNING_HUB_ADDRESS, MODULE_COMPLETION_FEE } from '@/config/wagmi';
 import { base } from 'wagmi/chains';
+import { CourseCompletionShareDialog } from './CourseCompletionShareDialog';
 
 interface Course {
   id: string;
@@ -74,6 +75,8 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
   const [finalScore, setFinalScore] = useState(100);
+  const [showCourseCompletionDialog, setShowCourseCompletionDialog] = useState(false);
+  const [totalCoursePoints, setTotalCoursePoints] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -164,7 +167,8 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
       if (error) throw error;
 
       if (data?.success) {
-        setCompletedModules(prev => new Set([...prev, module.id]));
+        const newCompletedModules = new Set([...completedModules, module.id]);
+        setCompletedModules(newCompletedModules);
         
         const streak = data.streak;
         let description = "Keep up the great work!";
@@ -179,6 +183,16 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
         toast.success(`🎉 Module completed! +${finalScore} UP points`, {
           description,
         });
+
+        // Check if course is fully completed
+        const isCourseComplete = newCompletedModules.size === modules.length;
+        
+        if (isCourseComplete) {
+          // Calculate total points earned in this course
+          const totalPoints = Array.from(newCompletedModules).reduce((sum) => sum + 100, 0);
+          setTotalCoursePoints(totalPoints);
+          setShowCourseCompletionDialog(true);
+        }
 
         // Reset to module list so user can continue to next module
         resetModuleView();
@@ -460,7 +474,16 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      <CourseCompletionShareDialog
+        open={showCourseCompletionDialog}
+        onOpenChange={setShowCourseCompletionDialog}
+        courseTitle={course.title}
+        totalModules={modules.length}
+        totalPoints={totalCoursePoints}
+      />
+      
+      <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-4xl mx-auto p-4">
@@ -550,5 +573,6 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
         )}
       </div>
     </div>
+    </>
   );
 };
