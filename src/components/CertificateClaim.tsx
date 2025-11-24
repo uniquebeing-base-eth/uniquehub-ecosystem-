@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base, celo } from 'wagmi/chains';
+import { base } from 'wagmi/chains';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Award, ExternalLink, Loader2 } from 'lucide-react';
@@ -8,13 +8,12 @@ import { useViemClients } from '@/hooks/useViemClients';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ShareToFarcaster } from '@/components/ShareToFarcaster';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   CERTIFICATE_CONTRACT_ABI,
   CERTIFICATE_CONTRACT_ADDRESS,
-  CELO_CERTIFICATE_CONTRACT_ADDRESS,
   CERTIFICATE_MINT_FEE
 } from '@/config/wagmi';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CertificateClaimProps {
   courseId: string;
@@ -28,7 +27,6 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
   const [certificate, setCertificate] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
-  const [selectedChain, setSelectedChain] = useState<'base' | 'celo'>('base');
 
   // Check if certificate already exists
   useEffect(() => {
@@ -80,39 +78,25 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
       return;
     }
 
-    const contractAddress = selectedChain === 'celo' 
-      ? CELO_CERTIFICATE_CONTRACT_ADDRESS 
-      : CERTIFICATE_CONTRACT_ADDRESS;
-
-    const chain = selectedChain === 'celo' ? celo : base;
-    const explorerUrl = selectedChain === 'celo' 
-      ? 'https://celoscan.io/tx/'
-      : 'https://basescan.org/tx/';
-
-    if (selectedChain === 'celo' && contractAddress === '0x0000000000000000000000000000000000000000') {
-      toast.error("CELO contract not yet deployed. Coming soon for Proof-of-Ship!");
-      return;
-    }
-
     setIsMinting(true);
     try {
       // Call the mint function on the contract
       const hash = await walletClient.writeContract({
-        address: contractAddress,
+        address: CERTIFICATE_CONTRACT_ADDRESS,
         abi: CERTIFICATE_CONTRACT_ABI,
         functionName: 'mintCertificate',
         args: [certificate.image_url],
         value: CERTIFICATE_MINT_FEE,
-        chain,
+        chain: base,
         account: address,
       });
 
-      toast.success(`Minting transaction submitted on ${selectedChain.toUpperCase()}!`);
+      toast.success("Minting transaction submitted!");
 
       // Wait for transaction confirmation
       await publicClient.waitForTransactionReceipt({ hash });
 
-      // Update certificate record with transaction hash and chain
+      // Update certificate record with transaction hash
       await supabase
         .from('certificates')
         .update({ 
@@ -121,7 +105,7 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
         })
         .eq('id', certificate.id);
 
-      toast.success(`Certificate minted successfully on ${selectedChain.toUpperCase()}!`);
+      toast.success("Certificate minted successfully!");
       await checkExistingCertificate();
     } catch (error: any) {
       console.error('Mint error:', error);
@@ -178,20 +162,9 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
             <div className="space-y-2">
               {!certificate.minted_at ? (
                 <>
-                  <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground">
-                      Certificate generated! Choose a blockchain and mint it as an NFT.
-                    </p>
-                    <Select value={selectedChain} onValueChange={(value: 'base' | 'celo') => setSelectedChain(value)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select blockchain" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="base">Base Mainnet</SelectItem>
-                        <SelectItem value="celo">CELO (Proof-of-Ship) 🌿</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Certificate generated! Mint it as an NFT on Base blockchain.
+                  </p>
                   <Button
                     onClick={mintCertificate}
                     disabled={isMinting || !address}
@@ -201,12 +174,12 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
                     {isMinting ? (
                       <>
                         <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                        Minting NFT on {selectedChain.toUpperCase()}...
+                        Minting NFT...
                       </>
                     ) : (
                       <>
                         <Award className="w-3.5 h-3.5 mr-1.5" />
-                        Mint on {selectedChain.toUpperCase()} (0.000003 {selectedChain === 'celo' ? 'CELO' : 'ETH'})
+                        Mint Certificate NFT (0.000003 ETH)
                       </>
                     )}
                   </Button>

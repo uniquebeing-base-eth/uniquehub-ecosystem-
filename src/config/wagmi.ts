@@ -1,12 +1,11 @@
 import { createConfig, http } from 'wagmi';
-import { base, celo } from 'wagmi/chains';
+import { base } from 'wagmi/chains';
 import { fallback } from 'viem';
 import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
 import { walletConnect, coinbaseWallet } from 'wagmi/connectors';
 
-
 export const wagmiConfig = createConfig({
-  chains: [base, celo],
+  chains: [base],
   connectors: [
     farcasterMiniApp(),
     walletConnect({
@@ -14,7 +13,7 @@ export const wagmiConfig = createConfig({
       projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '3f8b7d0c9a5e4b1f6d2c8a9e5b3f7d1a',
       metadata: {
         name: 'UniqueHub',
-        description: 'Web3 Learning and Trading Platform on Base & CELO',
+        description: 'Web3 Learning and Trading Platform',
         url: typeof window !== 'undefined' ? window.location.origin : 'https://uniqueehub.vercel.app',
         icons: [typeof window !== 'undefined' ? `${window.location.origin}/icon.png` : 'https://uniqueehub.vercel.app/icon.png']
       },
@@ -27,7 +26,6 @@ export const wagmiConfig = createConfig({
   ],
   transports: {
     [base.id]: fallback([http('https://mainnet.base.org')]),
-    [celo.id]: fallback([http('https://forno.celo.org')]),
   },
   ssr: true,
 });
@@ -297,11 +295,6 @@ export const UNIQUE_NFT_ADDRESS = '0x8610701D16e6e75d751bf362bef981F2D273b129' a
 export const QUEST_LEARNING_HUB_ADDRESS = '0x00B794DfBFae013Fc56A1080B2b1c17033067159' as const;
 export const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
 export const EARN_POINTS_CLAIM_ADDRESS = '0xDc463c3b8fB2504a723B4cb4A13BbF727302bDe9' as const;
-
-// Contract Addresses on CELO Mainnet (To be deployed for Proof-of-Ship)
-export const CELO_CERTIFICATE_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000000' as const; // Deploy for CELO
-export const CELO_QUEST_LEARNING_HUB_ADDRESS = '0x0000000000000000000000000000000000000000' as const; // Deploy for CELO
-
 export const LISTING_FEE = 100000n; // 0.1 USDC (6 decimals)
 export const FREE_COURSE_FEE = 100000000000n; // 0.0000001 ETH
 export const MARKETPLACE_LISTING_FEE = 100000n; // 0.1 USDC (6 decimals)

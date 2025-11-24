@@ -1,20 +1,33 @@
 import React, { useState, useEffect } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { HamburgerMenu } from "@/components/HamburgerMenu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Sun, Moon } from "lucide-react";
+import { HomeSection } from "@/components/sections/HomeSection";
+import { MarketplaceSection } from "@/components/sections/MarketplaceSection";
+import { CoursesSection } from "@/components/sections/CoursesSection";
+import { ProfileSection } from "@/components/sections/ProfileSection";
+import { TutorSection } from "@/components/sections/TutorSection";
+import { UploadSection } from "@/components/sections/UploadSection";
+import { WalletSection } from "@/components/sections/WalletSection";
+import { EarnSection } from "@/components/sections/EarnSection";
+import { NFTSection } from "@/components/sections/NFTSection";
+import { BlogSection } from "@/components/sections/BlogSection";
+import { CertificatesSection } from "@/components/sections/CertificatesSection";
+import { QuestSection } from "@/components/sections/QuestSection";
+import { Leaderboard } from "@/components/Leaderboard";
 import { MiniAppPrompt } from "@/components/MiniAppPrompt";
 import { UniqBot } from "@/components/UniqBot";
+import { AuthPage } from "@/components/AuthPage";
 import { PWAInstall } from "@/components/PWAInstall";
 import cubeLogo from "@/assets/uniquehub-cube.png";
 import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
+  const [activeTab, setActiveTab] = useState("home");
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
 
   // Toggle theme
   const toggleTheme = () => {
@@ -49,54 +62,20 @@ const Dashboard = () => {
     }
   }, [loading]);
 
-  // Listen for global navigation events (for backward compatibility)
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
+
+  // Listen for global navigation events (e.g., after successful uploads, earn section blog navigation)
   useEffect(() => {
     const handler = ((e: any) => {
       const detail = (e as CustomEvent)?.detail as { tab?: string } | undefined;
-      if (detail?.tab) {
-        const pathMap: Record<string, string> = {
-          home: '/',
-          earn: '/earn',
-          marketplace: '/marketplace',
-          courses: '/courses',
-          quest: '/quest',
-          nft: '/nft',
-          profile: '/profile',
-          tutor: '/tutor',
-          upload: '/upload',
-          wallet: '/wallet',
-          blog: '/blog',
-          certificates: '/certificates',
-          leaderboard: '/leaderboard',
-          about: '/about',
-          contact: '/contact',
-        };
-        navigate(pathMap[detail.tab] || '/');
-      }
+      if (detail?.tab) setActiveTab(detail.tab);
     }) as EventListener;
     
     const navigateHandler = ((e: any) => {
       const section = (e as CustomEvent)?.detail;
-      if (section) {
-        const pathMap: Record<string, string> = {
-          home: '/',
-          earn: '/earn',
-          marketplace: '/marketplace',
-          courses: '/courses',
-          quest: '/quest',
-          nft: '/nft',
-          profile: '/profile',
-          tutor: '/tutor',
-          upload: '/upload',
-          wallet: '/wallet',
-          blog: '/blog',
-          certificates: '/certificates',
-          leaderboard: '/leaderboard',
-          about: '/about',
-          contact: '/contact',
-        };
-        navigate(pathMap[section] || '/');
-      }
+      if (section) setActiveTab(section);
     }) as EventListener;
     
     window.addEventListener('navigate', handler);
@@ -106,8 +85,123 @@ const Dashboard = () => {
       window.removeEventListener('navigate', handler);
       window.removeEventListener('navigateToSection', navigateHandler);
     };
-  }, [navigate]);
+  }, []);
 
+  // Show auth page if not signed in
+  if (!user) {
+    return <AuthPage />;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case "home":
+        return <HomeSection onNavigate={handleTabChange} userName={user?.user_metadata?.display_name || user?.user_metadata?.username || 'Uniquebeing'} />;
+      case "marketplace":
+        return <MarketplaceSection />;
+      case "courses":
+        return <CoursesSection />;
+      case "upload":
+        return <UploadSection />;
+      case "profile":
+        return <ProfileSection />;
+      case "tutor":
+        return <TutorSection />;
+      case "wallet":
+        return <WalletSection />;
+      case "earn":
+        return <EarnSection />;
+      case "nft":
+        return <NFTSection />;
+      case "leaderboard":
+        return <Leaderboard />;
+      case "blog":
+        return <BlogSection />;
+      case "certificates":
+        return <CertificatesSection />;
+      case "quest":
+        return <QuestSection />;
+      case "about":
+        return (
+          <div className="space-y-4 pb-24 animate-fade-in">
+            <h1 className="text-2xl font-bold text-foreground">About UniqueHub</h1>
+            <div className="p-5 bg-card rounded-2xl border border-border space-y-4">
+              <div className="space-y-3">
+                <p className="text-foreground leading-relaxed text-sm">
+                  UniqueHub is a super app for learning, earning, and trading, built to empower people to share knowledge and grow financially. All powered by the Base blockchain.
+                </p>
+                <p className="text-foreground leading-relaxed text-sm">
+                  On UniqueHub, anyone can teach or learn any skill from Web3 and tech to Web2 skills, life hacks, and creative talents. It's a global hub for tutors, learners, creators, and gamers to connect, grow, and earn together.
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="text-base font-bold text-foreground">Our Ecosystem</h3>
+                <div className="space-y-2 text-sm">
+                  <p className="text-foreground">🎓 <span className="font-semibold">Tutors:</span> share skills and earn on-chain.</p>
+                  <p className="text-foreground">💰 <span className="font-semibold">Learners:</span> take courses and get rewarded for progress.</p>
+                  <p className="text-foreground">🛍️ <span className="font-semibold">Creators:</span> list and sell digital products or NFTs.</p>
+                  <p className="text-foreground">🎮 <span className="font-semibold">Players:</span> enjoy games like Unique Runner to earn points and redeem $UNIQ tokens.</p>
+                </div>
+              </div>
+              
+              <div className="pt-3 border-t border-border">
+                <h3 className="text-base font-bold text-foreground mb-2">Our Mission</h3>
+                <p className="text-foreground text-sm leading-relaxed">
+                  To make learning and earning borderless, rewarding, and accessible for everyone. Onboarding tutors, creators, and learners across the world onto Base.
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      case "contact":
+        return (
+          <div className="space-y-4 pb-24 animate-fade-in">
+            <h1 className="text-2xl font-bold text-foreground">Contact Us</h1>
+            <div className="p-5 bg-card rounded-2xl border border-border space-y-4">
+              <p className="text-foreground leading-relaxed text-sm">
+                We'd love to hear from you! Whether you're a tutor, learner, or Web3 builder looking to collaborate, reach out to us:
+              </p>
+              <div className="space-y-3 pt-2">
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">📩</span>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Email</p>
+                    <p className="text-sm font-semibold text-foreground">support@uniquehub.xyz</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">🌐</span>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Website</p>
+                    <p className="text-sm font-semibold text-foreground">uniquehub.xyz</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">💬</span>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Farcaster</p>
+                    <p className="text-sm font-semibold text-foreground">@_uniquehub and @uniquebeing404</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col anime-bg-main">
@@ -145,18 +239,18 @@ const Dashboard = () => {
                   <Moon className="h-4 w-4" />
                 )}
               </Button>
-              <HamburgerMenu />
+              <HamburgerMenu onNavigate={handleTabChange} />
             </div>
           </div>
         </header>
 
         {/* Content */}
         <main className="px-4 py-6">
-          <Outlet />
+          {renderContent()}
         </main>
 
         {/* Bottom Navigation */}
-        <BottomNavigation />
+        <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
       </div>
     </div>
   );

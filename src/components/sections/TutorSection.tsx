@@ -5,7 +5,6 @@ import { Plus, BookOpen, Users, Star, DollarSign, Coins } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { CourseUpload } from "@/components/CourseUpload";
-import { TutorAnalytics } from "@/components/TutorAnalytics";
 import cardBgTutor from '@/assets/card-bg-tutor.jpg';
 
 export const TutorSection = () => {
@@ -154,9 +153,6 @@ export const TutorSection = () => {
           onCancel={() => setShowCreateForm(false)}
         />
       )}
-
-      {/* Analytics Section */}
-      {courses.length > 0 && <TutorAnalytics userId={user.id} />}
 
       {/* My Courses */}
       <Card className="p-4 relative overflow-hidden">

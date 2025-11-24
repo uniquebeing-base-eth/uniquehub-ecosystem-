@@ -1,31 +1,34 @@
 import { Home, BookOpen, Box, ShoppingBag, User, Trophy, DollarSign } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
+interface BottomNavigationProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
+
 const navItems = [
-  { id: "home", path: "/", icon: Home, label: "Home" },
-  { id: "courses", path: "/courses", icon: BookOpen, label: "Courses" },
-  { id: "earn", path: "/earn", icon: DollarSign, label: "Earn" },
-  { id: "upload", path: "/upload", icon: Box, label: "Upload" },
-  { id: "quest", path: "/quest", icon: Trophy, label: "Quest" },
-  { id: "marketplace", path: "/marketplace", icon: ShoppingBag, label: "Market" },
-  { id: "profile", path: "/profile", icon: User, label: "Profile" },
+  { id: "home", icon: Home, label: "Home" },
+  { id: "courses", icon: BookOpen, label: "Courses" },
+  { id: "earn", icon: DollarSign, label: "Earn" },
+  { id: "upload", icon: Box, label: "Upload" },
+  { id: "quest", icon: Trophy, label: "Quest" },
+  { id: "marketplace", icon: ShoppingBag, label: "Market" },
+  { id: "profile", icon: User, label: "Profile" },
 ];
 
-export const BottomNavigation = () => {
-  const location = useLocation();
+export const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-card via-card/98 to-card/95 backdrop-blur-md border-t border-primary/20 z-50 shadow-[0_-10px_40px_-10px_hsl(var(--primary)/0.3)]">
       <div className="flex items-center justify-around px-2 py-2 max-w-2xl mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path;
+          const isActive = activeTab === item.id;
           const isUpload = item.id === "upload";
           
           return (
-            <Link
+            <button
               key={item.id}
-              to={item.path}
+              onClick={() => onTabChange(item.id)}
               aria-label={item.label}
               className={cn(
                 "relative flex items-center justify-center transition-all duration-300 group",
@@ -55,7 +58,7 @@ export const BottomNavigation = () => {
               {isActive && !isUpload && (
                 <div className="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))] animate-pulse" />
               )}
-            </Link>
+            </button>
           );
         })}
       </div>
