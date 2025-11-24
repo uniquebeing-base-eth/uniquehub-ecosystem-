@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Sun, Moon } from "lucide-react";
 import { MiniAppPrompt } from "@/components/MiniAppPrompt";
 import { UniqBot } from "@/components/UniqBot";
-import { AuthPage } from "@/components/AuthPage";
 import { PWAInstall } from "@/components/PWAInstall";
 import cubeLogo from "@/assets/uniquehub-cube.png";
 import { useAuth } from "@/hooks/useAuth";
@@ -108,22 +107,6 @@ const Dashboard = () => {
       window.removeEventListener('navigateToSection', navigateHandler);
     };
   }, [navigate]);
-
-  // Show auth page if not signed in
-  if (!user) {
-    return <AuthPage />;
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
 
   return (
