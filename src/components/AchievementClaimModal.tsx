@@ -25,10 +25,28 @@ interface AchievementClaimModalProps {
 
 const getAchievementTitle = (type: string, level: number): string => {
   if (type === 'courses') {
-    const titles = ['First Course', 'Rising Star', 'Course Master', 'Expert Creator', 'Master Creator'];
+    const titles = [
+      'Rookie Creator', 
+      'Content Crafter', 
+      'Course Master', 
+      'Course Sage', 
+      'Knowledge Artisan',
+      'Education Architect',
+      'Learning Legend',
+      'Grand Instructor'
+    ];
     return titles[level - 1] || 'Achievement';
   } else if (type === 'students') {
-    const titles = ['First Student', 'Popular Teacher', 'Teaching Legend', 'Education Icon'];
+    const titles = [
+      'Student Spark',
+      'Rising Mentor',
+      'Student Master',
+      'Audience Builder',
+      'Edu Influencer',
+      'Community Mentor',
+      'Knowledge Magnet',
+      'Master Educator'
+    ];
     return titles[level - 1] || 'Achievement';
   }
   return 'Achievement';
@@ -51,12 +69,40 @@ export const AchievementClaimModal = ({ open, onOpenChange, achievements, onClai
   const handleClaim = async () => {
     setClaiming(true);
     try {
-      const { error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Get current points
+      const { data: existingPoints } = await supabase
+        .from('user_points')
+        .select('creator_points')
+        .eq('user_id', user.id)
+        .single();
+
+      // Calculate new total
+      const currentPoints = existingPoints?.creator_points || 0;
+      const newTotal = currentPoints + totalPoints;
+
+      // Update achievements as claimed
+      const { error: achievementError } = await supabase
         .from('creator_achievements')
         .update({ is_claimed: true })
         .in('id', achievements.map(a => a.id));
 
-      if (error) throw error;
+      if (achievementError) throw achievementError;
+
+      // Update or insert user points
+      const { error: pointsError } = await supabase
+        .from('user_points')
+        .upsert({
+          user_id: user.id,
+          creator_points: newTotal,
+          total_points: 0
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (pointsError) throw pointsError;
 
       toast.success(`Claimed ${achievements.length} ${achievements.length === 1 ? 'achievement' : 'achievements'}! +${totalPoints} points`);
       onClaimed();
