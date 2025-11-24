@@ -227,11 +227,11 @@ export const LearningHub = ({ onBack }: LearningHubProps) => {
                 >
                   {/* Background Image */}
                   <div 
-                    className="absolute inset-0 bg-cover bg-center opacity-25 group-hover:opacity-35 transition-opacity duration-300"
+                    className="absolute inset-0 bg-cover bg-center opacity-50 group-hover:opacity-60 transition-opacity duration-300"
                     style={{ backgroundImage: `url(${getCourseBackground(course.title)})` }}
                   />
                   {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-card/85 via-card/80 to-card/75 group-hover:from-card/80 group-hover:via-card/75 group-hover:to-card/70 transition-all duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-card/60 via-card/50 to-card/40 group-hover:from-card/55 group-hover:via-card/45 group-hover:to-card/35 transition-all duration-300" />
                   
                   {/* Content */}
                   <div className="relative flex items-start justify-between">
