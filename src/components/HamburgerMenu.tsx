@@ -1,32 +1,30 @@
 import { useState } from "react";
 import { Menu, GraduationCap, Info, Mail, BookOpen, Trophy, Wallet } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-interface HamburgerMenuProps {
-  onNavigate: (section: string) => void;
-}
-
-export const HamburgerMenu = ({ onNavigate }: HamburgerMenuProps) => {
+export const HamburgerMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const menuItems = [
-    { id: "wallet", icon: Wallet, label: "Wallet" },
-    { id: "nft", icon: GraduationCap, label: "Unique NFTs" },
-    { id: "certificates", icon: GraduationCap, label: "Certificates" },
-    { id: "leaderboard", icon: Trophy, label: "Leaderboard" },
-    { id: "tutor", icon: GraduationCap, label: "Tutor Dashboard" },
-    { id: "blog", icon: BookOpen, label: "Blog" },
-    { id: "about", icon: Info, label: "About" },
-    { id: "contact", icon: Mail, label: "Contact Us" },
+    { path: "/wallet", icon: Wallet, label: "Wallet" },
+    { path: "/nft", icon: GraduationCap, label: "Unique NFTs" },
+    { path: "/certificates", icon: GraduationCap, label: "Certificates" },
+    { path: "/leaderboard", icon: Trophy, label: "Leaderboard" },
+    { path: "/tutor", icon: GraduationCap, label: "Tutor Dashboard" },
+    { path: "/blog", icon: BookOpen, label: "Blog" },
+    { path: "/about", icon: Info, label: "About" },
+    { path: "/contact", icon: Mail, label: "Contact Us" },
   ];
 
-  const handleMenuItemClick = (sectionId: string) => {
-    onNavigate(sectionId);
-    setIsOpen(false); // Close the menu after navigation
+  const handleMenuItemClick = (path: string) => {
+    navigate(path);
+    setIsOpen(false);
   };
 
   return (
@@ -42,8 +40,8 @@ export const HamburgerMenu = ({ onNavigate }: HamburgerMenuProps) => {
             const Icon = item.icon;
             return (
               <button
-                key={item.id}
-                onClick={() => handleMenuItemClick(item.id)}
+                key={item.path}
+                onClick={() => handleMenuItemClick(item.path)}
                 className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-card-hover transition-colors text-left"
               >
                 <Icon className="w-5 h-5 text-primary" />

@@ -8,6 +8,21 @@ import { AuthProvider } from '@/hooks/useAuth';
 import { PlatformGuard } from '@/components/PlatformGuard';
 import { wagmiConfig } from '@/config/wagmi';
 import Dashboard from './pages/Dashboard.tsx'
+import Home from './pages/Home.tsx'
+import Marketplace from './pages/Marketplace.tsx'
+import Courses from './pages/Courses.tsx'
+import Quest from './pages/Quest.tsx'
+import Earn from './pages/Earn.tsx'
+import Profile from './pages/Profile.tsx'
+import Wallet from './pages/Wallet.tsx'
+import Upload from './pages/Upload.tsx'
+import Certificates from './pages/Certificates.tsx'
+import Tutor from './pages/Tutor.tsx'
+import Blog from './pages/Blog.tsx'
+import Leaderboard from './pages/Leaderboard.tsx'
+import About from './pages/About.tsx'
+import Contact from './pages/Contact.tsx'
+import NFTs from './pages/NFTs.tsx'
 import NotFound from './pages/NotFound.tsx'
 import './index.css'
 
@@ -30,7 +45,23 @@ createRoot(document.getElementById('root')!).render(
           <PlatformGuard>
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/" element={<Dashboard />}>
+                  <Route index element={<Home />} />
+                  <Route path="marketplace" element={<Marketplace />} />
+                  <Route path="courses" element={<Courses />} />
+                  <Route path="quest" element={<Quest />} />
+                  <Route path="earn" element={<Earn />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="wallet" element={<Wallet />} />
+                  <Route path="upload" element={<Upload />} />
+                  <Route path="nft" element={<NFTs />} />
+                  <Route path="certificates" element={<Certificates />} />
+                  <Route path="tutor" element={<Tutor />} />
+                  <Route path="blog" element={<Blog />} />
+                  <Route path="leaderboard" element={<Leaderboard />} />
+                  <Route path="about" element={<About />} />
+                  <Route path="contact" element={<Contact />} />
+                </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <Toaster />
