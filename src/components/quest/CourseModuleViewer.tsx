@@ -180,8 +180,8 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
           description,
         });
 
-        // Refresh streak data in parent component
-        onBack();
+        // Reset to module list so user can continue to next module
+        resetModuleView();
       } else if (data?.message) {
         toast.info(data.message);
       }
