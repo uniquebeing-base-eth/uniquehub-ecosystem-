@@ -5,7 +5,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WagmiProvider } from 'wagmi';
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from '@/hooks/useAuth';
-import { PlatformGuard } from '@/components/PlatformGuard';
 import { wagmiConfig } from '@/config/wagmi';
 import Dashboard from './pages/Dashboard.tsx'
 import Home from './pages/Home.tsx'
@@ -42,31 +41,29 @@ createRoot(document.getElementById('root')!).render(
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <PlatformGuard>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Dashboard />}>
-                  <Route index element={<Home />} />
-                  <Route path="marketplace" element={<Marketplace />} />
-                  <Route path="courses" element={<Courses />} />
-                  <Route path="quest" element={<Quest />} />
-                  <Route path="earn" element={<Earn />} />
-                  <Route path="profile" element={<Profile />} />
-                  <Route path="wallet" element={<Wallet />} />
-                  <Route path="upload" element={<Upload />} />
-                  <Route path="nft" element={<NFTs />} />
-                  <Route path="certificates" element={<Certificates />} />
-                  <Route path="tutor" element={<Tutor />} />
-                  <Route path="blog" element={<Blog />} />
-                  <Route path="leaderboard" element={<Leaderboard />} />
-                  <Route path="about" element={<About />} />
-                  <Route path="contact" element={<Contact />} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <Toaster />
-            </BrowserRouter>
-          </PlatformGuard>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Dashboard />}>
+                <Route index element={<Home />} />
+                <Route path="marketplace" element={<Marketplace />} />
+                <Route path="courses" element={<Courses />} />
+                <Route path="quest" element={<Quest />} />
+                <Route path="earn" element={<Earn />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="wallet" element={<Wallet />} />
+                <Route path="upload" element={<Upload />} />
+                <Route path="nft" element={<NFTs />} />
+                <Route path="certificates" element={<Certificates />} />
+                <Route path="tutor" element={<Tutor />} />
+                <Route path="blog" element={<Blog />} />
+                <Route path="leaderboard" element={<Leaderboard />} />
+                <Route path="about" element={<About />} />
+                <Route path="contact" element={<Contact />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Toaster />
+          </BrowserRouter>
         </AuthProvider>
       </QueryClientProvider>
     </WagmiProvider>
