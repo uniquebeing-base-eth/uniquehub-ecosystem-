@@ -304,6 +304,7 @@ export type Database = {
           description: string | null
           enrollment_count: number | null
           id: string
+          likes_count: number | null
           price_usdc: number | null
           rating: number | null
           status: string | null
@@ -312,6 +313,7 @@ export type Database = {
           updated_at: string
           user_id: string
           video_url: string | null
+          views_count: number | null
         }
         Insert: {
           category?: string | null
@@ -319,6 +321,7 @@ export type Database = {
           description?: string | null
           enrollment_count?: number | null
           id?: string
+          likes_count?: number | null
           price_usdc?: number | null
           rating?: number | null
           status?: string | null
@@ -327,6 +330,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           video_url?: string | null
+          views_count?: number | null
         }
         Update: {
           category?: string | null
@@ -334,6 +338,7 @@ export type Database = {
           description?: string | null
           enrollment_count?: number | null
           id?: string
+          likes_count?: number | null
           price_usdc?: number | null
           rating?: number | null
           status?: string | null
@@ -342,6 +347,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           video_url?: string | null
+          views_count?: number | null
         }
         Relationships: []
       }
@@ -1094,6 +1100,7 @@ export type Database = {
       user_points: {
         Row: {
           created_at: string
+          creator_points: number | null
           daily_streak: number
           id: string
           last_daily_checkin: string | null
@@ -1107,6 +1114,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          creator_points?: number | null
           daily_streak?: number
           id?: string
           last_daily_checkin?: string | null
@@ -1120,6 +1128,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          creator_points?: number | null
           daily_streak?: number
           id?: string
           last_daily_checkin?: string | null
@@ -1135,6 +1144,21 @@ export type Database = {
       }
     }
     Views: {
+      creator_leaderboard: {
+        Row: {
+          avatar_url: string | null
+          creator_points: number | null
+          display_name: string | null
+          farcaster_username: string | null
+          rank: number | null
+          total_courses: number | null
+          total_likes: number | null
+          total_students: number | null
+          total_views: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       leaderboard: {
         Row: {
           avatar_url: string | null
@@ -1151,9 +1175,17 @@ export type Database = {
       }
     }
     Functions: {
+      increment_course_views: {
+        Args: { course_id_param: string }
+        Returns: undefined
+      }
       increment_enrollment_count: {
         Args: { course_id: string }
         Returns: undefined
+      }
+      toggle_course_like: {
+        Args: { course_id_param: string; user_id_param: string }
+        Returns: boolean
       }
     }
     Enums: {
