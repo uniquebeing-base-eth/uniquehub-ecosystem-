@@ -359,6 +359,7 @@ export type Database = {
           badge_color: string | null
           badge_icon: string | null
           id: string
+          is_claimed: boolean | null
           milestone_value: number
           points_awarded: number | null
           user_id: string
@@ -370,6 +371,7 @@ export type Database = {
           badge_color?: string | null
           badge_icon?: string | null
           id?: string
+          is_claimed?: boolean | null
           milestone_value: number
           points_awarded?: number | null
           user_id: string
@@ -381,6 +383,7 @@ export type Database = {
           badge_color?: string | null
           badge_icon?: string | null
           id?: string
+          is_claimed?: boolean | null
           milestone_value?: number
           points_awarded?: number | null
           user_id?: string
@@ -1188,7 +1191,7 @@ export type Database = {
           farcaster_username: string | null
           rank: number | null
           total_courses: number | null
-          total_likes: number | null
+          total_ratings: number | null
           total_students: number | null
           total_views: number | null
           user_id: string | null
