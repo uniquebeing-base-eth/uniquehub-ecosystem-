@@ -56,38 +56,41 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setLoading(false);
           }
         } else {
-          // No session - try to auto-authenticate with Farcaster
-          try {
-            const { sdk } = await import('@farcaster/miniapp-sdk');
-            const context = await sdk.context;
-            
-            if (context?.user) {
-              // We have Farcaster user context - auto sign in
-              console.log('Farcaster user detected:', context.user);
-              await signInWithFarcaster({
-                fid: context.user.fid,
-                username: context.user.username,
-                displayName: context.user.displayName || context.user.username,
-                pfpUrl: context.user.pfpUrl,
-                custodyAddress: '', // Will be fetched from Neynar
-              });
-            } else {
-              // Not in Farcaster context - sign in anonymously
-              const { error } = await supabase.auth.signInAnonymously();
-              if (error) throw error;
-            }
-          } catch (sdkError) {
-            // Farcaster SDK not available - sign in anonymously
-            console.log('Farcaster SDK not available, signing in anonymously');
-            const { error } = await supabase.auth.signInAnonymously();
-            if (error && mounted) {
-              console.error('Anonymous sign in error:', error);
-            }
+          // No session - show UI immediately and authenticate in background
+          if (mounted) {
+            setLoading(false);
           }
-        }
-
-        if (mounted) {
-          setLoading(false);
+          
+          // Do authentication in background without blocking UI
+          setTimeout(async () => {
+            try {
+              const { sdk } = await import('@farcaster/miniapp-sdk');
+              const context = await sdk.context;
+              
+              if (context?.user) {
+                // We have Farcaster user context - auto sign in
+                console.log('Farcaster user detected:', context.user);
+                await signInWithFarcaster({
+                  fid: context.user.fid,
+                  username: context.user.username,
+                  displayName: context.user.displayName || context.user.username,
+                  pfpUrl: context.user.pfpUrl,
+                  custodyAddress: '', // Will be fetched from Neynar
+                });
+              } else {
+                // Not in Farcaster context - sign in anonymously
+                const { error } = await supabase.auth.signInAnonymously();
+                if (error) throw error;
+              }
+            } catch (sdkError) {
+              // Farcaster SDK not available - sign in anonymously
+              console.log('Farcaster SDK not available, signing in anonymously');
+              const { error } = await supabase.auth.signInAnonymously();
+              if (error) {
+                console.error('Anonymous sign in error:', error);
+              }
+            }
+          }, 0);
         }
 
         return () => subscription.unsubscribe();

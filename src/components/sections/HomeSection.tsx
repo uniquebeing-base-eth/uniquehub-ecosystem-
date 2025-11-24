@@ -29,20 +29,27 @@ export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
   const [startX, setStartX] = useState(0);
 
   useEffect(() => {
-    fetchTrendingCourses();
+    // Fetch courses in background without blocking render
+    setTimeout(() => {
+      fetchTrendingCourses();
+    }, 100);
   }, []);
 
   const fetchTrendingCourses = async () => {
-    const { data } = await supabase
-      .from('courses')
-      .select('id, title, description, rating, enrollment_count, thumbnail_url')
-      .eq('status', 'published')
-      .order('rating', { ascending: false })
-      .order('enrollment_count', { ascending: false })
-      .limit(2);
+    try {
+      const { data } = await supabase
+        .from('courses')
+        .select('id, title, description, rating, enrollment_count, thumbnail_url')
+        .eq('status', 'published')
+        .order('rating', { ascending: false })
+        .order('enrollment_count', { ascending: false })
+        .limit(2);
 
-    if (data) {
-      setTrendingCourses(data);
+      if (data) {
+        setTrendingCourses(data);
+      }
+    } catch (error) {
+      console.error('Error fetching courses:', error);
     }
   };
 
