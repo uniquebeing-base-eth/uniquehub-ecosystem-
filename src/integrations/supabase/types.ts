@@ -1193,7 +1193,6 @@ export type Database = {
           total_courses: number | null
           total_ratings: number | null
           total_students: number | null
-          total_views: number | null
           user_id: string | null
         }
         Relationships: []

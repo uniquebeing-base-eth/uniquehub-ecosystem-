@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, Users, Eye, Heart } from "lucide-react";
+import { Trophy, Users, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,7 +15,6 @@ interface CreatorEntry {
   avatar_url: string | null;
   total_students: number;
   total_courses: number;
-  total_views: number;
   total_ratings: number;
   rank: number;
 }
@@ -136,11 +135,7 @@ export const CreatorLeaderboard = () => {
                 {creator.total_students}
               </span>
               <span className="flex items-center gap-1">
-                <Eye className="w-3 h-3" />
-                {creator.total_views}
-              </span>
-              <span className="flex items-center gap-1">
-                <Heart className="w-3 h-3" />
+                <Star className="w-3 h-3" />
                 {creator.total_ratings}
               </span>
             </div>
