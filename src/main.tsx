@@ -24,10 +24,10 @@ if ('serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <PlatformGuard>
+    <PlatformGuard>
+      <WagmiProvider config={wagmiConfig}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
@@ -35,9 +35,9 @@ createRoot(document.getElementById('root')!).render(
               </Routes>
               <Toaster />
             </BrowserRouter>
-          </PlatformGuard>
-        </AuthProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </PlatformGuard>
   </StrictMode>,
 )

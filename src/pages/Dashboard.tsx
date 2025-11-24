@@ -19,8 +19,6 @@ import { QuestSection } from "@/components/sections/QuestSection";
 import { Leaderboard } from "@/components/Leaderboard";
 import { MiniAppPrompt } from "@/components/MiniAppPrompt";
 import { UniqBot } from "@/components/UniqBot";
-import { AuthPage } from "@/components/AuthPage";
-import { PWAInstall } from "@/components/PWAInstall";
 import cubeLogo from "@/assets/uniquehub-cube.png";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -86,11 +84,6 @@ const Dashboard = () => {
       window.removeEventListener('navigateToSection', navigateHandler);
     };
   }, []);
-
-  // Show auth page if not signed in
-  if (!user) {
-    return <AuthPage />;
-  }
 
   if (loading) {
     return (
@@ -205,7 +198,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen flex flex-col anime-bg-main">
-      <PWAInstall />
       <MiniAppPrompt />
       <UniqBot />
       <div className="flex-1 mx-auto max-w-2xl w-full">
