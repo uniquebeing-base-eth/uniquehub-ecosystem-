@@ -123,7 +123,7 @@ const NFTs = () => {
       </main>
 
       <UniqBot />
-      <BottomNavigation activeTab="nfts" onTabChange={handleTabChange} />
+      <BottomNavigation />
     </div>
   );
 };
