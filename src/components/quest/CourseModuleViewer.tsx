@@ -269,17 +269,17 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
               Back
             </Button>
 
-            <Card className="p-8 bg-gradient-card border-2">
+            <Card className="p-8 bg-card border-2">
               <div className="flex items-center gap-3 mb-6">
                 <BookOpen className="w-8 h-8 text-primary" />
                 <div>
-                  <h2 className="text-2xl font-bold">{selectedModule.title}</h2>
+                  <h2 className="text-2xl font-bold text-foreground">{selectedModule.title}</h2>
                   <p className="text-sm text-muted-foreground">Module {selectedModule.module_number}</p>
                 </div>
               </div>
 
-              <div className="prose prose-invert max-w-none mb-8">
-                <p className="text-lg leading-relaxed">{lessonContent}</p>
+              <div className="prose prose-invert dark:prose-invert prose-neutral light:prose max-w-none mb-8">
+                <p className="text-lg leading-relaxed text-foreground">{lessonContent}</p>
               </div>
 
               <Button 
@@ -309,23 +309,23 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
               Back to Lesson
             </Button>
 
-            <Card className="p-8 bg-gradient-card border-2">
+            <Card className="p-8 bg-card border-2">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Quiz Time! 📝</h2>
+                <h2 className="text-2xl font-bold text-foreground">Quiz Time! 📝</h2>
                 <div className="text-sm text-muted-foreground">
                   Question {currentQuestionIndex + 1} of {totalQuestions}
                 </div>
               </div>
 
-              <div className="mb-6 p-4 bg-primary/10 rounded-lg">
+              <div className="mb-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">Current Score:</span>
+                  <span className="text-sm text-foreground">Current Score:</span>
                   <span className="text-xl font-bold text-primary">{currentScore} points</span>
                 </div>
               </div>
 
               <div className="space-y-6 mb-8">
-                <p className="font-semibold text-xl">
+                <p className="font-semibold text-xl text-foreground">
                   {currentQuestion.question}
                 </p>
                 <div className="space-y-3">
@@ -364,7 +364,7 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
 
               {showCorrectAnswer && (
                 <div className="mb-6 p-4 bg-red-500/10 border-2 border-red-500/30 rounded-lg">
-                  <p className="text-red-400 font-semibold mb-2">Incorrect! -10 points</p>
+                  <p className="text-red-500 font-semibold mb-2">Incorrect! -10 points</p>
                   <p className="text-sm text-muted-foreground">
                     The correct answer is highlighted above. Review it before continuing.
                   </p>
@@ -397,7 +397,7 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
           <div className="max-w-2xl w-full">
             <div className="bg-gradient-to-br from-primary/20 to-accent/20 p-12 rounded-3xl border-2 border-primary/30 text-center animate-scale-in">
               <Trophy className="w-24 h-24 mx-auto mb-6 text-primary animate-pulse" />
-              <h2 className="text-3xl font-bold mb-4">Module Complete! 🎉</h2>
+              <h2 className="text-3xl font-bold mb-4 text-foreground">Module Complete! 🎉</h2>
               <div className="mb-8">
                 <p className="text-muted-foreground mb-4 text-lg">
                   {selectedModule.title}
@@ -504,7 +504,7 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
                     ${isCompleted 
                       ? 'bg-primary/10 border-primary/30 opacity-75' 
                       : isUnlocked
-                        ? 'bg-gradient-card border-border hover:border-primary/50 hover:scale-[1.02] hover:shadow-glow'
+                        ? 'bg-card border-border hover:border-primary/50 hover:scale-[1.02] hover:shadow-glow'
                         : 'bg-muted/50 border-muted opacity-50 cursor-not-allowed'
                     }
                   `}
@@ -519,11 +519,11 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
                           <CheckCircle2 className="w-5 h-5 text-primary" />
                         )}
                       </div>
-                      <h3 className="text-lg font-bold mb-1">{module.title}</h3>
+                      <h3 className="text-lg font-bold mb-1 text-foreground">{module.title}</h3>
                       <p className="text-sm text-muted-foreground mb-2">{module.description}</p>
                       <div className="flex items-center gap-2 text-sm">
                         <Trophy className="w-4 h-4 text-primary" />
-                        <span className="text-primary font-medium">{module.points_reward} UP</span>
+                        <span className="text-primary font-semibold">{module.points_reward} UP</span>
                       </div>
                     </div>
                     
