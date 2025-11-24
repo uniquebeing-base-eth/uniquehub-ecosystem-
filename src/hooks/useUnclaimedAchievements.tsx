@@ -29,6 +29,8 @@ export const useUnclaimedAchievements = () => {
 
   const fetchUnclaimedAchievements = async () => {
     try {
+      console.log('Fetching unclaimed achievements for user:', user!.id);
+      
       const { data, error } = await supabase
         .from('creator_achievements')
         .select('*')
@@ -36,11 +38,17 @@ export const useUnclaimedAchievements = () => {
         .eq('is_claimed', false)
         .order('awarded_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching achievements:', error);
+        throw error;
+      }
+
+      console.log('Unclaimed achievements found:', data?.length || 0, data);
 
       if (data && data.length > 0) {
         setAchievements(data);
-        setShowModal(true);
+        // Small delay to ensure UI is ready
+        setTimeout(() => setShowModal(true), 500);
       }
     } catch (error) {
       console.error('Error fetching unclaimed achievements:', error);
