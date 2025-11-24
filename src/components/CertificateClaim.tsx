@@ -117,7 +117,8 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
         .from('certificates')
         .update({ 
           transaction_hash: hash,
-          minted_at: new Date().toISOString()
+          minted_at: new Date().toISOString(),
+          chain: selectedChain
         })
         .eq('id', certificate.id);
 
