@@ -757,6 +757,36 @@ export type Database = {
           },
         ]
       }
+      multichain_claims: {
+        Row: {
+          amount: number
+          chain_id: string
+          claimed_at: string
+          created_at: string
+          id: string
+          transaction_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          chain_id: string
+          claimed_at?: string
+          created_at?: string
+          id?: string
+          transaction_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          chain_id?: string
+          claimed_at?: string
+          created_at?: string
+          id?: string
+          transaction_hash?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       nft_listings: {
         Row: {
           buyer_user_id: string | null
