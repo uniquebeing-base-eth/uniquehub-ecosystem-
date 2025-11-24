@@ -3,7 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, TrendingUp, TrendingDown, Users, BookOpen } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { CalendarIcon, TrendingUp, TrendingDown, Users, BookOpen, ChevronDown } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
@@ -14,8 +15,9 @@ interface TutorAnalyticsProps {
 }
 
 export const TutorAnalytics = ({ userId }: TutorAnalyticsProps) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [dateRange, setDateRange] = useState({
-    from: subDays(new Date(), 30),
+    from: subDays(new Date(), 7), // Start with 7 days for faster loading
     to: new Date(),
   });
   const [enrollmentData, setEnrollmentData] = useState<any[]>([]);
@@ -24,11 +26,21 @@ export const TutorAnalytics = ({ userId }: TutorAnalyticsProps) => {
     percentageChange: 0,
     trend: "up" as "up" | "down" | "neutral",
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
-    fetchAnalytics();
-  }, [userId, dateRange]);
+    if (isOpen && !hasLoaded) {
+      fetchAnalytics();
+      setHasLoaded(true);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (hasLoaded) {
+      fetchAnalytics();
+    }
+  }, [dateRange]);
 
   const fetchAnalytics = async () => {
     setLoading(true);
@@ -135,10 +147,18 @@ export const TutorAnalytics = ({ userId }: TutorAnalyticsProps) => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-foreground">Student Analytics</h2>
-        <Popover>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card className="p-4">
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" className="w-full justify-between p-0 hover:bg-transparent">
+            <h2 className="text-lg font-bold text-foreground">Student Analytics</h2>
+            <ChevronDown className={cn("w-5 h-5 transition-transform", isOpen && "rotate-180")} />
+          </Button>
+        </CollapsibleTrigger>
+        
+        <CollapsibleContent className="space-y-4 mt-4">
+          <div className="flex items-center justify-end">
+            <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className="text-xs">
               <CalendarIcon className="w-3.5 h-3.5 mr-2" />
@@ -180,11 +200,11 @@ export const TutorAnalytics = ({ userId }: TutorAnalyticsProps) => {
               className="p-3"
             />
           </PopoverContent>
-        </Popover>
-      </div>
+            </Popover>
+          </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-3">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 gap-3">
         <Card className="p-3">
           <div className="flex items-center justify-between mb-2">
             <Users className="w-5 h-5 text-primary" />
@@ -210,11 +230,11 @@ export const TutorAnalytics = ({ userId }: TutorAnalyticsProps) => {
           </div>
           <div className="text-xs text-muted-foreground">Total Students</div>
           <div className="text-xs text-muted-foreground mt-1">Across all courses</div>
-        </Card>
-      </div>
+            </Card>
+          </div>
 
-      {/* Chart */}
-      <Card className="p-4">
+          {/* Chart */}
+          <Card className="p-4">
         <h3 className="text-sm font-semibold text-foreground mb-3">Enrollment Trends</h3>
         {loading ? (
           <div className="h-64 flex items-center justify-center">
@@ -267,11 +287,11 @@ export const TutorAnalytics = ({ userId }: TutorAnalyticsProps) => {
             <p className="text-xs text-muted-foreground mt-1">Try selecting a different date range</p>
           </div>
         )}
-      </Card>
+          </Card>
 
-      {/* Insights */}
-      {!loading && enrollmentData.length > 0 && (
-        <Card className="p-4">
+          {/* Insights */}
+          {!loading && enrollmentData.length > 0 && (
+            <Card className="p-4">
           <h3 className="text-sm font-semibold text-foreground mb-2">Quick Insights</h3>
           <div className="space-y-2 text-xs text-muted-foreground">
             <p>
@@ -294,9 +314,11 @@ export const TutorAnalytics = ({ userId }: TutorAnalyticsProps) => {
                 • Consider promoting your courses or creating new content to attract more students
               </p>
             )}
-          </div>
-        </Card>
-      )}
-    </div>
+              </div>
+            </Card>
+          )}
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 };
