@@ -13,6 +13,7 @@ interface Chain {
   logo: string;
   color: string;
   enabled: boolean;
+  rewardPerThousand: number;
 }
 
 const chains: Chain[] = [
@@ -23,6 +24,7 @@ const chains: Chain[] = [
     logo: "🌿",
     color: "from-green-500 to-emerald-600",
     enabled: true,
+    rewardPerThousand: 0.02,
   },
   {
     id: "monad",
@@ -31,6 +33,7 @@ const chains: Chain[] = [
     logo: "🔷",
     color: "from-purple-500 to-indigo-600",
     enabled: true,
+    rewardPerThousand: 0.1,
   },
   {
     id: "solana",
@@ -39,6 +42,7 @@ const chains: Chain[] = [
     logo: "◎",
     color: "from-purple-400 to-pink-600",
     enabled: true,
+    rewardPerThousand: 0.0001,
   },
   {
     id: "arbitrum",
@@ -47,6 +51,7 @@ const chains: Chain[] = [
     logo: "🔵",
     color: "from-blue-500 to-cyan-600",
     enabled: true,
+    rewardPerThousand: 0.02,
   },
   {
     id: "bnb",
@@ -55,6 +60,7 @@ const chains: Chain[] = [
     logo: "💛",
     color: "from-yellow-500 to-orange-600",
     enabled: true,
+    rewardPerThousand: 0.00001,
   },
 ];
 
@@ -83,9 +89,8 @@ export const RewardsSection = () => {
     fetchPoints();
   });
 
-  const calculateClaimAmount = (points: number): number => {
-    // Simple formula: 1 token per 1000 points (adjust as needed)
-    return Math.floor(points / 1000) * 0.5;
+  const calculateClaimAmount = (points: number, rewardRate: number): number => {
+    return Math.floor(points / 1000) * rewardRate;
   };
 
   const canClaimToday = (chainId: string): boolean => {
@@ -109,7 +114,7 @@ export const RewardsSection = () => {
       return;
     }
 
-    const claimAmount = calculateClaimAmount(userPoints);
+    const claimAmount = calculateClaimAmount(userPoints, chain.rewardPerThousand);
     
     if (claimAmount <= 0) {
       toast.error("You need at least 1000 points to claim rewards");
@@ -143,7 +148,7 @@ export const RewardsSection = () => {
     }
   };
 
-  const claimAmount = calculateClaimAmount(userPoints);
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background p-4 pb-24">
@@ -164,16 +169,17 @@ export const RewardsSection = () => {
             <p className="text-sm text-muted-foreground">Your Total Points</p>
             <p className="text-5xl font-bold text-foreground">{userPoints.toLocaleString()}</p>
             <p className="text-sm text-muted-foreground">
-              Daily Claim Amount: <span className="text-primary font-semibold">{claimAmount} tokens</span>
+              Claim tokens on each chain based on your points
             </p>
           </div>
         </Card>
 
         {/* Chain Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {chains.map((chain) => {
+        {chains.map((chain) => {
             const isClaiming = claimingChain === chain.id;
             const canClaim = canClaimToday(chain.id);
+            const claimAmount = calculateClaimAmount(userPoints, chain.rewardPerThousand);
             
             return (
               <Card
@@ -236,7 +242,7 @@ export const RewardsSection = () => {
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>• Earn points by completing courses, enrolling, and engaging with the platform</li>
             <li>• Claim rewards once per day on each chain</li>
-            <li>• Reward amount: 0.5 tokens per 1000 points</li>
+            <li>• Reward amounts vary by chain based on token prices</li>
             <li>• Each chain has its own independent daily claim</li>
             <li>• Transactions are gasless and automated via Gelato</li>
           </ul>
