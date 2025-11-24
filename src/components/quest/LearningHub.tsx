@@ -22,6 +22,11 @@ interface Course {
   difficulty_level: string;
 }
 
+interface CourseCompletion {
+  course_id: string;
+  completed_count: number;
+}
+
 interface UserStreak {
   current_streak: number;
   longest_streak: number;
@@ -32,6 +37,7 @@ interface UserStreak {
 export const LearningHub = ({ onBack }: LearningHubProps) => {
   const { user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [courseCompletions, setCourseCompletions] = useState<Map<string, number>>(new Map());
   const [streak, setStreak] = useState<UserStreak | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,14 +46,41 @@ export const LearningHub = ({ onBack }: LearningHubProps) => {
     if (user) {
       fetchCourses();
       fetchStreak();
+      fetchCourseCompletions();
     }
   }, [user]);
 
   const getCourseBackground = (title: string) => {
     const lowerTitle = title.toLowerCase();
-    if (lowerTitle.includes('crypto')) return cryptoBg;
+    if (lowerTitle.includes('crypto') || lowerTitle.includes('wallet')) return cryptoBg;
     if (lowerTitle.includes('web3')) return web3Bg;
+    if (lowerTitle.includes('blockchain') || lowerTitle.includes('nft')) return placeholderBg;
     return placeholderBg;
+  };
+
+  const fetchCourseCompletions = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('module_completions')
+      .select('course_id')
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error(error);
+    } else {
+      const completionMap = new Map<string, number>();
+      data?.forEach(completion => {
+        const count = completionMap.get(completion.course_id) || 0;
+        completionMap.set(completion.course_id, count + 1);
+      });
+      setCourseCompletions(completionMap);
+    }
+  };
+
+  const isCourseCompleted = (courseId: string, totalModules: number) => {
+    const completedCount = courseCompletions.get(courseId) || 0;
+    return completedCount >= totalModules;
   };
 
   const fetchCourses = async () => {
@@ -112,7 +145,7 @@ export const LearningHub = ({ onBack }: LearningHubProps) => {
           </Button>
 
           {/* Streak Display */}
-          <div className="flex items-center justify-between bg-gradient-to-r from-primary/20 to-accent/20 p-4 rounded-xl">
+          <div className="flex items-center justify-between bg-gradient-to-r from-primary/20 to-accent/20 p-4 rounded-xl border border-primary/10">
             <div className="flex items-center gap-3">
               <Flame className={`w-10 h-10 ${isStreakActive ? 'text-primary animate-pulse' : 'text-muted-foreground'}`} />
               <div>
@@ -124,7 +157,7 @@ export const LearningHub = ({ onBack }: LearningHubProps) => {
             </div>
             <div className="text-right">
               <div className="text-sm text-muted-foreground">Longest</div>
-              <div className="text-2xl font-bold">{streak?.longest_streak || 0}</div>
+              <div className="text-2xl font-bold text-foreground">{streak?.longest_streak || 0}</div>
             </div>
           </div>
         </div>
@@ -143,45 +176,54 @@ export const LearningHub = ({ onBack }: LearningHubProps) => {
           </div>
         ) : (
           <div className="grid gap-4">
-            {courses.map((course) => (
-              <button
-                key={course.id}
-                onClick={() => setSelectedCourse(course)}
-                className="group relative overflow-hidden p-6 rounded-xl border border-border hover:border-primary/50 transition-all duration-300 text-left hover:scale-[1.02] hover:shadow-glow"
-              >
-                {/* Background Image */}
-                <div 
-                  className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-40 transition-opacity duration-300"
-                  style={{ backgroundImage: `url(${getCourseBackground(course.title)})` }}
-                />
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/90 to-background/80 group-hover:from-background/90 group-hover:via-background/85 group-hover:to-background/75 transition-all duration-300" />
-                
-                {/* Content */}
-                <div className="relative flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary font-medium backdrop-blur-sm">
-                        {course.category}
-                      </span>
-                      <span className="text-xs px-2 py-1 rounded-full bg-muted/80 text-muted-foreground backdrop-blur-sm">
-                        {course.difficulty_level}
-                      </span>
+            {courses.map((course) => {
+              const isCompleted = isCourseCompleted(course.id, course.total_modules);
+              return (
+                <button
+                  key={course.id}
+                  onClick={() => setSelectedCourse(course)}
+                  className="group relative overflow-hidden p-6 rounded-xl border border-border hover:border-primary/50 transition-all duration-300 text-left hover:scale-[1.02] hover:shadow-glow bg-card"
+                >
+                  {/* Background Image */}
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center opacity-10 group-hover:opacity-20 transition-opacity duration-300"
+                    style={{ backgroundImage: `url(${getCourseBackground(course.title)})` }}
+                  />
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-card/95 via-card/90 to-card/85 group-hover:from-card/90 group-hover:via-card/85 group-hover:to-card/80 transition-all duration-300" />
+                  
+                  {/* Content */}
+                  <div className="relative flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary font-medium backdrop-blur-sm">
+                          {course.category}
+                        </span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground backdrop-blur-sm">
+                          {course.difficulty_level}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors text-foreground">
+                        {course.title}
+                      </h3>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Star className={`w-4 h-4 ${isCompleted ? 'fill-yellow-500 text-yellow-500' : ''}`} />
+                          {course.total_modules} modules
+                        </span>
+                      </div>
                     </div>
-                    <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
-                      {course.title}
-                    </h3>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Star className="w-4 h-4" />
-                        {course.total_modules} modules
-                      </span>
-                    </div>
+                    <Star 
+                      className={`w-8 h-8 group-hover:scale-110 transition-transform ${
+                        isCompleted 
+                          ? 'fill-yellow-500 text-yellow-500' 
+                          : 'text-primary'
+                      }`} 
+                    />
                   </div>
-                  <Star className="w-8 h-8 text-primary group-hover:scale-110 transition-transform" />
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
