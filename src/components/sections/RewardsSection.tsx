@@ -5,6 +5,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import celoLogo from "@/assets/celo-logo.png";
+import monadLogo from "@/assets/monad-logo.png";
+import solanaLogo from "@/assets/solana-logo.png";
+import arbitrumLogo from "@/assets/arbitrum-logo.png";
+import bnbLogo from "@/assets/bnb-logo.png";
 
 interface Chain {
   id: string;
@@ -21,7 +26,7 @@ const chains: Chain[] = [
     id: "celo",
     name: "Celo",
     token: "CELO",
-    logo: "🌿",
+    logo: celoLogo,
     color: "from-green-500 to-emerald-600",
     enabled: true,
     rewardPerThousand: 0.02,
@@ -30,7 +35,7 @@ const chains: Chain[] = [
     id: "monad",
     name: "Monad",
     token: "MON",
-    logo: "🔷",
+    logo: monadLogo,
     color: "from-purple-500 to-indigo-600",
     enabled: true,
     rewardPerThousand: 0.1,
@@ -39,7 +44,7 @@ const chains: Chain[] = [
     id: "solana",
     name: "Solana",
     token: "SOL",
-    logo: "◎",
+    logo: solanaLogo,
     color: "from-purple-400 to-pink-600",
     enabled: true,
     rewardPerThousand: 0.0001,
@@ -48,7 +53,7 @@ const chains: Chain[] = [
     id: "arbitrum",
     name: "Arbitrum",
     token: "ARB",
-    logo: "🔵",
+    logo: arbitrumLogo,
     color: "from-blue-500 to-cyan-600",
     enabled: true,
     rewardPerThousand: 0.02,
@@ -57,7 +62,7 @@ const chains: Chain[] = [
     id: "bnb",
     name: "BNB Chain",
     token: "BNB",
-    logo: "💛",
+    logo: bnbLogo,
     color: "from-yellow-500 to-orange-600",
     enabled: true,
     rewardPerThousand: 0.00001,
@@ -190,7 +195,9 @@ export const RewardsSection = () => {
                 
                 <div className="relative p-6 space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="text-4xl">{chain.logo}</div>
+                    <div className="w-12 h-12 rounded-full bg-background/50 flex items-center justify-center overflow-hidden">
+                      <img src={chain.logo} alt={chain.name} className="w-8 h-8 object-contain" />
+                    </div>
                     <div>
                       <h3 className="text-xl font-bold text-foreground">{chain.name}</h3>
                       <p className="text-sm text-muted-foreground">{chain.token}</p>
