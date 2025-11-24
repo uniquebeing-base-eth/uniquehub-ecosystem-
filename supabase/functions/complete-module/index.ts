@@ -151,6 +151,56 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Award points to user_points table
+    const { data: userPoints } = await supabase
+      .from('user_points')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (userPoints) {
+      // Update existing points
+      const { error: pointsUpdateError } = await supabase
+        .from('user_points')
+        .update({
+          total_points: userPoints.total_points + pointsEarned,
+          updated_at: now.toISOString(),
+        })
+        .eq('user_id', user.id);
+
+      if (pointsUpdateError) {
+        console.error('Error updating user points:', pointsUpdateError);
+        throw pointsUpdateError;
+      }
+    } else {
+      // Create new points record
+      const { error: pointsInsertError } = await supabase
+        .from('user_points')
+        .insert({
+          user_id: user.id,
+          total_points: pointsEarned,
+        });
+
+      if (pointsInsertError) {
+        console.error('Error creating user points:', pointsInsertError);
+        throw pointsInsertError;
+      }
+    }
+
+    // Record point event
+    const { error: eventError } = await supabase
+      .from('point_events')
+      .insert({
+        user_id: user.id,
+        event_type: 'course_completion',
+        points_earned: pointsEarned,
+      });
+
+    if (eventError) {
+      console.error('Error recording point event:', eventError);
+      throw eventError;
+    }
+
     // Fetch updated streak data
     const { data: updatedStreak } = await supabase
       .from('user_learning_streaks')
@@ -161,6 +211,7 @@ Deno.serve(async (req) => {
     console.log('Module completion successful:', {
       currentStreak: updatedStreak?.current_streak,
       totalModules: updatedStreak?.total_modules_completed,
+      pointsAwarded: pointsEarned,
     });
 
     return new Response(

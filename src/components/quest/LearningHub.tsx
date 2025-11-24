@@ -167,7 +167,7 @@ export const LearningHub = ({ onBack }: LearningHubProps) => {
           {/* Streak Display */}
           <div className="flex items-center justify-between bg-gradient-to-r from-primary/20 to-accent/20 p-4 rounded-xl border border-primary/10">
             <div className="flex items-center gap-3">
-              <Flame className={`w-10 h-10 ${isStreakActive ? 'text-primary animate-pulse' : 'text-muted-foreground'}`} />
+              <Flame className={`w-10 h-10 ${isStreakActive ? 'text-red-500 animate-pulse' : 'text-muted-foreground'}`} />
               <div>
                 <div className="text-3xl font-bold text-primary">
                   {streak?.current_streak || 0}
@@ -227,11 +227,11 @@ export const LearningHub = ({ onBack }: LearningHubProps) => {
                 >
                   {/* Background Image */}
                   <div 
-                    className="absolute inset-0 bg-cover bg-center opacity-10 group-hover:opacity-20 transition-opacity duration-300"
+                    className="absolute inset-0 bg-cover bg-center opacity-25 group-hover:opacity-35 transition-opacity duration-300"
                     style={{ backgroundImage: `url(${getCourseBackground(course.title)})` }}
                   />
                   {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-card/95 via-card/90 to-card/85 group-hover:from-card/90 group-hover:via-card/85 group-hover:to-card/80 transition-all duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-card/85 via-card/80 to-card/75 group-hover:from-card/80 group-hover:via-card/75 group-hover:to-card/70 transition-all duration-300" />
                   
                   {/* Content */}
                   <div className="relative flex items-start justify-between">
