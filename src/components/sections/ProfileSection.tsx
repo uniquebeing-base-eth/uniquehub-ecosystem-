@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUnclaimedAchievements } from "@/hooks/useUnclaimedAchievements";
 import { AchievementClaimModal } from "@/components/AchievementClaimModal";
 import cardBgProfile from '@/assets/card-bg-profile.jpg';
+import { getAchievementTitle } from "@/lib/achievementUtils";
 
 export const ProfileSection = () => {
   const { user } = useAuth();
@@ -281,11 +282,11 @@ export const ProfileSection = () => {
                   {achievement.badge_icon}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
-                    {achievement.achievement_type === 'courses' ? 'Creator' : 'Teacher'}
-                  </Badge>
-                  <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                    {achievement.milestone_value} {achievement.achievement_type === 'courses' ? 'courses' : 'students'}
+                  <h4 className="text-[11px] font-semibold text-foreground truncate">
+                    {getAchievementTitle(achievement.achievement_type, achievement.achievement_level)}
+                  </h4>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    +{achievement.points_awarded} points
                   </p>
                 </div>
               </div>
