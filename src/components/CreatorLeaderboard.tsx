@@ -135,7 +135,7 @@ export const CreatorLeaderboard = () => {
                 {creator.total_students}
               </span>
               <span className="flex items-center gap-1">
-                <Star className="w-3 h-3" />
+                <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                 {creator.total_ratings}
               </span>
             </div>
