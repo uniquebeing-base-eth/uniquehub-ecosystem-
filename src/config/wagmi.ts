@@ -4,6 +4,7 @@ import { fallback } from 'viem';
 import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
 import { walletConnect, coinbaseWallet } from 'wagmi/connectors';
 
+
 export const wagmiConfig = createConfig({
   chains: [base],
   connectors: [
