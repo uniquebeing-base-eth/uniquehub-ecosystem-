@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Trophy, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getAchievementTitle, getAchievementDescription } from "@/lib/achievementUtils";
 
 interface Achievement {
   id: string;
@@ -22,44 +23,6 @@ interface AchievementClaimModalProps {
   achievements: Achievement[];
   onClaimed: () => void;
 }
-
-const getAchievementTitle = (type: string, level: number): string => {
-  if (type === 'courses') {
-    const titles = [
-      'Rookie Creator', 
-      'Content Crafter', 
-      'Course Master', 
-      'Course Sage', 
-      'Knowledge Artisan',
-      'Education Architect',
-      'Learning Legend',
-      'Grand Instructor'
-    ];
-    return titles[level - 1] || 'Achievement';
-  } else if (type === 'students') {
-    const titles = [
-      'Student Spark',
-      'Rising Mentor',
-      'Student Master',
-      'Audience Builder',
-      'Edu Influencer',
-      'Community Mentor',
-      'Knowledge Magnet',
-      'Master Educator'
-    ];
-    return titles[level - 1] || 'Achievement';
-  }
-  return 'Achievement';
-};
-
-const getAchievementDescription = (type: string, value: number): string => {
-  if (type === 'courses') {
-    return `Created ${value} ${value === 1 ? 'course' : 'courses'}`;
-  } else if (type === 'students') {
-    return `Reached ${value} ${value === 1 ? 'student' : 'students'}`;
-  }
-  return '';
-};
 
 export const AchievementClaimModal = ({ open, onOpenChange, achievements, onClaimed }: AchievementClaimModalProps) => {
   const [claiming, setClaiming] = useState(false);
