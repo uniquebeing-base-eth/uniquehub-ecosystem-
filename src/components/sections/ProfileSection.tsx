@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUnclaimedAchievements } from "@/hooks/useUnclaimedAchievements";
 import { AchievementClaimModal } from "@/components/AchievementClaimModal";
 import cardBgProfile from '@/assets/card-bg-profile.jpg';
-import { getAchievementTitle } from "@/lib/achievementUtils";
+import { getAchievementTitle, getAchievementDescription } from "@/lib/achievementUtils";
 
 export const ProfileSection = () => {
   const { user } = useAuth();
@@ -286,7 +286,7 @@ export const ProfileSection = () => {
                     {getAchievementTitle(achievement.achievement_type, achievement.achievement_level)}
                   </h4>
                   <p className="text-[10px] text-muted-foreground truncate">
-                    +{achievement.points_awarded} points
+                    {getAchievementDescription(achievement.achievement_type, achievement.milestone_value)}
                   </p>
                 </div>
               </div>
