@@ -63,3 +63,6 @@ verify_jwt = false
 [functions.restore-learner-points]
 verify_jwt = false
 
+[functions.recalculate-user-points]
+verify_jwt = false
+
