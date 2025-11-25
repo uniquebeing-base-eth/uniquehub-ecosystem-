@@ -60,3 +60,6 @@ verify_jwt = true
 [functions.farcaster-mention-handler]
 verify_jwt = false
 
+[functions.restore-learner-points]
+verify_jwt = false
+
