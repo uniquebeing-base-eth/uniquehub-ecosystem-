@@ -5,11 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import celoLogo from "@/assets/celo-logo.png";
-import monadLogo from "@/assets/monad-logo.png";
-import solanaLogo from "@/assets/solana-logo.png";
-import arbitrumLogo from "@/assets/arbitrum-logo.png";
-import bnbLogo from "@/assets/bnb-logo.png";
+import eggsLogo from "@/assets/eggs-token.jpg";
+import jesseLogo from "@/assets/jesse-token.png";
 
 interface Chain {
   id: string;
@@ -23,49 +20,22 @@ interface Chain {
 
 const chains: Chain[] = [
   {
-    id: "celo",
-    name: "Celo",
-    token: "CELO",
-    logo: celoLogo,
-    color: "from-green-500 to-emerald-600",
-    enabled: true,
-    rewardPerThousand: 0.02,
-  },
-  {
-    id: "monad",
-    name: "Monad",
-    token: "MON",
-    logo: monadLogo,
-    color: "from-purple-500 to-indigo-600",
+    id: "eggs",
+    name: "Base",
+    token: "EGGS",
+    logo: eggsLogo,
+    color: "from-yellow-400 to-green-500",
     enabled: true,
     rewardPerThousand: 0.1,
   },
   {
-    id: "solana",
-    name: "Solana",
-    token: "SOL",
-    logo: solanaLogo,
-    color: "from-purple-400 to-pink-600",
+    id: "jesse",
+    name: "Base",
+    token: "JESSE",
+    logo: jesseLogo,
+    color: "from-purple-500 to-pink-600",
     enabled: true,
-    rewardPerThousand: 0.0001,
-  },
-  {
-    id: "arbitrum",
-    name: "Arbitrum",
-    token: "ARB",
-    logo: arbitrumLogo,
-    color: "from-blue-500 to-cyan-600",
-    enabled: true,
-    rewardPerThousand: 0.02,
-  },
-  {
-    id: "bnb",
-    name: "BNB Chain",
-    token: "BNB",
-    logo: bnbLogo,
-    color: "from-yellow-500 to-orange-600",
-    enabled: true,
-    rewardPerThousand: 0.00001,
+    rewardPerThousand: 0.5,
   },
 ];
 
@@ -248,10 +218,10 @@ export const RewardsSection = () => {
           <h3 className="text-lg font-semibold mb-3 text-foreground">How It Works</h3>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>• Earn points by completing courses, enrolling, and engaging with the platform</li>
-            <li>• Claim rewards once per day on each chain</li>
-            <li>• Reward amounts vary by chain based on token prices</li>
-            <li>• Each chain has its own independent daily claim</li>
-            <li>• Transactions are gasless and automated via Gelato</li>
+            <li>• Claim rewards once per day for each token</li>
+            <li>• Both tokens are on Base mainnet</li>
+            <li>• Each token has its own independent daily claim</li>
+            <li>• Transactions are gasless and automated</li>
           </ul>
         </Card>
       </div>
