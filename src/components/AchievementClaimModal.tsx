@@ -54,13 +54,12 @@ export const AchievementClaimModal = ({ open, onOpenChange, achievements, onClai
 
       if (achievementError) throw achievementError;
 
-      // Update or insert user points
+      // Update or insert user points - only update creator_points, don't touch total_points
       const { error: pointsError } = await supabase
         .from('user_points')
         .upsert({
           user_id: user.id,
-          creator_points: newTotal,
-          total_points: 0
+          creator_points: newTotal
         }, {
           onConflict: 'user_id'
         });
