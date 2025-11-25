@@ -209,8 +209,8 @@ export const RewardsSection = () => {
                       <img src={chain.logo} alt={chain.name} className="w-8 h-8 object-contain" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-foreground">{chain.name}</h3>
-                      <p className="text-sm text-muted-foreground">{chain.token}</p>
+                      <h3 className="text-xl font-bold text-foreground">{chain.token}</h3>
+                      <p className="text-sm text-muted-foreground">{chain.name}</p>
                     </div>
                   </div>
 
