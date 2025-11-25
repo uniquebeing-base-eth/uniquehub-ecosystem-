@@ -8,7 +8,7 @@ interface NavigationProps {
 
 const tabs = [
   { id: "home", label: "Home" },
-  { id: "rewards", label: "Rewards" },
+  { id: "earning", label: "Earn" },
   { id: "marketplace", label: "Market" },
   { id: "courses", label: "Courses" },
   { id: "quest", label: "Quest" },
