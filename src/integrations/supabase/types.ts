@@ -1147,21 +1147,33 @@ export type Database = {
           generated_at: string
           id: string
           image_url: string
+          is_minted: boolean | null
           metadata: Json | null
+          minted_at: string | null
+          token_id: number | null
+          transaction_hash: string | null
           user_id: string
         }
         Insert: {
           generated_at?: string
           id?: string
           image_url: string
+          is_minted?: boolean | null
           metadata?: Json | null
+          minted_at?: string | null
+          token_id?: number | null
+          transaction_hash?: string | null
           user_id: string
         }
         Update: {
           generated_at?: string
           id?: string
           image_url?: string
+          is_minted?: boolean | null
           metadata?: Json | null
+          minted_at?: string | null
+          token_id?: number | null
+          transaction_hash?: string | null
           user_id?: string
         }
         Relationships: []

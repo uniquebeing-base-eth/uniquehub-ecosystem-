@@ -43,6 +43,14 @@ export const NFTSection = () => {
 
       if (data) {
         setNftData(data);
+        // Check database mint status first (most reliable)
+        if (data.is_minted) {
+          setHasMinted(true);
+          if (data.token_id) {
+            setTokenId(BigInt(data.token_id));
+          }
+          console.log("Mint status from DB: minted, token_id:", data.token_id);
+        }
       }
     } catch (error) {
       console.error("Error loading NFT:", error);
@@ -52,6 +60,9 @@ export const NFTSection = () => {
   };
 
   const checkMintStatus = async () => {
+    // If already marked as minted in DB, don't check blockchain
+    if (hasMinted) return;
+    
     if (!address || !publicClient) return;
 
     try {
@@ -62,9 +73,9 @@ export const NFTSection = () => {
         args: [address],
       } as any);
 
-      setHasMinted(minted as boolean);
-
       if (minted) {
+        setHasMinted(true);
+        
         const tokenIdResult = await publicClient.readContract({
           address: UNIQUE_NFT_ADDRESS,
           abi: UNIQUE_NFT_ABI,
@@ -72,9 +83,22 @@ export const NFTSection = () => {
           args: [address],
         } as any);
         setTokenId(tokenIdResult as bigint);
+        
+        // Sync to database if blockchain says minted but DB doesn't
+        if (user && nftData && !nftData.is_minted) {
+          console.log("Syncing mint status to database...");
+          await supabase
+            .from("user_nft_generations")
+            .update({
+              is_minted: true,
+              token_id: Number(tokenIdResult),
+              minted_at: new Date().toISOString()
+            })
+            .eq("user_id", user.id);
+        }
       }
     } catch (error) {
-      console.error("Error checking mint status:", error);
+      console.error("Error checking mint status from blockchain:", error);
     }
   };
 
@@ -242,8 +266,33 @@ export const NFTSection = () => {
           } as any);
           setTokenId(tokenIdResult as bigint);
           console.log("Token ID retrieved:", tokenIdResult);
+          
+          // Save mint status to database for persistence
+          if (user && nftData) {
+            await supabase
+              .from("user_nft_generations")
+              .update({
+                is_minted: true,
+                token_id: Number(tokenIdResult),
+                minted_at: new Date().toISOString(),
+                transaction_hash: hash
+              })
+              .eq("user_id", user.id);
+            console.log("Mint status saved to database");
+          }
         } catch (e) {
           console.error("Failed to get token ID, retrying...", e);
+          // Still save mint status even if token ID fetch fails
+          if (user && nftData) {
+            await supabase
+              .from("user_nft_generations")
+              .update({
+                is_minted: true,
+                minted_at: new Date().toISOString(),
+                transaction_hash: hash
+              })
+              .eq("user_id", user.id);
+          }
           // Retry after another delay
           setTimeout(() => checkMintStatus(), 2000);
         }
