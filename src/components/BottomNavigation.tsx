@@ -1,4 +1,4 @@
-import { Home, BookOpen, Box, ShoppingBag, User, Trophy, Gift } from "lucide-react";
+import { Home, BookOpen, Box, ShoppingBag, Coins, Trophy, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BottomNavigationProps {
@@ -13,7 +13,7 @@ const navItems = [
   { id: "upload", icon: Box, label: "Upload" },
   { id: "quest", icon: Trophy, label: "Quest" },
   { id: "marketplace", icon: ShoppingBag, label: "Market" },
-  { id: "profile", icon: User, label: "Profile" },
+  { id: "rewards", icon: Coins, label: "Rewards" },
 ];
 
 export const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {

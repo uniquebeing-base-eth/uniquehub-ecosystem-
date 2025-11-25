@@ -207,14 +207,17 @@ const Dashboard = () => {
         {/* Header */}
         <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border px-3 py-2.5 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8 ring-2 ring-primary/20">
+            <button 
+              onClick={() => setActiveTab('profile')}
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+            >
+              <Avatar className="h-8 w-8 ring-2 ring-primary/20 hover:ring-primary/40 transition-all">
                 <AvatarImage src={user?.user_metadata?.avatar_url} />
                 <AvatarFallback className="bg-gradient-primary text-white text-xs font-semibold">
                   {(user?.user_metadata?.display_name || 'U')[0].toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-            </div>
+            </button>
             
             <div className="flex items-center gap-1.5">
               <img src={cubeLogo} alt="UniqueHub" className="h-5 w-5" />
