@@ -34,20 +34,20 @@ Deno.serve(async (req) => {
 
     const restoredUsers = [];
 
-    // For each affected user, calculate their correct learner points from module completions
+    // For each affected user, calculate their correct learner points from ALL point events
     for (const user of affectedUsers || []) {
-      const { data: completions, error: completionsError } = await supabase
-        .from('module_completions')
+      const { data: pointEvents, error: eventsError } = await supabase
+        .from('point_events')
         .select('points_earned')
         .eq('user_id', user.user_id);
 
-      if (completionsError) {
-        console.error(`Error fetching completions for user ${user.user_id}:`, completionsError);
+      if (eventsError) {
+        console.error(`Error fetching point events for user ${user.user_id}:`, eventsError);
         continue;
       }
 
-      // Calculate total points from module completions
-      const totalPoints = completions?.reduce((sum, c) => sum + (c.points_earned || 10), 0) || 0;
+      // Calculate total points from ALL point events (tasks, modules, checkins, transactions, etc.)
+      const totalPoints = pointEvents?.reduce((sum, e) => sum + (e.points_earned || 0), 0) || 0;
 
       if (totalPoints > 0) {
         // Restore the learner points
