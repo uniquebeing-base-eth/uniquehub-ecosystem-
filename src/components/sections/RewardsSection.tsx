@@ -44,20 +44,20 @@ const chains: Chain[] = [
   {
     id: "celo",
     name: "Celo",
-    token: "CELO",
+    token: "cUSD",
     logo: celoLogo,
     color: "from-green-500 to-emerald-600",
     enabled: true,
-    rewardPerThousand: 0.02,
+    rewardPerThousand: 0.005,
   },
   {
     id: "monad",
     name: "Monad",
-    token: "MON",
+    token: "USDC",
     logo: monadLogo,
     color: "from-purple-500 to-indigo-600",
     enabled: true,
-    rewardPerThousand: 0.1,
+    rewardPerThousand: 0.005,
   },
   {
     id: "arbitrum",
@@ -71,11 +71,11 @@ const chains: Chain[] = [
   {
     id: "bnb",
     name: "BNB Chain",
-    token: "BNB",
+    token: "USDC",
     logo: bnbLogo,
     color: "from-yellow-500 to-orange-600",
     enabled: true,
-    rewardPerThousand: 0.00001,
+    rewardPerThousand: 0.005,
   },
 ];
 
