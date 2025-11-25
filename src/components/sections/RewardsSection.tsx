@@ -7,6 +7,10 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import eggsLogo from "@/assets/eggs-token.jpg";
 import jesseLogo from "@/assets/jesse-token.jpg";
+import celoLogo from "@/assets/celo-logo.png";
+import monadLogo from "@/assets/monad-logo.jpg";
+import arbitrumLogo from "@/assets/arbitrum-logo.png";
+import bnbLogo from "@/assets/bnb-logo.png";
 
 interface Chain {
   id: string;
@@ -36,6 +40,42 @@ const chains: Chain[] = [
     color: "from-purple-500 to-pink-600",
     enabled: true,
     rewardPerThousand: 0.5,
+  },
+  {
+    id: "celo",
+    name: "Celo",
+    token: "CELO",
+    logo: celoLogo,
+    color: "from-green-500 to-emerald-600",
+    enabled: true,
+    rewardPerThousand: 0.02,
+  },
+  {
+    id: "monad",
+    name: "Monad",
+    token: "MON",
+    logo: monadLogo,
+    color: "from-purple-500 to-indigo-600",
+    enabled: true,
+    rewardPerThousand: 0.1,
+  },
+  {
+    id: "arbitrum",
+    name: "Arbitrum",
+    token: "ARB",
+    logo: arbitrumLogo,
+    color: "from-blue-500 to-cyan-600",
+    enabled: true,
+    rewardPerThousand: 0.02,
+  },
+  {
+    id: "bnb",
+    name: "BNB Chain",
+    token: "BNB",
+    logo: bnbLogo,
+    color: "from-yellow-500 to-orange-600",
+    enabled: true,
+    rewardPerThousand: 0.00001,
   },
 ];
 
@@ -219,7 +259,7 @@ export const RewardsSection = () => {
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>• Earn points by completing courses, enrolling, and engaging with the platform</li>
             <li>• Claim rewards once per day for each token</li>
-            <li>• Both tokens are on Base mainnet</li>
+            <li>• Claim rewards on multiple chains including Base, Celo, Monad, Arbitrum, and BNB</li>
             <li>• Each token has its own independent daily claim</li>
             <li>• Transactions are gasless and automated</li>
           </ul>
