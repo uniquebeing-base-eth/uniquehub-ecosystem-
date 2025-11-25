@@ -7,8 +7,18 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title BaseMultiTokenRewardsClaim
- * @notice Contract for claiming daily rewards for multiple tokens on Base chain
- * @dev Supports EGGS and JESSE tokens with independent daily claims
+ * @notice Contract for claiming daily rewards for EGGS and JESSE tokens on Base chain
+ * @dev Deploy with all token addresses and reward rates - no extra setup needed!
+ * 
+ * DEPLOYMENT EXAMPLE (Remix):
+ * Constructor args: 
+ *   _eggsToken: 0x... (EGGS token contract address)
+ *   _eggsRewardRate: 100000000000000000 (0.1 EGGS per 1000 points - 18 decimals)
+ *   _jesseToken: 0x... (JESSE token contract address)  
+ *   _jesseRewardRate: 500000000000000000 (0.5 JESSE per 1000 points - 18 decimals)
+ *   _backendSigner: 0x... (your wallet address that will sign claims)
+ * 
+ * After deployment, just fund the contract with EGGS and JESSE tokens!
  */
 contract BaseMultiTokenRewardsClaim is Ownable, ReentrancyGuard {
     
@@ -46,12 +56,46 @@ contract BaseMultiTokenRewardsClaim is Ownable, ReentrancyGuard {
     event BackendSignerUpdated(address newSigner);
     event TokensWithdrawn(string tokenId, address indexed to, uint256 amount);
     
-    constructor(address _backendSigner) Ownable(msg.sender) {
+    /**
+     * @notice Deploy with EGGS and JESSE tokens pre-configured
+     * @param _eggsToken EGGS token contract address
+     * @param _eggsRewardRate EGGS tokens per 1000 points (in wei, e.g., 100000000000000000 = 0.1 tokens)
+     * @param _jesseToken JESSE token contract address
+     * @param _jesseRewardRate JESSE tokens per 1000 points (in wei, e.g., 500000000000000000 = 0.5 tokens)
+     * @param _backendSigner Address that will sign claim authorizations (your wallet)
+     */
+    constructor(
+        address _eggsToken,
+        uint256 _eggsRewardRate,
+        address _jesseToken,
+        uint256 _jesseRewardRate,
+        address _backendSigner
+    ) Ownable(msg.sender) {
+        require(_eggsToken != address(0), "Invalid EGGS token address");
+        require(_jesseToken != address(0), "Invalid JESSE token address");
+        require(_backendSigner != address(0), "Invalid signer address");
+        
+        // Configure EGGS token
+        tokenConfigs["EGGS"] = TokenConfig({
+            token: IERC20(_eggsToken),
+            rewardRatePerThousandPoints: _eggsRewardRate,
+            active: true
+        });
+        emit TokenConfigUpdated("EGGS", _eggsToken, _eggsRewardRate, true);
+        
+        // Configure JESSE token
+        tokenConfigs["JESSE"] = TokenConfig({
+            token: IERC20(_jesseToken),
+            rewardRatePerThousandPoints: _jesseRewardRate,
+            active: true
+        });
+        emit TokenConfigUpdated("JESSE", _jesseToken, _jesseRewardRate, true);
+        
         backendSigner = _backendSigner;
     }
     
     /**
-     * @notice Add or update a token configuration
+     * @notice Add or update a token configuration (for future tokens)
      */
     function setTokenConfig(
         string memory tokenId,
@@ -72,7 +116,7 @@ contract BaseMultiTokenRewardsClaim is Ownable, ReentrancyGuard {
     
     /**
      * @notice Claim daily rewards for a specific token
-     * @param tokenId Token identifier (e.g., "EGGS", "JESSE")
+     * @param tokenId Token identifier ("EGGS" or "JESSE")
      * @param userPoints Total points the user has
      * @param signature Backend signature verifying eligibility
      */
