@@ -9,7 +9,7 @@ interface BottomNavigationProps {
 const navItems = [
   { id: "home", icon: Home, label: "Home" },
   { id: "courses", icon: BookOpen, label: "Courses" },
-  { id: "rewards", icon: Gift, label: "Rewards" },
+  { id: "earning", icon: Gift, label: "Earn" },
   { id: "upload", icon: Box, label: "Upload" },
   { id: "quest", icon: Trophy, label: "Quest" },
   { id: "marketplace", icon: ShoppingBag, label: "Market" },
