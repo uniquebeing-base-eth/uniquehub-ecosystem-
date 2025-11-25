@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import eggsLogo from "@/assets/eggs-token.jpg";
-import jesseLogo from "@/assets/jesse-token.png";
+import jesseLogo from "@/assets/jesse-token.jpg";
 
 interface Chain {
   id: string;
