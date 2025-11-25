@@ -224,10 +224,30 @@ export const NFTSection = () => {
       console.log("Transaction hash:", hash);
       toast.success("Minting transaction submitted!");
 
-      await publicClient.waitForTransactionReceipt({ hash });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      console.log("Transaction receipt:", receipt);
+      
+      // Set hasMinted immediately after successful transaction
+      setHasMinted(true);
       toast.success("NFT minted successfully!");
 
-      await checkMintStatus();
+      // Try to get the token ID - with a small delay for blockchain indexing
+      setTimeout(async () => {
+        try {
+          const tokenIdResult = await publicClient.readContract({
+            address: UNIQUE_NFT_ADDRESS,
+            abi: UNIQUE_NFT_ABI,
+            functionName: "getUserTokenId",
+            args: [address],
+          } as any);
+          setTokenId(tokenIdResult as bigint);
+          console.log("Token ID retrieved:", tokenIdResult);
+        } catch (e) {
+          console.error("Failed to get token ID, retrying...", e);
+          // Retry after another delay
+          setTimeout(() => checkMintStatus(), 2000);
+        }
+      }, 1000);
     } catch (error: any) {
       console.error("Full mint error:", error);
       toast.error(error.shortMessage || error.message || "Failed to mint NFT");
@@ -344,17 +364,19 @@ export const NFTSection = () => {
                   </Button>
                 )}
 
-                {hasMinted && tokenId !== null && (
+                {hasMinted && (
                   <>
-                    <a
-                      href={`https://basescan.org/nft/${UNIQUE_NFT_ADDRESS}/${tokenId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Button variant="default" className="w-full">
-                        View on Basescan
-                      </Button>
-                    </a>
+                    {tokenId !== null && (
+                      <a
+                        href={`https://basescan.org/nft/${UNIQUE_NFT_ADDRESS}/${tokenId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Button variant="default" className="w-full">
+                          View on Basescan
+                        </Button>
+                      </a>
+                    )}
 
                     <div className="mt-3">
                       <ShareToFarcaster
@@ -368,6 +390,10 @@ export const NFTSection = () => {
                         className="w-full"
                       />
                     </div>
+                    
+                    <p className="text-center text-sm text-green-500 font-medium">
+                      ✓ NFT Minted Successfully
+                    </p>
                   </>
                 )}
               </div>
