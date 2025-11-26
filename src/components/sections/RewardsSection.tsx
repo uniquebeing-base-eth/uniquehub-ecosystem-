@@ -4,11 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
-import { useAccount } from "wagmi";
+import { Loader2, Wallet } from "lucide-react";
+import { useAccount, useConnect } from "wagmi";
 import { base } from "wagmi/chains";
 import { useViemClients } from "@/hooks/useViemClients";
 import { MULTI_TOKEN_REWARDS_ABI, MULTI_TOKEN_REWARDS_ADDRESS } from "@/config/wagmi";
+import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
 import eggsLogo from "@/assets/eggs-token.jpg";
 import jesseLogo from "@/assets/jesse-token.jpg";
 import celoLogo from "@/assets/celo-logo.png";
@@ -92,11 +93,19 @@ const chains: Chain[] = [
 
 export const RewardsSection = () => {
   const { user } = useAuth();
-  const { address, isConnected } = useAccount();
+  const { address: wagmiAddress, isConnected: wagmiConnected } = useAccount();
+  const { address: farcasterAddress, isConnected: farcasterConnected } = useFarcasterWallet();
+  const { connectAsync, connectors } = useConnect();
+  
+  // Use wagmi address if connected, otherwise use Farcaster address
+  const address = wagmiAddress || farcasterAddress;
+  const isConnected = wagmiConnected || farcasterConnected;
+  
   const { walletClient } = useViemClients(address);
   const [userPoints, setUserPoints] = useState<number>(0);
   const [claimingChain, setClaimingChain] = useState<string | null>(null);
   const [lastClaims, setLastClaims] = useState<Record<string, string>>({});
+  const [isConnecting, setIsConnecting] = useState(false);
 
   // Fetch user points
   useEffect(() => {
@@ -154,9 +163,30 @@ export const RewardsSection = () => {
     return lastClaimDate.toDateString() !== today.toDateString();
   };
 
+  const handleConnectWallet = async () => {
+    setIsConnecting(true);
+    try {
+      const farcasterConnector = connectors.find(
+        (c) => (c as any).id === 'farcasterMiniApp' || c.name.toLowerCase().includes('farcaster')
+      );
+      
+      if (farcasterConnector) {
+        await connectAsync({ connector: farcasterConnector });
+        toast.success("Wallet connected!");
+      } else {
+        toast.error("Please open this app in Farcaster or Base to connect your wallet");
+      }
+    } catch (error) {
+      console.error("Failed to connect wallet:", error);
+      toast.error("Failed to connect wallet");
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
   const handleClaim = async (chain: Chain) => {
     if (!user?.id) {
-      toast.error("Please connect your wallet first");
+      toast.error("Please sign in first");
       return;
     }
 
@@ -166,7 +196,7 @@ export const RewardsSection = () => {
     }
 
     if (!walletClient) {
-      toast.error("Wallet not connected");
+      toast.error("Wallet client not ready. Please try again.");
       return;
     }
 
@@ -186,22 +216,38 @@ export const RewardsSection = () => {
 
     try {
       if (chain.isOnChain) {
-        // On-chain claim for EGGS and JESSE on Base
-        toast.info("Please confirm the transaction in your wallet...");
+        // Get signature from edge function
+        toast.info("Generating claim signature...");
         
-        // For now, use a placeholder signature - in production, call the edge function
-        const placeholderSignature = "0x" + "00".repeat(65) as `0x${string}`;
+        const { data: signatureData, error: signatureError } = await supabase.functions.invoke(
+          'generate-claim-signature',
+          {
+            body: {
+              userId: user.id,
+              walletAddress: address,
+              tokenId: chain.id,
+            },
+          }
+        );
+
+        if (signatureError || !signatureData?.signature) {
+          const errorMsg = signatureData?.error || signatureError?.message || "Failed to generate signature";
+          throw new Error(errorMsg);
+        }
+
+        console.log("Signature received:", signatureData.signature);
+        toast.info("Please confirm the transaction in your wallet...");
         
         const hash = await walletClient.writeContract({
           address: MULTI_TOKEN_REWARDS_ADDRESS,
           abi: MULTI_TOKEN_REWARDS_ABI,
           functionName: 'claimReward',
-          args: [chain.id, BigInt(userPoints), placeholderSignature],
+          args: [chain.id, BigInt(signatureData.points), signatureData.signature as `0x${string}`],
           chain: base,
           account: address,
         });
 
-        toast.info("Waiting for transaction confirmation...");
+        toast.info("Transaction submitted! Waiting for confirmation...");
         console.log("Transaction hash:", hash);
 
         // Record the claim in database
@@ -224,7 +270,13 @@ export const RewardsSection = () => {
     } catch (error: unknown) {
       console.error("Claim error:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      toast.error(`Failed to claim ${chain.token}: ${errorMessage}`);
+      
+      // Handle user rejection gracefully
+      if (errorMessage.includes("User rejected") || errorMessage.includes("denied")) {
+        toast.error("Transaction was cancelled");
+      } else {
+        toast.error(`Failed to claim ${chain.token}: ${errorMessage}`);
+      }
     } finally {
       setClaimingChain(null);
     }
@@ -245,6 +297,26 @@ export const RewardsSection = () => {
           </p>
         </div>
 
+        {/* Wallet Connection */}
+        {!isConnected && (
+          <Card className="bg-gradient-to-br from-accent/10 to-primary/10 border-accent/20 p-6">
+            <div className="text-center space-y-4">
+              <Wallet className="w-12 h-12 mx-auto text-primary" />
+              <p className="text-muted-foreground">Connect your wallet to claim rewards</p>
+              <Button onClick={handleConnectWallet} disabled={isConnecting}>
+                {isConnecting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  "Connect Wallet"
+                )}
+              </Button>
+            </div>
+          </Card>
+        )}
+
         {/* Points Display */}
         <Card className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20 p-6">
           <div className="text-center space-y-2">
@@ -253,6 +325,11 @@ export const RewardsSection = () => {
             <p className="text-sm text-muted-foreground">
               Claim tokens on each chain based on your points
             </p>
+            {address && (
+              <p className="text-xs text-muted-foreground font-mono truncate max-w-xs mx-auto">
+                {address}
+              </p>
+            )}
           </div>
         </Card>
 
@@ -298,7 +375,7 @@ export const RewardsSection = () => {
 
                   <Button
                     className="w-full"
-                    disabled={!chain.enabled || !canClaim || isClaiming || claimAmount <= 0}
+                    disabled={!chain.enabled || !canClaim || isClaiming || claimAmount <= 0 || !isConnected}
                     onClick={() => handleClaim(chain)}
                   >
                     {isClaiming ? (
@@ -306,6 +383,8 @@ export const RewardsSection = () => {
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         Claiming...
                       </>
+                    ) : !isConnected ? (
+                      "Connect Wallet"
                     ) : !canClaim ? (
                       "Claimed Today"
                     ) : claimAmount <= 0 ? (
