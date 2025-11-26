@@ -1,12 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import * as secp256k1 from "https://esm.sh/@noble/secp256k1@2.1.0";
+import { keccak_256 } from "https://esm.sh/@noble/hashes@1.4.0/sha3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Simple hex encoding/decoding utilities
+// Convert hex string to Uint8Array
 function hexToBytes(hex: string): Uint8Array {
   if (hex.startsWith('0x')) hex = hex.slice(2);
   const bytes = new Uint8Array(hex.length / 2);
@@ -16,20 +18,12 @@ function hexToBytes(hex: string): Uint8Array {
   return bytes;
 }
 
+// Convert Uint8Array to hex string
 function bytesToHex(bytes: Uint8Array): string {
   return '0x' + Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Hash function using SHA-256 (simplified for signature generation)
-async function hashData(data: Uint8Array): Promise<Uint8Array> {
-  // Convert to ArrayBuffer for SubtleCrypto
-  const buffer = new ArrayBuffer(data.length);
-  new Uint8Array(buffer).set(data);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-  return new Uint8Array(hashBuffer);
-}
-
-// Encode packed for Ethereum
+// Encode packed for Ethereum (matching Solidity's abi.encodePacked)
 function encodePacked(types: string[], values: (string | bigint)[]): Uint8Array {
   const parts: Uint8Array[] = [];
   
@@ -46,7 +40,7 @@ function encodePacked(types: string[], values: (string | bigint)[]): Uint8Array 
       const encoder = new TextEncoder();
       parts.push(encoder.encode(value as string));
     } else if (type === 'uint256') {
-      // uint256 is 32 bytes
+      // uint256 is 32 bytes, big-endian
       const bigVal = typeof value === 'bigint' ? value : BigInt(value);
       const hex = bigVal.toString(16).padStart(64, '0');
       parts.push(hexToBytes(hex));
@@ -65,6 +59,33 @@ function encodePacked(types: string[], values: (string | bigint)[]): Uint8Array 
   return result;
 }
 
+// Create Ethereum signed message hash (EIP-191)
+function createEthSignedMessageHash(messageHash: Uint8Array): Uint8Array {
+  const prefix = new TextEncoder().encode('\x19Ethereum Signed Message:\n32');
+  const combined = new Uint8Array(prefix.length + messageHash.length);
+  combined.set(prefix, 0);
+  combined.set(messageHash, prefix.length);
+  return keccak_256(combined);
+}
+
+// Sign message with private key and return signature in format contract expects
+async function signMessage(messageHash: Uint8Array, privateKey: Uint8Array): Promise<string> {
+  const ethSignedHash = createEthSignedMessageHash(messageHash);
+  
+  // Sign the hash
+  const signature = await secp256k1.signAsync(ethSignedHash, privateKey);
+  
+  // Get r and s values (32 bytes each)
+  const r = signature.r.toString(16).padStart(64, '0');
+  const s = signature.s.toString(16).padStart(64, '0');
+  
+  // Calculate recovery id (v = 27 or 28 for Ethereum)
+  const recoveryBit = signature.recovery;
+  const v = (27 + (recoveryBit || 0)).toString(16).padStart(2, '0');
+  
+  return '0x' + r + s + v;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -72,11 +93,15 @@ serve(async (req) => {
   }
 
   try {
-    const privateKey = Deno.env.get('REWARDS_SIGNER_PRIVATE_KEY');
-    if (!privateKey) {
+    const privateKeyHex = Deno.env.get('REWARDS_SIGNER_PRIVATE_KEY');
+    if (!privateKeyHex) {
       console.error('REWARDS_SIGNER_PRIVATE_KEY not configured');
       throw new Error('Server configuration error');
     }
+
+    // Clean up private key - remove 0x prefix if present
+    const cleanPrivateKey = privateKeyHex.startsWith('0x') ? privateKeyHex.slice(2) : privateKeyHex;
+    const privateKey = hexToBytes(cleanPrivateKey);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -89,6 +114,14 @@ serve(async (req) => {
     if (!userId || !walletAddress || !tokenId) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields: userId, walletAddress, tokenId' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate wallet address format
+    if (!/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid wallet address format' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -138,33 +171,19 @@ serve(async (req) => {
       );
     }
 
-    // Create message hash: hash(abi.encodePacked(user, tokenId, points))
+    // Create message hash matching the contract's verification:
+    // keccak256(abi.encodePacked(user, tokenId, points))
     const packedData = encodePacked(
       ['address', 'string', 'uint256'],
       [walletAddress, tokenId, BigInt(points)]
     );
     
-    const messageHash = await hashData(packedData);
+    const messageHash = keccak_256(packedData);
+    console.log('Message hash:', bytesToHex(messageHash));
     
-    // Create Ethereum signed message hash
-    const prefix = new TextEncoder().encode('\x19Ethereum Signed Message:\n32');
-    const prefixedMessage = new Uint8Array(prefix.length + messageHash.length);
-    prefixedMessage.set(prefix, 0);
-    prefixedMessage.set(messageHash, prefix.length);
-    const ethSignedHash = await hashData(prefixedMessage);
-
-    // For now, return a placeholder signature
-    // In production, you'd use a proper secp256k1 signing library
-    // The signature format is r (32 bytes) + s (32 bytes) + v (1 byte)
-    
-    // Since Deno doesn't have native secp256k1 support, we'll use a workaround
-    // by importing the signature generation from an external service or library
-    
-    // For this implementation, we'll create a deterministic signature
-    // that the contract can verify
-    const signatureData = bytesToHex(ethSignedHash);
-    
-    console.log('Generated signature data for verification');
+    // Sign the message
+    const signature = await signMessage(messageHash, privateKey);
+    console.log('Generated signature:', signature);
 
     return new Response(
       JSON.stringify({
@@ -172,10 +191,7 @@ serve(async (req) => {
         points,
         tokenId,
         walletAddress,
-        // Note: This is a simplified implementation
-        // For production, use proper secp256k1 signing
-        signatureHash: signatureData,
-        message: 'Signature generated - integrate with proper signing for production'
+        signature,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
