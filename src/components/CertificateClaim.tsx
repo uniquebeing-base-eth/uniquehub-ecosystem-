@@ -27,13 +27,36 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
   const [certificate, setCertificate] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
+  const [hasAlreadyMintedOnChain, setHasAlreadyMintedOnChain] = useState(false);
+  const [checkingOnChain, setCheckingOnChain] = useState(false);
 
-  // Check if certificate already exists
+  // Check if certificate already exists in DB and on-chain
   useEffect(() => {
     if (isCompleted && address) {
       checkExistingCertificate();
+      checkOnChainMintStatus();
     }
   }, [isCompleted, address]);
+
+  const checkOnChainMintStatus = async () => {
+    if (!publicClient || !address) return;
+    
+    setCheckingOnChain(true);
+    try {
+      // @ts-ignore - viem types issue with readContract
+      const hasMinted = await publicClient.readContract({
+        address: CERTIFICATE_CONTRACT_ADDRESS,
+        abi: CERTIFICATE_CONTRACT_ABI,
+        functionName: 'hasUserMinted',
+        args: [address],
+      }) as boolean;
+      setHasAlreadyMintedOnChain(hasMinted);
+    } catch (error) {
+      console.error('Error checking on-chain mint status:', error);
+    } finally {
+      setCheckingOnChain(false);
+    }
+  };
 
   const checkExistingCertificate = async () => {
     const { data } = await supabase
@@ -78,6 +101,25 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
       return;
     }
 
+    // Double-check on-chain status before minting
+    try {
+      // @ts-ignore - viem types issue with readContract
+      const hasMinted = await publicClient.readContract({
+        address: CERTIFICATE_CONTRACT_ADDRESS,
+        abi: CERTIFICATE_CONTRACT_ABI,
+        functionName: 'hasUserMinted',
+        args: [address],
+      }) as boolean;
+      
+      if (hasMinted) {
+        setHasAlreadyMintedOnChain(true);
+        toast.error("You have already minted a certificate NFT. The contract only allows one per wallet.");
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking mint status:', error);
+    }
+
     setIsMinting(true);
     try {
       // Call the mint function on the contract
@@ -85,7 +127,7 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
         address: CERTIFICATE_CONTRACT_ADDRESS,
         abi: CERTIFICATE_CONTRACT_ABI,
         functionName: 'mintCertificate',
-        args: [certificate.image_url],
+        args: [certificate.token_uri || certificate.image_url],
         value: CERTIFICATE_MINT_FEE,
         chain: base,
         account: address,
@@ -106,10 +148,17 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
         .eq('id', certificate.id);
 
       toast.success("Certificate minted successfully!");
+      setHasAlreadyMintedOnChain(true);
       await checkExistingCertificate();
     } catch (error: any) {
       console.error('Mint error:', error);
-      toast.error(error.message || "Failed to mint certificate");
+      // Check for specific revert reason
+      if (error.message?.includes('Already minted') || error.message?.includes('already minted')) {
+        setHasAlreadyMintedOnChain(true);
+        toast.error("You have already minted a certificate NFT.");
+      } else {
+        toast.error(error.shortMessage || error.message || "Failed to mint certificate");
+      }
     } finally {
       setIsMinting(false);
     }
@@ -161,29 +210,42 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
             
             <div className="space-y-2">
               {!certificate.minted_at ? (
-                <>
-                  <p className="text-xs text-muted-foreground">
-                    Certificate generated! Mint it as an NFT on Base blockchain.
-                  </p>
-                  <Button
-                    onClick={mintCertificate}
-                    disabled={isMinting || !address}
-                    className="w-full bg-gradient-primary"
-                    size="sm"
-                  >
-                    {isMinting ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                        Minting NFT...
-                      </>
-                    ) : (
-                      <>
-                        <Award className="w-3.5 h-3.5 mr-1.5" />
-                        Mint Certificate NFT (0.000003 ETH)
-                      </>
-                    )}
-                  </Button>
-                </>
+                hasAlreadyMintedOnChain ? (
+                  <Alert className="border-amber-500/50 bg-amber-500/10">
+                    <AlertDescription className="text-xs">
+                      You've already minted a certificate NFT from another course. The current contract only allows one certificate NFT per wallet. Your certificate image is saved and viewable above.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      Certificate generated! Mint it as an NFT on Base blockchain.
+                    </p>
+                    <Button
+                      onClick={mintCertificate}
+                      disabled={isMinting || !address || checkingOnChain}
+                      className="w-full bg-gradient-primary"
+                      size="sm"
+                    >
+                      {checkingOnChain ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                          Checking...
+                        </>
+                      ) : isMinting ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                          Minting NFT...
+                        </>
+                      ) : (
+                        <>
+                          <Award className="w-3.5 h-3.5 mr-1.5" />
+                          Mint Certificate NFT (0.000003 ETH)
+                        </>
+                      )}
+                    </Button>
+                  </>
+                )
               ) : (
                 <>
                   <p className="text-xs text-success font-semibold">✅ Certificate Minted!</p>
