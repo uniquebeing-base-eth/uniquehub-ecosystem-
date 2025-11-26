@@ -322,14 +322,6 @@ export const RewardsSection = () => {
           <div className="text-center space-y-2">
             <p className="text-sm text-muted-foreground">Your Total Points</p>
             <p className="text-5xl font-bold text-foreground">{userPoints.toLocaleString()}</p>
-            <p className="text-sm text-muted-foreground">
-              Claim tokens on each chain based on your points
-            </p>
-            {address && (
-              <p className="text-xs text-muted-foreground font-mono truncate max-w-xs mx-auto">
-                {address}
-              </p>
-            )}
           </div>
         </Card>
 
