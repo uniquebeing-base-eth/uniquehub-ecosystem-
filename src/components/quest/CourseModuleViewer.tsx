@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
-import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
+import { useWriteContract, useWaitForTransactionReceipt, useAccount, usePublicClient } from 'wagmi';
 import { QUEST_LEARNING_HUB_ABI, QUEST_LEARNING_HUB_ADDRESS, MODULE_COMPLETION_FEE } from '@/config/wagmi';
 import { base } from 'wagmi/chains';
 import { CourseCompletionShareDialog } from './CourseCompletionShareDialog';
@@ -60,7 +60,8 @@ interface CourseModuleViewerProps {
 export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) => {
   const { user } = useAuth();
   const { address } = useAccount();
-  const { writeContract, data: txHash, isPending: isTxPending } = useWriteContract();
+  const publicClient = usePublicClient();
+  const { writeContract, data: txHash, isPending: isTxPending, error: txError, reset: resetTx } = useWriteContract();
   const { isLoading: isTxConfirming, isSuccess: isTxSuccess } = useWaitForTransactionReceipt({
     hash: txHash,
   });
@@ -127,6 +128,27 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
     setCompleting(true);
 
     try {
+      // Check on-chain if module is already completed
+      if (publicClient) {
+        try {
+          // @ts-ignore - viem types issue
+          const alreadyCompleted = await publicClient.readContract({
+            address: QUEST_LEARNING_HUB_ADDRESS,
+            abi: QUEST_LEARNING_HUB_ABI,
+            functionName: 'hasCompletedModule',
+            args: [address, course.id, module.id],
+          }) as boolean;
+
+          if (alreadyCompleted) {
+            toast.info("Module already completed on-chain! Recording to database...");
+            await recordModuleCompletion(module);
+            return;
+          }
+        } catch (checkError) {
+          console.log("Could not check on-chain status, proceeding with transaction:", checkError);
+        }
+      }
+
       toast.info("Initiating transaction...");
       
       writeContract({
@@ -138,12 +160,38 @@ export const CourseModuleViewer = ({ course, onBack }: CourseModuleViewerProps) 
         chain: base,
         account: address,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Transaction error:", error);
-      toast.error("Transaction failed");
-      setCompleting(false);
+      // Handle specific contract errors
+      if (error.message?.includes('Module already completed') || error.message?.includes('already completed')) {
+        toast.info("Module was already completed! Recording to database...");
+        await recordModuleCompletion(module);
+      } else {
+        toast.error(error.shortMessage || "Transaction failed");
+        setCompleting(false);
+      }
     }
   };
+
+  // Handle transaction errors
+  useEffect(() => {
+    if (txError) {
+      console.error("Transaction error:", txError);
+      const errorMsg = (txError as any)?.shortMessage || txError.message || "Transaction failed";
+      
+      // Check if it's an "already completed" error
+      if (errorMsg.includes('Module already completed') || errorMsg.includes('already completed')) {
+        toast.info("Module was already completed on-chain!");
+        if (selectedModule) {
+          recordModuleCompletion(selectedModule);
+        }
+      } else {
+        toast.error(errorMsg);
+        setCompleting(false);
+      }
+      resetTx();
+    }
+  }, [txError]);
 
   // Handle transaction confirmation
   useEffect(() => {
