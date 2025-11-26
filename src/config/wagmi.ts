@@ -269,6 +269,67 @@ export const EARN_POINTS_CLAIM_ABI = [
   },
 ] as const;
 
+// Multi-Token Rewards Claim Contract ABI
+export const MULTI_TOKEN_REWARDS_ABI = [
+  {
+    inputs: [
+      { name: 'tokenId', type: 'string' },
+      { name: 'points', type: 'uint256' },
+      { name: 'signature', type: 'bytes' }
+    ],
+    name: 'claimReward',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'user', type: 'address' }, { name: 'tokenId', type: 'string' }],
+    name: 'canClaimToday',
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'points', type: 'uint256' }, { name: 'tokenId', type: 'string' }],
+    name: 'calculateReward',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'user', type: 'address' }, { name: 'tokenId', type: 'string' }],
+    name: 'lastClaimTimestamp',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'user', type: 'address' }, { name: 'tokenId', type: 'string' }],
+    name: 'totalClaimed',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'tokenId', type: 'string' }],
+    name: 'tokenConfigs',
+    outputs: [
+      { name: 'tokenAddress', type: 'address' },
+      { name: 'rewardPerThousandPoints', type: 'uint256' },
+      { name: 'isActive', type: 'bool' }
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'tokenAddress', type: 'address' }],
+    name: 'getContractBalance',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
 // Contract Addresses on Base Mainnet
 export const COURSE_CONTRACT_ADDRESS = '0x237b0cdC89A75B329f1b650D844F20497698a48A' as const;
 export const MARKETPLACE_CONTRACT_ADDRESS = '0x08A8A1E3E9E74005f764f449C62FCEdC5f3E9421' as const;
@@ -277,6 +338,7 @@ export const UNIQUE_NFT_ADDRESS = '0x8610701D16e6e75d751bf362bef981F2D273b129' a
 export const QUEST_LEARNING_HUB_ADDRESS = '0x00B794DfBFae013Fc56A1080B2b1c17033067159' as const;
 export const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
 export const EARN_POINTS_CLAIM_ADDRESS = '0xDc463c3b8fB2504a723B4cb4A13BbF727302bDe9' as const;
+export const MULTI_TOKEN_REWARDS_ADDRESS = '0x52e18a754907E840277bDa35F39FFB942cda9C78' as const;
 export const LISTING_FEE = 100000n; // 0.1 USDC (6 decimals)
 export const FREE_COURSE_FEE = 100000000000n; // 0.0000001 ETH
 export const MARKETPLACE_LISTING_FEE = 100000n; // 0.1 USDC (6 decimals)
