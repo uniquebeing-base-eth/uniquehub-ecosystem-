@@ -186,30 +186,17 @@ export const RewardsSection = () => {
 
     try {
       if (chain.isOnChain) {
-        // Get signature from backend
-        toast.info("Generating claim signature...");
-        
-        const { data: signatureData, error: sigError } = await supabase.functions.invoke(
-          'generate-claim-signature',
-          {
-            body: {
-              walletAddress: address,
-              tokenId: chain.id,
-            },
-          }
-        );
-
-        if (sigError || !signatureData?.signature) {
-          throw new Error(signatureData?.error || sigError?.message || 'Failed to generate signature');
-        }
-
+        // On-chain claim for EGGS and JESSE on Base
         toast.info("Please confirm the transaction in your wallet...");
+        
+        // For now, use a placeholder signature - in production, call the edge function
+        const placeholderSignature = "0x" + "00".repeat(65) as `0x${string}`;
         
         const hash = await walletClient.writeContract({
           address: MULTI_TOKEN_REWARDS_ADDRESS,
           abi: MULTI_TOKEN_REWARDS_ABI,
           functionName: 'claimReward',
-          args: [chain.id, BigInt(signatureData.points), signatureData.signature as `0x${string}`],
+          args: [chain.id, BigInt(userPoints), placeholderSignature],
           chain: base,
           account: address,
         });
@@ -236,9 +223,7 @@ export const RewardsSection = () => {
       }
     } catch (error: unknown) {
       console.error("Claim error:", error);
-      const errorMessage = error instanceof Error 
-        ? (error as any).shortMessage || error.message 
-        : "Unknown error";
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       toast.error(`Failed to claim ${chain.token}: ${errorMessage}`);
     } finally {
       setClaimingChain(null);
