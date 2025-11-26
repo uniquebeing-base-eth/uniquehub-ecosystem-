@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useAccount } from "wagmi";
+import { base } from "wagmi/chains";
+import { useViemClients } from "@/hooks/useViemClients";
+import { MULTI_TOKEN_REWARDS_ABI, MULTI_TOKEN_REWARDS_ADDRESS } from "@/config/wagmi";
 import eggsLogo from "@/assets/eggs-token.jpg";
 import jesseLogo from "@/assets/jesse-token.jpg";
 import celoLogo from "@/assets/celo-logo.png";
@@ -20,6 +24,7 @@ interface Chain {
   color: string;
   enabled: boolean;
   rewardPerThousand: number;
+  isOnChain: boolean; // Whether this uses the on-chain contract
 }
 
 const chains: Chain[] = [
@@ -31,6 +36,7 @@ const chains: Chain[] = [
     color: "from-yellow-400 to-green-500",
     enabled: true,
     rewardPerThousand: 0.1,
+    isOnChain: true,
   },
   {
     id: "jesse",
@@ -40,6 +46,7 @@ const chains: Chain[] = [
     color: "from-purple-500 to-pink-600",
     enabled: true,
     rewardPerThousand: 0.5,
+    isOnChain: true,
   },
   {
     id: "celo",
@@ -47,8 +54,9 @@ const chains: Chain[] = [
     token: "cUSD",
     logo: celoLogo,
     color: "from-green-500 to-emerald-600",
-    enabled: true,
+    enabled: false,
     rewardPerThousand: 0.005,
+    isOnChain: false,
   },
   {
     id: "monad",
@@ -56,8 +64,9 @@ const chains: Chain[] = [
     token: "USDC",
     logo: monadLogo,
     color: "from-purple-500 to-indigo-600",
-    enabled: true,
+    enabled: false,
     rewardPerThousand: 0.005,
+    isOnChain: false,
   },
   {
     id: "arbitrum",
@@ -65,8 +74,9 @@ const chains: Chain[] = [
     token: "ARB",
     logo: arbitrumLogo,
     color: "from-blue-500 to-cyan-600",
-    enabled: true,
+    enabled: false,
     rewardPerThousand: 0.02,
+    isOnChain: false,
   },
   {
     id: "bnb",
@@ -74,19 +84,22 @@ const chains: Chain[] = [
     token: "USDC",
     logo: bnbLogo,
     color: "from-yellow-500 to-orange-600",
-    enabled: true,
+    enabled: false,
     rewardPerThousand: 0.005,
+    isOnChain: false,
   },
 ];
 
 export const RewardsSection = () => {
   const { user } = useAuth();
+  const { address, isConnected } = useAccount();
+  const { walletClient } = useViemClients(address);
   const [userPoints, setUserPoints] = useState<number>(0);
   const [claimingChain, setClaimingChain] = useState<string | null>(null);
   const [lastClaims, setLastClaims] = useState<Record<string, string>>({});
 
   // Fetch user points
-  useState(() => {
+  useEffect(() => {
     const fetchPoints = async () => {
       if (!user?.id) return;
       
@@ -100,9 +113,32 @@ export const RewardsSection = () => {
         setUserPoints(data.total_points);
       }
     };
+
+    // Fetch existing claims for today
+    const fetchTodayClaims = async () => {
+      if (!user?.id) return;
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const { data } = await supabase
+        .from("multichain_claims")
+        .select("chain_id, claimed_at")
+        .eq("user_id", user.id)
+        .gte("claimed_at", today.toISOString());
+
+      if (data) {
+        const claims: Record<string, string> = {};
+        data.forEach(claim => {
+          claims[claim.chain_id] = claim.claimed_at;
+        });
+        setLastClaims(claims);
+      }
+    };
     
     fetchPoints();
-  });
+    fetchTodayClaims();
+  }, [user?.id]);
 
   const calculateClaimAmount = (points: number, rewardRate: number): number => {
     return Math.floor(points / 1000) * rewardRate;
@@ -124,6 +160,16 @@ export const RewardsSection = () => {
       return;
     }
 
+    if (!isConnected || !address) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+
+    if (!walletClient) {
+      toast.error("Wallet not connected");
+      return;
+    }
+
     if (!canClaimToday(chain.id)) {
       toast.error(`You've already claimed ${chain.token} today. Come back tomorrow!`);
       return;
@@ -139,25 +185,46 @@ export const RewardsSection = () => {
     setClaimingChain(chain.id);
 
     try {
-      // TODO: Implement actual blockchain claim logic here
-      // This would involve:
-      // 1. Connecting to the specific chain
-      // 2. Calling the claim contract
-      // 3. Signing the transaction
-      
-      // Simulated claim for now
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Record the claim
-      setLastClaims(prev => ({
-        ...prev,
-        [chain.id]: new Date().toISOString(),
-      }));
-      
-      toast.success(`Successfully claimed ${claimAmount} ${chain.token}!`);
-    } catch (error: any) {
+      if (chain.isOnChain) {
+        // On-chain claim for EGGS and JESSE on Base
+        toast.info("Please confirm the transaction in your wallet...");
+        
+        // For now, use a placeholder signature - in production, call the edge function
+        const placeholderSignature = "0x" + "00".repeat(65) as `0x${string}`;
+        
+        const hash = await walletClient.writeContract({
+          address: MULTI_TOKEN_REWARDS_ADDRESS,
+          abi: MULTI_TOKEN_REWARDS_ABI,
+          functionName: 'claimReward',
+          args: [chain.id, BigInt(userPoints), placeholderSignature],
+          chain: base,
+          account: address,
+        });
+
+        toast.info("Waiting for transaction confirmation...");
+        console.log("Transaction hash:", hash);
+
+        // Record the claim in database
+        await supabase.from("multichain_claims").insert({
+          user_id: user.id,
+          chain_id: chain.id,
+          amount: claimAmount,
+          transaction_hash: hash,
+        });
+
+        setLastClaims(prev => ({
+          ...prev,
+          [chain.id]: new Date().toISOString(),
+        }));
+        
+        toast.success(`Successfully claimed ${claimAmount} ${chain.token}!`);
+      } else {
+        toast.info(`${chain.token} claiming coming soon!`);
+      }
+    } catch (error: unknown) {
       console.error("Claim error:", error);
-      toast.error(`Failed to claim ${chain.token}: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      toast.error(`Failed to claim ${chain.token}: ${errorMessage}`);
     } finally {
       setClaimingChain(null);
     }
