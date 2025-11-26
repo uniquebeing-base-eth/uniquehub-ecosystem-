@@ -30,7 +30,7 @@ interface Chain {
 
 const chains: Chain[] = [
   {
-    id: "eggs",
+    id: "EGGS",
     name: "Base",
     token: "EGGS",
     logo: eggsLogo,
@@ -40,7 +40,7 @@ const chains: Chain[] = [
     isOnChain: true,
   },
   {
-    id: "jesse",
+    id: "JESSE",
     name: "Base",
     token: "JESSE",
     logo: jesseLogo,
