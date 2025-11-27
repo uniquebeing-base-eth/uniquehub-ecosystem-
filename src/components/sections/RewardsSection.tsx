@@ -10,6 +10,7 @@ import { base } from "wagmi/chains";
 import { useViemClients } from "@/hooks/useViemClients";
 import { MULTI_TOKEN_REWARDS_ABI, MULTI_TOKEN_REWARDS_ADDRESS } from "@/config/wagmi";
 import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
+import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 import eggsLogo from "@/assets/eggs-token.jpg";
 import jesseLogo from "@/assets/jesse-token.jpg";
 import celoLogo from "@/assets/celo-logo.png";
@@ -50,44 +51,24 @@ const chains: Chain[] = [
     isOnChain: true,
   },
   {
-    id: "celo",
-    name: "Celo",
-    token: "cUSD",
-    logo: celoLogo,
-    color: "from-green-500 to-emerald-600",
-    enabled: false,
-    rewardPerThousand: 0.005,
-    isOnChain: false,
-  },
-  {
-    id: "monad",
-    name: "Monad",
-    token: "USDC",
-    logo: monadLogo,
-    color: "from-purple-500 to-indigo-600",
-    enabled: false,
-    rewardPerThousand: 0.005,
-    isOnChain: false,
-  },
-  {
-    id: "arbitrum",
+    id: "ARB",
     name: "Arbitrum",
     token: "ARB",
     logo: arbitrumLogo,
     color: "from-blue-500 to-cyan-600",
-    enabled: false,
+    enabled: true,
     rewardPerThousand: 0.02,
-    isOnChain: false,
+    isOnChain: true,
   },
   {
-    id: "bnb",
+    id: "USDC",
     name: "BNB Chain",
     token: "USDC",
     logo: bnbLogo,
     color: "from-yellow-500 to-orange-600",
-    enabled: false,
+    enabled: true,
     rewardPerThousand: 0.005,
-    isOnChain: false,
+    isOnChain: true,
   },
 ];
 
@@ -106,6 +87,7 @@ export const RewardsSection = () => {
   const [claimingChain, setClaimingChain] = useState<string | null>(null);
   const [lastClaims, setLastClaims] = useState<Record<string, string>>({});
   const [isConnecting, setIsConnecting] = useState(false);
+  const [lastClaimedToken, setLastClaimedToken] = useState<{ token: string; amount: number } | null>(null);
 
   // Fetch user points
   useEffect(() => {
@@ -263,6 +245,7 @@ export const RewardsSection = () => {
           [chain.id]: new Date().toISOString(),
         }));
         
+        setLastClaimedToken({ token: chain.token, amount: claimAmount });
         toast.success(`Successfully claimed ${claimAmount} ${chain.token}!`);
       } else {
         toast.info(`${chain.token} claiming coming soon!`);
@@ -391,13 +374,34 @@ export const RewardsSection = () => {
           })}
         </div>
 
+        {/* Share Success Card */}
+        {lastClaimedToken && (
+          <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold mb-2 text-foreground">🎉 Claim Successful!</h3>
+                <p className="text-sm text-muted-foreground">
+                  You claimed {lastClaimedToken.amount} ${lastClaimedToken.token}. Share your success!
+                </p>
+              </div>
+              <ShareToFarcaster
+                text={`I just claimed my daily reward tokens, ${lastClaimedToken.amount} $${lastClaimedToken.token} on @uniquehub 🎉`}
+                embeds={["https://uniquehub.xyz"]}
+                variant="default"
+                size="default"
+                buttonText="Share"
+              />
+            </div>
+          </Card>
+        )}
+
         {/* Info Card */}
         <Card className="bg-gradient-to-br from-accent/10 to-primary/10 border-accent/20 p-6">
           <h3 className="text-lg font-semibold mb-3 text-foreground">How It Works</h3>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>• Earn points by completing courses, enrolling, and engaging with the platform</li>
             <li>• Claim rewards once per day for each token</li>
-            <li>• Claim rewards on multiple chains including Base, Celo, Monad, Arbitrum, and BNB</li>
+            <li>• Claim rewards on multiple chains including Base, Arbitrum, and BNB</li>
             <li>• Each token has its own independent daily claim</li>
             <li>• Transactions are gasless and automated</li>
           </ul>
