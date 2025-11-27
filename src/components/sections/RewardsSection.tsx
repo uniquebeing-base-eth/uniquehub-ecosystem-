@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, Wallet } from "lucide-react";
 import { useAccount, useConnect } from "wagmi";
-import { base } from "wagmi/chains";
+import { base, arbitrum, bsc } from "wagmi/chains";
 import { useViemClients } from "@/hooks/useViemClients";
 import { MULTI_TOKEN_REWARDS_ABI, MULTI_TOKEN_REWARDS_ADDRESS } from "@/config/wagmi";
 import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
@@ -27,6 +27,7 @@ interface Chain {
   enabled: boolean;
   rewardPerThousand: number;
   isOnChain: boolean; // Whether this uses the on-chain contract
+  chainConfig: typeof base | typeof arbitrum | typeof bsc; // Which blockchain to use
 }
 
 const chains: Chain[] = [
@@ -39,6 +40,7 @@ const chains: Chain[] = [
     enabled: true,
     rewardPerThousand: 0.1,
     isOnChain: true,
+    chainConfig: base,
   },
   {
     id: "JESSE",
@@ -49,6 +51,7 @@ const chains: Chain[] = [
     enabled: true,
     rewardPerThousand: 0.5,
     isOnChain: true,
+    chainConfig: base,
   },
   {
     id: "ARB",
@@ -59,6 +62,7 @@ const chains: Chain[] = [
     enabled: true,
     rewardPerThousand: 0.02,
     isOnChain: true,
+    chainConfig: arbitrum,
   },
   {
     id: "USDC",
@@ -69,6 +73,7 @@ const chains: Chain[] = [
     enabled: true,
     rewardPerThousand: 0.005,
     isOnChain: true,
+    chainConfig: bsc,
   },
 ];
 
@@ -218,14 +223,14 @@ export const RewardsSection = () => {
         }
 
         console.log("Signature received:", signatureData.signature);
-        toast.info("Please confirm the transaction in your wallet...");
+        toast.info(`Please confirm the transaction on ${chain.name}...`);
         
         const hash = await walletClient.writeContract({
           address: MULTI_TOKEN_REWARDS_ADDRESS,
           abi: MULTI_TOKEN_REWARDS_ABI,
           functionName: 'claimReward',
           args: [chain.id, BigInt(signatureData.points), signatureData.signature as `0x${string}`],
-          chain: base,
+          chain: chain.chainConfig,
           account: address,
         });
 
