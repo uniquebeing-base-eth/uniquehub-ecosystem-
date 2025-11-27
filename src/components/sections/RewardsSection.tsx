@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, Wallet } from "lucide-react";
-import { useAccount, useConnect } from "wagmi";
+import { useAccount, useConnect, useSwitchChain } from "wagmi";
 import { base, arbitrum, bsc } from "wagmi/chains";
 import { useViemClients } from "@/hooks/useViemClients";
 import { MULTI_TOKEN_REWARDS_ABI, MULTI_TOKEN_REWARDS_ADDRESS } from "@/config/wagmi";
@@ -84,9 +84,10 @@ const chains: Chain[] = [
 
 export const RewardsSection = () => {
   const { user } = useAuth();
-  const { address: wagmiAddress, isConnected: wagmiConnected } = useAccount();
+  const { address: wagmiAddress, isConnected: wagmiConnected, chainId } = useAccount();
   const { address: farcasterAddress, isConnected: farcasterConnected } = useFarcasterWallet();
   const { connectAsync, connectors } = useConnect();
+  const { switchChainAsync } = useSwitchChain();
   
   // Use wagmi address if connected, otherwise use Farcaster address
   const address = wagmiAddress || farcasterAddress;
@@ -208,6 +209,21 @@ export const RewardsSection = () => {
 
     try {
       if (chain.isOnChain) {
+        // Check if we need to switch chains
+        const targetChainId = chain.chainConfig.id;
+        if (chainId !== targetChainId) {
+          toast.info(`Switching to ${chain.name}...`);
+          try {
+            await switchChainAsync({ chainId: targetChainId });
+            toast.success(`Switched to ${chain.name}`);
+          } catch (error) {
+            console.error("Chain switch error:", error);
+            toast.error(`Failed to switch to ${chain.name}. Please switch manually.`);
+            setClaimingChain(null);
+            return;
+          }
+        }
+
         // Get signature from edge function
         toast.info("Generating claim signature...");
         
