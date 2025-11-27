@@ -28,6 +28,7 @@ interface Chain {
   rewardPerThousand: number;
   isOnChain: boolean; // Whether this uses the on-chain contract
   chainConfig: typeof base | typeof arbitrum | typeof bsc; // Which blockchain to use
+  contractAddress: `0x${string}`; // Contract address for this chain
 }
 
 const chains: Chain[] = [
@@ -41,6 +42,7 @@ const chains: Chain[] = [
     rewardPerThousand: 0.1,
     isOnChain: true,
     chainConfig: base,
+    contractAddress: MULTI_TOKEN_REWARDS_ADDRESS, // Base contract
   },
   {
     id: "JESSE",
@@ -52,6 +54,7 @@ const chains: Chain[] = [
     rewardPerThousand: 0.5,
     isOnChain: true,
     chainConfig: base,
+    contractAddress: MULTI_TOKEN_REWARDS_ADDRESS, // Base contract
   },
   {
     id: "ARB",
@@ -63,6 +66,7 @@ const chains: Chain[] = [
     rewardPerThousand: 0.02,
     isOnChain: true,
     chainConfig: arbitrum,
+    contractAddress: "0xF80dC23eC58bCd7F9498b63C5e8D46225eCD4FBC", // Arbitrum contract
   },
   {
     id: "USDC",
@@ -74,6 +78,7 @@ const chains: Chain[] = [
     rewardPerThousand: 0.005,
     isOnChain: true,
     chainConfig: bsc,
+    contractAddress: "0xF80dC23eC58bCd7F9498b63C5e8D46225eCD4FBC", // BNB Chain contract
   },
 ];
 
@@ -226,7 +231,7 @@ export const RewardsSection = () => {
         toast.info(`Please confirm the transaction on ${chain.name}...`);
         
         const hash = await walletClient.writeContract({
-          address: MULTI_TOKEN_REWARDS_ADDRESS,
+          address: chain.contractAddress,
           abi: MULTI_TOKEN_REWARDS_ABI,
           functionName: 'claimReward',
           args: [chain.id, BigInt(signatureData.points), signatureData.signature as `0x${string}`],
