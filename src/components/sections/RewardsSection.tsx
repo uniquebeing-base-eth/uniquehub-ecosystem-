@@ -216,16 +216,29 @@ export const RewardsSection = () => {
           try {
             await switchChainAsync({ chainId: targetChainId });
             
-            // Wait for the chain switch to propagate
-            // Give the wallet time to complete the switch
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            // Poll to verify the chain has actually switched by checking walletClient
+            const maxAttempts = 50; // 10 seconds total (50 * 200ms)
+            let attempts = 0;
             
-            // After waiting, the chainId from useAccount hook should update
-            // If we're still on the wrong chain, show error
+            while (attempts < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 200));
+              
+              // Check if walletClient reports the correct chain
+              if (walletClient?.chain?.id === targetChainId) {
+                break;
+              }
+              
+              attempts++;
+            }
+            
+            // Verify we're on the correct chain
+            if (walletClient?.chain?.id !== targetChainId) {
+              toast.error(`Chain switch timeout. Please manually switch to ${chain.name} in your wallet and try again.`);
+              setClaimingChain(null);
+              return;
+            }
+            
             toast.success(`Switched to ${chain.name}. Preparing transaction...`);
-            
-            // Additional delay to ensure wallet is fully ready
-            await new Promise(resolve => setTimeout(resolve, 500));
             
           } catch (error) {
             console.error("Chain switch error:", error);
