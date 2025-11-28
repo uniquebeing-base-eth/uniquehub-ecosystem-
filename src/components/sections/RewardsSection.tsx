@@ -244,6 +244,14 @@ export const RewardsSection = () => {
         }
 
         console.log("Signature received:", signatureData.signature);
+        console.log("Claiming with params:", {
+          contract: chain.contractAddress,
+          tokenId: chain.id,
+          points: signatureData.points,
+          chainId: targetChainId,
+          chainName: chain.name
+        });
+
         toast.info(`Please confirm the transaction on ${chain.name}...`);
         
         const hash = await walletClient.writeContract({
@@ -283,8 +291,18 @@ export const RewardsSection = () => {
       // Handle user rejection gracefully
       if (errorMessage.includes("User rejected") || errorMessage.includes("denied")) {
         toast.error("Transaction was cancelled");
+      } else if (errorMessage.includes("Token not active")) {
+        toast.error(`${chain.token} token needs to be activated in the contract. Please contact support.`);
+      } else if (errorMessage.includes("Already claimed today")) {
+        toast.error(`You've already claimed ${chain.token} today according to the contract.`);
+      } else if (errorMessage.includes("Insufficient balance")) {
+        toast.error(`Contract has insufficient ${chain.token} balance. Please contact support.`);
+      } else if (errorMessage.includes("Invalid signature")) {
+        toast.error("Invalid claim signature. Please try again.");
       } else {
+        // Show more detailed error for debugging
         toast.error(`Failed to claim ${chain.token}: ${errorMessage}`);
+        console.error("Full error details:", error);
       }
     } finally {
       setClaimingChain(null);
