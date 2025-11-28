@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 import { toast } from "sonner";
 
+
+
 interface Certificate {
   id: string;
   course_id: string;
