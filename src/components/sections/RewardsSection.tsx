@@ -13,10 +13,9 @@ import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 import eggsLogo from "@/assets/eggs-token.jpg";
 import jesseLogo from "@/assets/jesse-token.jpg";
-import celoLogo from "@/assets/celo-logo.png";
-import monadLogo from "@/assets/monad-logo.jpg";
-import arbitrumLogo from "@/assets/arbitrum-logo.png";
-import bnbLogo from "@/assets/bnb-logo.png";
+import betrLogo from "@/assets/betr-token.jpg";
+import noiceLogo from "@/assets/noice-token.jpg";
+import degenLogo from "@/assets/degen-token.png";
 
 interface Chain {
   id: string;
@@ -42,7 +41,7 @@ const chains: Chain[] = [
     rewardPerThousand: 0.1,
     isOnChain: true,
     chainConfig: base,
-    contractAddress: MULTI_TOKEN_REWARDS_ADDRESS, // Base contract
+    contractAddress: MULTI_TOKEN_REWARDS_ADDRESS,
   },
   {
     id: "JESSE",
@@ -54,31 +53,43 @@ const chains: Chain[] = [
     rewardPerThousand: 0.5,
     isOnChain: true,
     chainConfig: base,
-    contractAddress: MULTI_TOKEN_REWARDS_ADDRESS, // Base contract
+    contractAddress: MULTI_TOKEN_REWARDS_ADDRESS,
   },
   {
-    id: "ARB",
-    name: "Arbitrum",
-    token: "ARB",
-    logo: arbitrumLogo,
-    color: "from-blue-500 to-cyan-600",
+    id: "BETR",
+    name: "Base",
+    token: "BETR",
+    logo: betrLogo,
+    color: "from-pink-500 to-cyan-400",
     enabled: true,
-    rewardPerThousand: 0.02,
-    isOnChain: true,
-    chainConfig: arbitrum,
-    contractAddress: "0xF80dC23eC58bCd7F9498b63C5e8D46225eCD4FBC", // Arbitrum contract
+    rewardPerThousand: 1000,
+    isOnChain: false,
+    chainConfig: base,
+    contractAddress: MULTI_TOKEN_REWARDS_ADDRESS,
   },
   {
-    id: "USDC",
-    name: "BNB Chain",
-    token: "USDC",
-    logo: bnbLogo,
-    color: "from-yellow-500 to-orange-600",
+    id: "NOICE",
+    name: "Base",
+    token: "NOICE",
+    logo: noiceLogo,
+    color: "from-gray-100 to-gray-300",
     enabled: true,
-    rewardPerThousand: 0.005,
-    isOnChain: true,
-    chainConfig: bsc,
-    contractAddress: "0xF80dC23eC58bCd7F9498b63C5e8D46225eCD4FBC", // BNB Chain contract
+    rewardPerThousand: 50,
+    isOnChain: false,
+    chainConfig: base,
+    contractAddress: MULTI_TOKEN_REWARDS_ADDRESS,
+  },
+  {
+    id: "DEGEN",
+    name: "Base",
+    token: "DEGEN",
+    logo: degenLogo,
+    color: "from-purple-400 to-purple-600",
+    enabled: true,
+    rewardPerThousand: 1,
+    isOnChain: false,
+    chainConfig: base,
+    contractAddress: MULTI_TOKEN_REWARDS_ADDRESS,
   },
 ];
 
@@ -394,10 +405,12 @@ export const RewardsSection = () => {
 
                   <Button
                     className="w-full"
-                    disabled={!chain.enabled || !canClaim || isClaiming || claimAmount <= 0 || !isConnected}
+                    disabled={!chain.enabled || !chain.isOnChain || !canClaim || isClaiming || claimAmount <= 0 || !isConnected}
                     onClick={() => handleClaim(chain)}
                   >
-                    {isClaiming ? (
+                    {!chain.isOnChain ? (
+                      "Coming Soon"
+                    ) : isClaiming ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         Claiming...
