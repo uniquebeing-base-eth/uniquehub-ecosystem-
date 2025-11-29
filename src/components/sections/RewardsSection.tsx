@@ -11,7 +11,9 @@ import { useViemClients } from "@/hooks/useViemClients";
 import { MULTI_TOKEN_REWARDS_ABI, MULTI_TOKEN_REWARDS_ADDRESS } from "@/config/wagmi";
 import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import eggsLogo from "@/assets/eggs-token.jpg";
+import shareCardImage from "@/assets/uniquehub-share-card.png";
 import jesseLogo from "@/assets/jesse-token.jpg";
 import celoLogo from "@/assets/celo-logo.png";
 import monadLogo from "@/assets/monad-logo.jpg";
@@ -99,6 +101,7 @@ export const RewardsSection = () => {
   const [lastClaims, setLastClaims] = useState<Record<string, string>>({});
   const [isConnecting, setIsConnecting] = useState(false);
   const [lastClaimedToken, setLastClaimedToken] = useState<{ token: string; amount: number } | null>(null);
+  const [showShareDialog, setShowShareDialog] = useState(false);
 
   // Fetch user points
   useEffect(() => {
@@ -280,6 +283,7 @@ export const RewardsSection = () => {
         }));
         
         setLastClaimedToken({ token: chain.token, amount: claimAmount });
+        setShowShareDialog(true);
         toast.success(`Successfully claimed ${claimAmount} ${chain.token}!`);
       } else {
         toast.info(`${chain.token} claiming coming soon!`);
@@ -418,26 +422,48 @@ export const RewardsSection = () => {
           })}
         </div>
 
-        {/* Share Success Card */}
-        {lastClaimedToken && (
-          <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-foreground">🎉 Claim Successful!</h3>
-                <p className="text-sm text-muted-foreground">
-                  You claimed {lastClaimedToken.amount} ${lastClaimedToken.token}. Share your success!
-                </p>
+        {/* Share Dialog */}
+        <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">🎉 Claim Successful!</DialogTitle>
+              <DialogDescription>
+                You claimed {lastClaimedToken?.amount} ${lastClaimedToken?.token}. Share your success with the community!
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 pt-4">
+              <div className="relative rounded-lg overflow-hidden border border-border">
+                <img 
+                  src={shareCardImage} 
+                  alt="UniqueHub Share Card" 
+                  className="w-full h-auto"
+                />
               </div>
-              <ShareToFarcaster
-                text={`I just claimed my daily reward tokens, ${lastClaimedToken.amount} $${lastClaimedToken.token} on @uniquehub 🎉`}
-                embeds={["https://uniquehub.xyz"]}
-                variant="default"
-                size="default"
-                buttonText="Share"
-              />
+              
+              <div className="flex gap-3">
+                <ShareToFarcaster
+                  text={`I just claimed ${lastClaimedToken?.amount} $${lastClaimedToken?.token} tokens on @uniquehub! 🎉\n\nEarn, learn, and trade on the ultimate Web3 super app.`}
+                  embeds={[
+                    "https://uniquehub.xyz",
+                    window.location.origin + shareCardImage
+                  ]}
+                  variant="default"
+                  size="default"
+                  buttonText="Share to Farcaster"
+                  className="flex-1"
+                />
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowShareDialog(false)}
+                  className="flex-1"
+                >
+                  Maybe Later
+                </Button>
+              </div>
             </div>
-          </Card>
-        )}
+          </DialogContent>
+        </Dialog>
 
         {/* Info Card */}
         <Card className="bg-gradient-to-br from-accent/10 to-primary/10 border-accent/20 p-6">
