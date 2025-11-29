@@ -215,34 +215,10 @@ export const RewardsSection = () => {
           toast.info(`Switching to ${chain.name}...`);
           try {
             await switchChainAsync({ chainId: targetChainId });
-            
-            // Poll to verify the chain has actually switched by checking walletClient
-            const maxAttempts = 50; // 10 seconds total (50 * 200ms)
-            let attempts = 0;
-            
-            while (attempts < maxAttempts) {
-              await new Promise(resolve => setTimeout(resolve, 200));
-              
-              // Check if walletClient reports the correct chain
-              if (walletClient?.chain?.id === targetChainId) {
-                break;
-              }
-              
-              attempts++;
-            }
-            
-            // Verify we're on the correct chain
-            if (walletClient?.chain?.id !== targetChainId) {
-              toast.error(`Chain switch timeout. Please manually switch to ${chain.name} in your wallet and try again.`);
-              setClaimingChain(null);
-              return;
-            }
-            
-            toast.success(`Switched to ${chain.name}. Preparing transaction...`);
-            
+            toast.success(`Switched to ${chain.name}`);
           } catch (error) {
             console.error("Chain switch error:", error);
-            toast.error(`Failed to switch to ${chain.name}. Please switch manually in your wallet and try again.`);
+            toast.error(`Failed to switch to ${chain.name}. Please try again.`);
             setClaimingChain(null);
             return;
           }
