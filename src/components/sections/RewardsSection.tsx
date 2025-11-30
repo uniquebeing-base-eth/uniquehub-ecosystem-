@@ -445,7 +445,7 @@ export const RewardsSection = () => {
                 text={`I just claimed ${lastClaimedToken.amount} $${lastClaimedToken.token} tokens on @uniquehub! 🎉\n\nEarn, learn, and trade on the ultimate Web3 super app.`}
                 embeds={[
                   `${window.location.origin}/uniquehub-share-card.png`,
-                  "https://uniquehub.xyz"
+                  "https://uniqueehub.vercel.app"
                 ]}
                 variant="default"
                 size="default"
