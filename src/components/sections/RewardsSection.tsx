@@ -11,6 +11,7 @@ import { useViemClients } from "@/hooks/useViemClients";
 import { MULTI_TOKEN_REWARDS_ABI, MULTI_TOKEN_REWARDS_ADDRESS } from "@/config/wagmi";
 import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import eggsLogo from "@/assets/eggs-token.jpg";
 import jesseLogo from "@/assets/jesse-token.jpg";
 import betrLogo from "@/assets/betr-token.jpg";
@@ -110,6 +111,7 @@ export const RewardsSection = () => {
   const [lastClaims, setLastClaims] = useState<Record<string, string>>({});
   const [isConnecting, setIsConnecting] = useState(false);
   const [lastClaimedToken, setLastClaimedToken] = useState<{ token: string; amount: number } | null>(null);
+  const [showShareDialog, setShowShareDialog] = useState(false);
 
   // Fetch user points
   useEffect(() => {
@@ -291,6 +293,7 @@ export const RewardsSection = () => {
         }));
         
         setLastClaimedToken({ token: chain.token, amount: claimAmount });
+        setShowShareDialog(true);
         toast.success(`Successfully claimed ${claimAmount} ${chain.token}!`);
       } else {
         toast.info(`${chain.token} claiming coming soon!`);
@@ -431,29 +434,35 @@ export const RewardsSection = () => {
           })}
         </div>
 
-        {/* Share Success Card */}
-        {lastClaimedToken && (
-          <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-foreground">🎉 Claim Successful!</h3>
-                <p className="text-sm text-muted-foreground">
-                  You claimed {lastClaimedToken.amount} ${lastClaimedToken.token}. Share your success!
-                </p>
-              </div>
+        {/* Share Success Dialog */}
+        <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-center">
+                Success! 🎉
+              </DialogTitle>
+              <DialogDescription className="text-center text-base mt-2">
+                You claimed {lastClaimedToken?.amount} ${lastClaimedToken?.token} tokens!
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col items-center gap-4 py-4">
+              <p className="text-sm text-muted-foreground text-center">
+                Share your success with the community
+              </p>
               <ShareToFarcaster
-                text={`I just claimed ${lastClaimedToken.amount} $${lastClaimedToken.token} tokens on @uniquehub! 🎉\n\nEarn, learn, and trade on the ultimate Web3 super app.`}
+                text={`I just claimed ${lastClaimedToken?.amount} $${lastClaimedToken?.token} tokens on @uniquehub! 🎉\n\nEarn, learn, and trade on the ultimate Web3 super app.`}
                 embeds={[
                   `${window.location.origin}/uniquehub-share-card.png`,
                   "https://uniqueehub.vercel.app"
                 ]}
                 variant="default"
                 size="default"
-                buttonText="Share"
+                buttonText="Share on Farcaster"
+                className="w-full"
               />
             </div>
-          </Card>
-        )}
+          </DialogContent>
+        </Dialog>
 
         {/* Info Card */}
         <Card className="bg-gradient-to-br from-accent/10 to-primary/10 border-accent/20 p-6">
