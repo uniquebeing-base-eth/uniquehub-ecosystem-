@@ -1,26 +1,39 @@
 import { Leaderboard } from "@/components/Leaderboard";
 import { Card } from "@/components/ui/card";
-import { Trophy, Zap, Target, Calendar } from "lucide-react";
+import { Trophy, Zap, Target, Coins, Gift } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { DailyCheckInDialog } from "@/components/DailyCheckInDialog";
 
 export const EarningSection = () => {
   const { user } = useAuth();
   const [userPoints, setUserPoints] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [claimingDaily, setClaimingDaily] = useState(false);
-  const [claimingWeekly, setClaimingWeekly] = useState(false);
-  const [claimingMonthly, setClaimingMonthly] = useState(false);
+  const [showCheckInDialog, setShowCheckInDialog] = useState(false);
+  const [hasShownDialog, setHasShownDialog] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchUserPoints();
     }
   }, [user]);
+
+  useEffect(() => {
+    // Show dialog once per session if user hasn't checked in today
+    if (user && userPoints && !hasShownDialog) {
+      const lastCheckin = userPoints.last_daily_checkin ? new Date(userPoints.last_daily_checkin) : null;
+      const now = new Date();
+      const daysSince = lastCheckin ? Math.floor((now.getTime() - lastCheckin.getTime()) / (1000 * 60 * 60 * 24)) : 999;
+      
+      if (daysSince >= 1) {
+        setShowCheckInDialog(true);
+        setHasShownDialog(true);
+      }
+    }
+  }, [user, userPoints, hasShownDialog]);
 
   const fetchUserPoints = async () => {
     if (!user) return;
@@ -44,46 +57,21 @@ export const EarningSection = () => {
     }
   };
 
-  const handleClaim = async (type: 'daily' | 'weekly' | 'monthly') => {
-    if (!user) {
-      toast.error('Please sign in to claim rewards');
-      return;
-    }
-
-    const setLoadingState = type === 'daily' ? setClaimingDaily : type === 'weekly' ? setClaimingWeekly : setClaimingMonthly;
-    setLoadingState(true);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('process-checkin', {
-        headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        toast.success(data.message, { duration: 5000 });
-        await fetchUserPoints();
-      } else {
-        toast.info(data.message);
-      }
-    } catch (error) {
-      console.error('Claim error:', error);
-      toast.error('Failed to claim reward');
-    } finally {
-      setLoadingState(false);
-    }
-  };
-
-  const dailyProgress = userPoints?.daily_streak || 0;
-  const weeklyProgress = Math.min((dailyProgress / 7) * 100, 100);
-  const monthlyProgress = Math.min((dailyProgress / 30) * 100, 100);
-  const canClaimWeekly = dailyProgress >= 7;
-  const canClaimMonthly = dailyProgress >= 30;
+  const currentDay = userPoints?.daily_streak || 0; // Day in 6-day cycle (1-6)
+  const lastCheckin = userPoints?.last_daily_checkin ? new Date(userPoints.last_daily_checkin) : null;
+  const now = new Date();
+  const daysSince = lastCheckin ? Math.floor((now.getTime() - lastCheckin.getTime()) / (1000 * 60 * 60 * 24)) : 999;
+  const canCheckIn = daysSince >= 1;
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      <DailyCheckInDialog 
+        open={showCheckInDialog}
+        onOpenChange={setShowCheckInDialog}
+        currentDay={currentDay}
+        onSuccess={fetchUserPoints}
+      />
+      
       <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Earn UP Points</h1>
       
       {/* User Stats Card */}
@@ -98,95 +86,60 @@ export const EarningSection = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
-          <div className="text-center p-2 sm:p-3 bg-background/50 rounded-lg">
-            <p className="text-lg sm:text-2xl font-bold text-primary">{userPoints?.daily_streak || 0}</p>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Day Streak</p>
-          </div>
-          <div className="text-center p-2 sm:p-3 bg-background/50 rounded-lg">
-            <p className="text-lg sm:text-2xl font-bold text-primary">{userPoints?.weekly_streak || 0}</p>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Week Streak</p>
-          </div>
-          <div className="text-center p-2 sm:p-3 bg-background/50 rounded-lg">
-            <p className="text-lg sm:text-2xl font-bold text-primary">{userPoints?.monthly_streak || 0}</p>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Month Streak</p>
-          </div>
-        </div>
-
-        {/* Daily Check-in Quest */}
-        <div className="space-y-2 sm:space-y-3 mt-4 sm:mt-6">
-          <div className="bg-background/50 rounded-lg p-3 sm:p-4">
-            <div className="flex items-center justify-between mb-2 sm:mb-3">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-primary flex-shrink-0" />
-                <div>
-                  <h3 className="text-sm sm:text-base font-semibold text-foreground">Daily Check-in</h3>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">Check in every day</p>
-                </div>
-              </div>
-              <span className="text-xs sm:text-sm font-bold text-primary whitespace-nowrap">+10 UP</span>
-            </div>
-            <Progress value={100} className="h-1.5 sm:h-2 mb-2 sm:mb-3" />
-            <Button
-              onClick={() => handleClaim('daily')}
-              disabled={claimingDaily || !user}
-              className="w-full bg-primary hover:opacity-90 text-primary-foreground font-semibold text-sm sm:text-base h-9 sm:h-10"
-            >
-              {claimingDaily ? 'Claiming...' : 'Claim'}
-            </Button>
+        {/* Daily Check-in - 6 Day Cycle */}
+        <div className="bg-background/50 rounded-xl p-4 sm:p-6">
+          <div className="mb-4">
+            <h3 className="text-lg sm:text-xl font-bold text-foreground mb-1">Daily Check-In</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Check in for 5 days to unlock the Mystery Box!
+            </p>
           </div>
 
-          {/* Weekly Check-in Quest */}
-          <div className="bg-background/50 rounded-lg p-3 sm:p-4">
-            <div className="flex items-center justify-between mb-2 sm:mb-3">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <Trophy className="w-4 sm:w-5 h-4 sm:h-5 text-primary flex-shrink-0" />
-                <div>
-                  <h3 className="text-sm sm:text-base font-semibold text-foreground">Weekly Streak</h3>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">Check in 7 days in a row</p>
+          {/* 6-Day Grid */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
+            {[1, 2, 3, 4, 5, 6].map((day) => {
+              const isCurrentDay = day === currentDay;
+              const isMysteryBox = day === 6;
+              const isCompleted = day < currentDay;
+
+              return (
+                <div
+                  key={day}
+                  className={`flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-lg transition-all ${
+                    isCurrentDay
+                      ? 'bg-primary/20 ring-2 ring-primary shadow-lg'
+                      : isCompleted
+                      ? 'bg-primary/10 opacity-50'
+                      : 'bg-muted/30'
+                  }`}
+                >
+                  {isMysteryBox ? (
+                    <Gift 
+                      className={`w-8 h-8 sm:w-10 sm:h-10 ${isCurrentDay ? 'text-primary animate-pulse' : 'text-primary/70'}`} 
+                    />
+                  ) : (
+                    <Coins 
+                      className={`w-8 h-8 sm:w-10 sm:h-10 ${isCurrentDay ? 'text-yellow-500 animate-pulse' : isCompleted ? 'text-yellow-500/50' : 'text-yellow-500/70'}`} 
+                    />
+                  )}
+                  <span className="text-xs sm:text-sm font-semibold text-foreground">
+                    {isMysteryBox ? 'Box' : `Day ${day}`}
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">
+                    {isMysteryBox ? '200-1K' : '100 UP'}
+                  </span>
                 </div>
-              </div>
-              <span className="text-xs sm:text-sm font-bold text-primary whitespace-nowrap">+100 UP</span>
-            </div>
-            <div className="flex items-center gap-2 mb-2 sm:mb-3">
-              <Progress value={weeklyProgress} className="h-1.5 sm:h-2 flex-1" />
-              <span className="text-[10px] sm:text-xs font-medium text-muted-foreground whitespace-nowrap">{Math.floor(weeklyProgress)}%</span>
-            </div>
-            <Button
-              onClick={() => handleClaim('weekly')}
-              disabled={claimingWeekly || !user || !canClaimWeekly}
-              variant={canClaimWeekly ? "default" : "outline"}
-              className="w-full font-semibold text-sm sm:text-base h-9 sm:h-10"
-            >
-              {claimingWeekly ? 'Claiming...' : canClaimWeekly ? 'Claim' : `${dailyProgress}/7 days`}
-            </Button>
+              );
+            })}
           </div>
 
-          {/* Monthly Check-in Quest */}
-          <div className="bg-background/50 rounded-lg p-3 sm:p-4">
-            <div className="flex items-center justify-between mb-2 sm:mb-3">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <Target className="w-4 sm:w-5 h-4 sm:h-5 text-primary flex-shrink-0" />
-                <div>
-                  <h3 className="text-sm sm:text-base font-semibold text-foreground">Monthly Streak</h3>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">Check in 30 days in a row</p>
-                </div>
-              </div>
-              <span className="text-xs sm:text-sm font-bold text-primary whitespace-nowrap">+500 UP</span>
-            </div>
-            <div className="flex items-center gap-2 mb-2 sm:mb-3">
-              <Progress value={monthlyProgress} className="h-1.5 sm:h-2 flex-1" />
-              <span className="text-[10px] sm:text-xs font-medium text-muted-foreground whitespace-nowrap">{Math.floor(monthlyProgress)}%</span>
-            </div>
-            <Button
-              onClick={() => handleClaim('monthly')}
-              disabled={claimingMonthly || !user || !canClaimMonthly}
-              variant={canClaimMonthly ? "default" : "outline"}
-              className="w-full font-semibold text-sm sm:text-base h-9 sm:h-10"
-            >
-              {claimingMonthly ? 'Claiming...' : canClaimMonthly ? 'Claim' : `${dailyProgress}/30 days`}
-            </Button>
-          </div>
+          <Button
+            onClick={() => setShowCheckInDialog(true)}
+            disabled={!user || !canCheckIn}
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 sm:py-4"
+          >
+            {!user ? 'Sign In to Check In' : !canCheckIn ? 'Come Back Tomorrow' : 'Check In Now'}
+          </Button>
         </div>
       </Card>
 
@@ -201,24 +154,16 @@ export const EarningSection = () => {
           <div className="flex items-start gap-3 p-3 bg-gradient-card rounded-lg">
             <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
             <div className="flex-1">
-              <p className="font-semibold text-foreground">Daily Check-in: 10 UP</p>
-              <p className="text-sm text-muted-foreground">Check in daily to earn and build streaks</p>
+              <p className="font-semibold text-foreground">Daily Check-in: 100 UP</p>
+              <p className="text-sm text-muted-foreground">Check in every day (Days 1-5)</p>
             </div>
           </div>
 
           <div className="flex items-start gap-3 p-3 bg-gradient-card rounded-lg">
             <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
             <div className="flex-1">
-              <p className="font-semibold text-foreground">Weekly Streak: 100 UP</p>
-              <p className="text-sm text-muted-foreground">Unlocks after 7 consecutive daily check-ins</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3 p-3 bg-gradient-card rounded-lg">
-            <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
-            <div className="flex-1">
-              <p className="font-semibold text-foreground">Monthly Streak: 500 UP</p>
-              <p className="text-sm text-muted-foreground">Unlocks after 30 consecutive daily check-ins</p>
+              <p className="font-semibold text-foreground">Mystery Box: 200-1000 UP</p>
+              <p className="text-sm text-muted-foreground">Unlock on Day 6 with random rewards!</p>
             </div>
           </div>
 
@@ -243,16 +188,16 @@ export const EarningSection = () => {
       {/* Leaderboard */}
       <Leaderboard />
 
-      {/* Streak Rewards Info */}
+      {/* Check-in Cycle Info */}
       <Card className="p-6 bg-gradient-card">
         <div className="flex items-center gap-2 mb-4">
-          <Target className="w-6 h-6 text-primary" />
-          <h3 className="text-xl font-bold text-foreground">Streak Bonuses</h3>
+          <Gift className="w-6 h-6 text-primary" />
+          <h3 className="text-xl font-bold text-foreground">Mystery Box Rewards</h3>
         </div>
         <p className="text-muted-foreground">
-          Keep your streaks alive to maximize your earnings! Consecutive check-ins build your 
-          daily, weekly, and monthly streaks. Future updates will reward top streak holders with 
-          exclusive NFTs and token airdrops! 🚀
+          Complete 5 days of check-ins to unlock the Mystery Box on Day 6! The box contains 
+          200-1000 UP points randomly. After opening the box, your cycle resets to Day 1. 
+          Keep checking in daily to maximize your rewards! 🎁
         </p>
       </Card>
     </div>
