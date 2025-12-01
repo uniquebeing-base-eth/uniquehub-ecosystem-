@@ -10,6 +10,7 @@ import { useUnclaimedAchievements } from "@/hooks/useUnclaimedAchievements";
 import { AchievementClaimModal } from "@/components/AchievementClaimModal";
 import cardBgProfile from '@/assets/card-bg-profile.jpg';
 import { getAchievementTitle, getAchievementDescription } from "@/lib/achievementUtils";
+import { StatsGlowCard } from "@/components/StatsGlowCard";
 
 export const ProfileSection = () => {
   const { user } = useAuth();
@@ -216,6 +217,9 @@ export const ProfileSection = () => {
           </div>
         </div>
       </Card>
+
+      {/* Stats Glow Card */}
+      <StatsGlowCard />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-2">
