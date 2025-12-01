@@ -65,30 +65,33 @@ serve(async (req) => {
     // Get top 3 achievements for display
     const topAchievements = achievements.slice(0, 3);
 
-    // Create prompt for AI image generation
-    const prompt = `Create a stunning, dreamlike glowing card with a dark cosmic background featuring stars and nebula effects. 
+    // Create prompt for AI image generation with Farcaster standard dimensions (1200x630)
+    const prompt = `Create a stunning profile stats card with dimensions 1200x630 pixels (Farcaster standard).
 
-Center the card with these exact details:
+LAYOUT:
+Top section (centered):
+- Large circular profile picture with glowing ${levelColor} border
+- "${profile.display_name || 'Learner'}" in bold white text (32px)
+- "@${profile.farcaster_username || 'anonymous'}" in light gray (20px)
+- "${creatorLevel}" badge with ${levelColor} glow
 
-Top section:
-- Large circular profile area with a glowing ${levelColor} ring
-- "${profile.display_name || 'Learner'}" in bold white text below
-- "@${profile.farcaster_username || 'anonymous'}" in smaller gray text
+Stats grid (2x2 layout, centered):
+Row 1: 
+  • Daily Streak: ${points.daily_streak} 🔥  |  Weekly Streak: ${points.weekly_streak} 🏆
+Row 2:
+  • Monthly Streak: ${points.monthly_streak} 💎  |  Achievements: ${topAchievements.length} ⭐
 
-Middle section - Creator Level badge:
-- "${creatorLevel}" with glowing ${levelColor} effects
-- ${creatorPoints} Creator Points displayed
+Bottom section (centered):
+- "Total Points" label (18px, gray)
+- ${points.total_points.toLocaleString()} UP (48px, glowing ${levelColor})
 
-Stats grid (3 columns):
-- Daily Streak: ${points.daily_streak} days 🔥
-- Weekly Streak: ${points.weekly_streak} weeks 🏆
-- Monthly Streak: ${points.monthly_streak} months 💎
-
-Bottom section:
-- Total Points: ${points.total_points.toLocaleString()} UP in large glowing text
-- ${topAchievements.length} Achievements Unlocked
-
-Style: Futuristic, dreamlike, with soft glowing effects, gradients from ${levelColor} to purple/blue, glass morphism effects, and floating particles. Professional gaming profile card aesthetic with depth and dimension.`;
+STYLE:
+- Dark cosmic background with stars and subtle nebula effects
+- Card has glass morphism with ${levelColor} accents
+- All text centered and properly aligned
+- Soft glowing effects around stats
+- Professional gaming aesthetic
+- Ensure 1200x630 aspect ratio`;
 
     console.log('Generating card with prompt:', prompt);
 
@@ -116,16 +119,46 @@ Style: Futuristic, dreamlike, with soft glowing effects, gradients from ${levelC
     }
 
     const aiData = await aiResponse.json();
-    const imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const imageBase64 = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
-    if (!imageUrl) {
+    if (!imageBase64) {
       throw new Error('No image generated');
     }
+
+    // Convert base64 to blob and upload to Supabase storage
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+    
+    const fileName = `stats-card-${user.id}-${Date.now()}.png`;
+    const filePath = `profile-cards/${fileName}`;
+
+    const supabaseStorage = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { error: uploadError } = await supabaseStorage.storage
+      .from('nft-images')
+      .upload(filePath, buffer, {
+        contentType: 'image/png',
+        upsert: true
+      });
+
+    if (uploadError) {
+      console.error('Storage upload error:', uploadError);
+      throw new Error(`Failed to upload image: ${uploadError.message}`);
+    }
+
+    const { data: { publicUrl } } = supabaseStorage.storage
+      .from('nft-images')
+      .getPublicUrl(filePath);
+
+    console.log('Image uploaded successfully:', publicUrl);
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        imageUrl,
+        imageUrl: publicUrl,
         stats: {
           username: profile.display_name || 'Learner',
           farcasterUsername: profile.farcaster_username || 'anonymous',

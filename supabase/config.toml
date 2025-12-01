@@ -66,3 +66,6 @@ verify_jwt = false
 [functions.recalculate-user-points]
 verify_jwt = false
 
+[functions.generate-stats-card]
+verify_jwt = true
+
