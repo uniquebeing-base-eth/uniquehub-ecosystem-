@@ -38,9 +38,20 @@ serve(async (req) => {
     ]);
 
     const profile = profileRes.data || {};
-    const points = pointsRes.data || { total_points: 0, daily_streak: 0, weekly_streak: 0, monthly_streak: 0, creator_points: 0 };
+    const points = pointsRes.data || { 
+      total_points: 0, 
+      daily_streak: 0, 
+      weekly_streak: 0, 
+      monthly_streak: 0, 
+      creator_points: 0 
+    };
     const achievements = achievementsRes.data || [];
     const courseCount = coursesRes.data?.length || 0;
+
+    console.log('Fetched user points:', points);
+    console.log('Daily streak:', points.daily_streak);
+    console.log('Weekly streak:', points.weekly_streak);
+    console.log('Monthly streak:', points.monthly_streak);
 
     // Determine creator level based on course count
     const creatorPoints = points.creator_points || 0;
@@ -67,8 +78,8 @@ serve(async (req) => {
     // Count claimed achievements
     const claimedAchievements = achievements.length;
 
-    // Create prompt for AI image generation with Farcaster standard dimensions (1200x630)
-    const avatarUrl = profile.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default';
+    // Use a cute default avatar - cute penguin character
+    const avatarUrl = 'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=uniquehub&backgroundColor=3b82f6';
     
     const prompt = `Create a stunning profile stats card with exact dimensions 1200x630 pixels (Farcaster standard).
 
@@ -88,10 +99,10 @@ LAYOUT (top to bottom, all centered):
 
 2. STATS GRID (4 stat pills in 2x2 grid):
    Row 1:
-   - Left pill: "Daily Streak: ${points.daily_streak || 0} 🔥"
-   - Right pill: "Weekly Streak: ${points.weekly_streak || 0} 🏆"
+   - Left pill: "Daily Streak: ${points.daily_streak ?? 0} 🔥"
+   - Right pill: "Weekly Streak: ${points.weekly_streak ?? 0} 🏆"
    Row 2:
-   - Left pill: "Monthly: ${points.monthly_streak || 0} 💎"
+   - Left pill: "Monthly: ${points.monthly_streak ?? 0} 💎"
    - Right pill: "Achievements: ${claimedAchievements} ⭐"
    Each pill: dark semi-transparent background with blue border, white text
 
