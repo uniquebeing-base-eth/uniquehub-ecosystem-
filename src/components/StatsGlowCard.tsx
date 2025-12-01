@@ -54,40 +54,33 @@ export const StatsGlowCard = () => {
   };
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">
-      <div className="space-y-4">
-        <div className="text-center space-y-2">
-          <Sparkles className="w-12 h-12 mx-auto text-primary" />
-          <h3 className="text-xl font-bold text-foreground">Profile Stats Card</h3>
-          <p className="text-sm text-muted-foreground">
-            Generate a shareable card with your UniqueHub stats
-          </p>
-        </div>
-
+    <Card className="bg-card/50 backdrop-blur-sm border-border">
+      <div className="p-6 space-y-4">
         {!generatedCardUrl ? (
-          <Button
-            onClick={handleGenerateCard}
+          <Button 
+            onClick={handleGenerateCard} 
             disabled={isGenerating}
-            className="w-full bg-gradient-primary"
+            className="w-full"
+            size="lg"
           >
             {isGenerating ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Generating Profile Card...
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Generating Card...
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkles className="w-5 h-5 mr-2" />
                 Generate Profile Card
               </>
             )}
           </Button>
         ) : (
           <div className="space-y-4">
-            <div className="rounded-lg overflow-hidden border border-primary/20">
-              <img
-                src={generatedCardUrl}
-                alt="Profile Stats Card"
+            <div className="relative rounded-lg overflow-hidden border border-border shadow-lg">
+              <img 
+                src={generatedCardUrl} 
+                alt="Profile Stats Card" 
                 className="w-full h-auto"
               />
             </div>
@@ -100,27 +93,22 @@ export const StatsGlowCard = () => {
                 className="flex-1"
               >
                 {isGenerating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Refreshing...
-                  </>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Refresh
-                  </>
+                  <RefreshCw className="w-4 h-4 mr-2" />
                 )}
+                Refresh
               </Button>
+              
+              <ShareToFarcaster 
+                text={`Check out my UniqueHub stats! 🎮\n\n${username} on @uniquehub\n\nLearn, earn, and trade on Base!`}
+                embeds={[generatedCardUrl, 'https://uniqueehub.vercel.app']}
+                buttonText="Share to Farcaster"
+                variant="default"
+                size="default"
+                className="flex-1"
+              />
             </div>
-
-            <ShareToFarcaster
-              text={`Check out my UniqueHub stats! 🎮✨\n\n${username} on @uniquehub\n\nLearn, earn, and trade on Base!`}
-              embeds={[generatedCardUrl, 'https://uniqueehub.vercel.app']}
-              buttonText="Share to Farcaster"
-              variant="default"
-              size="default"
-              className="w-full bg-gradient-primary"
-            />
           </div>
         )}
       </div>
