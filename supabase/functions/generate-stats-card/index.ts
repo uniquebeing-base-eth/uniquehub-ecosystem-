@@ -138,7 +138,7 @@ STYLE:
     );
 
     const { error: uploadError } = await supabaseStorage.storage
-      .from('nft-images')
+      .from('certificates')
       .upload(filePath, buffer, {
         contentType: 'image/png',
         upsert: true
@@ -150,7 +150,7 @@ STYLE:
     }
 
     const { data: { publicUrl } } = supabaseStorage.storage
-      .from('nft-images')
+      .from('certificates')
       .getPublicUrl(filePath);
 
     console.log('Image uploaded successfully:', publicUrl);
