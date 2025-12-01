@@ -30,68 +30,83 @@ serve(async (req) => {
     }
 
     // Fetch user data
-    const [profileRes, pointsRes, achievementsRes] = await Promise.all([
+    const [profileRes, pointsRes, achievementsRes, coursesRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('user_id', user.id).single(),
       supabase.from('user_points').select('*').eq('user_id', user.id).single(),
-      supabase.from('creator_achievements').select('*').eq('user_id', user.id).order('awarded_at', { ascending: false })
+      supabase.from('creator_achievements').select('*').eq('user_id', user.id).eq('is_claimed', true).order('awarded_at', { ascending: false }),
+      supabase.from('courses').select('id').eq('user_id', user.id).eq('status', 'published')
     ]);
 
     const profile = profileRes.data || {};
     const points = pointsRes.data || { total_points: 0, daily_streak: 0, weekly_streak: 0, monthly_streak: 0, creator_points: 0 };
     const achievements = achievementsRes.data || [];
+    const courseCount = coursesRes.data?.length || 0;
 
-    // Determine creator level based on creator_points
+    // Determine creator level based on course count
     const creatorPoints = points.creator_points || 0;
-    let creatorLevel = "Beginner";
-    let levelColor = "#3b82f6"; // blue
+    let creatorLevel = "Beginner Creator";
+    let levelIcon = "🌱";
     
-    if (creatorPoints >= 10000) {
-      creatorLevel = "Legend";
-      levelColor = "#fbbf24"; // gold
-    } else if (creatorPoints >= 5000) {
-      creatorLevel = "Master";
-      levelColor = "#a855f7"; // purple
-    } else if (creatorPoints >= 2000) {
-      creatorLevel = "Expert";
-      levelColor = "#ec4899"; // pink
-    } else if (creatorPoints >= 500) {
-      creatorLevel = "Advanced";
-      levelColor = "#10b981"; // emerald
-    } else if (creatorPoints >= 100) {
-      creatorLevel = "Intermediate";
-      levelColor = "#3b82f6"; // blue
+    if (courseCount >= 50) {
+      creatorLevel = "Master Creator";
+      levelIcon = "👑";
+    } else if (courseCount >= 20) {
+      creatorLevel = "Expert Creator";
+      levelIcon = "⭐";
+    } else if (courseCount >= 10) {
+      creatorLevel = "Advanced Creator";
+      levelIcon = "🔥";
+    } else if (courseCount >= 5) {
+      creatorLevel = "Intermediate Creator";
+      levelIcon = "💎";
+    } else if (courseCount >= 1) {
+      creatorLevel = "Beginner Creator";
+      levelIcon = "🌱";
     }
 
-    // Get top 3 achievements for display
-    const topAchievements = achievements.slice(0, 3);
+    // Count claimed achievements
+    const claimedAchievements = achievements.length;
 
     // Create prompt for AI image generation with Farcaster standard dimensions (1200x630)
-    const prompt = `Create a stunning profile stats card with dimensions 1200x630 pixels (Farcaster standard).
+    const avatarUrl = profile.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default';
+    
+    const prompt = `Create a stunning profile stats card with exact dimensions 1200x630 pixels (Farcaster standard).
 
-LAYOUT:
-Top section (centered):
-- Large circular profile picture with glowing ${levelColor} border
-- "${profile.display_name || 'Learner'}" in bold white text (32px)
-- "@${profile.farcaster_username || 'anonymous'}" in light gray (20px)
-- "${creatorLevel}" badge with ${levelColor} glow
+CRITICAL REQUIREMENTS:
+- Use BLUE (#3b82f6) as the primary accent color throughout - glows, borders, highlights
+- Dark cosmic space background with stars and blue nebula effects
+- Professional, clean layout with centered elements
 
-Stats grid (2x2 layout, centered):
-Row 1: 
-  • Daily Streak: ${points.daily_streak} 🔥  |  Weekly Streak: ${points.weekly_streak} 🏆
-Row 2:
-  • Monthly Streak: ${points.monthly_streak} 💎  |  Achievements: ${topAchievements.length} ⭐
+LAYOUT (top to bottom, all centered):
 
-Bottom section (centered):
-- "Total Points" label (18px, gray)
-- ${points.total_points.toLocaleString()} UP (48px, glowing ${levelColor})
+1. TOP SECTION:
+   - Profile picture: ${avatarUrl}
+   - Display as large circular image (120px diameter) with glowing blue border
+   - Below picture: "${profile.display_name || 'Learner'}" in bold white (28px)
+   - Below name: "@${profile.farcaster_username || 'anonymous'}" in light gray (18px)
+   - Creator badge: "${levelIcon} ${creatorLevel}" in blue pill shape with glow
+
+2. STATS GRID (4 stat pills in 2x2 grid):
+   Row 1:
+   - Left pill: "Daily Streak: ${points.daily_streak || 0} 🔥"
+   - Right pill: "Weekly Streak: ${points.weekly_streak || 0} 🏆"
+   Row 2:
+   - Left pill: "Monthly: ${points.monthly_streak || 0} 💎"
+   - Right pill: "Achievements: ${claimedAchievements} ⭐"
+   Each pill: dark semi-transparent background with blue border, white text
+
+3. BOTTOM SECTION:
+   - "Total Points" in gray (16px)
+   - "${points.total_points.toLocaleString()} UP" in large glowing blue text (42px)
+   - "Creator Points: ${creatorPoints.toLocaleString()}" in smaller blue text (18px)
 
 STYLE:
-- Dark cosmic background with stars and subtle nebula effects
-- Card has glass morphism with ${levelColor} accents
-- All text centered and properly aligned
-- Soft glowing effects around stats
-- Professional gaming aesthetic
-- Ensure 1200x630 aspect ratio`;
+- Blue theme throughout (#3b82f6)
+- Dark space background with subtle blue glow effects
+- Glass morphism style for card elements
+- Clean, professional design
+- All elements perfectly centered
+- Exact 1200x630 aspect ratio`;
 
     console.log('Generating card with prompt:', prompt);
 
@@ -163,13 +178,14 @@ STYLE:
           username: profile.display_name || 'Learner',
           farcasterUsername: profile.farcaster_username || 'anonymous',
           creatorLevel,
-          levelColor,
+          levelIcon,
           totalPoints: points.total_points,
-          dailyStreak: points.daily_streak,
-          weeklyStreak: points.weekly_streak,
-          monthlyStreak: points.monthly_streak,
+          dailyStreak: points.daily_streak || 0,
+          weeklyStreak: points.weekly_streak || 0,
+          monthlyStreak: points.monthly_streak || 0,
           creatorPoints,
-          achievementsCount: achievements.length
+          achievementsCount: claimedAchievements,
+          courseCount
         }
       }),
       {
