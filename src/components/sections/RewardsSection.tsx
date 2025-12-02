@@ -17,6 +17,11 @@ import jesseLogo from "@/assets/jesse-token.jpg";
 import betrLogo from "@/assets/betr-token.jpg";
 import noiceLogo from "@/assets/noice-token.jpg";
 import degenLogo from "@/assets/degen-token.png";
+import eggsRewardShare from "@/assets/eggs-reward-share.png";
+import jesseRewardShare from "@/assets/jesse-reward-share.png";
+import betrRewardShare from "@/assets/betr-reward-share.png";
+import noiceRewardShare from "@/assets/noice-reward-share.png";
+import degenRewardShare from "@/assets/degen-reward-share.png";
 
 interface Chain {
   id: string;
@@ -116,6 +121,15 @@ export const RewardsSection = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [lastClaimedToken, setLastClaimedToken] = useState<{ token: string; amount: number } | null>(null);
   const [showShareDialog, setShowShareDialog] = useState(false);
+
+  // Map token IDs to their share images
+  const tokenShareImages: Record<string, string> = {
+    'EGGS': eggsRewardShare,
+    'JESSE': jesseRewardShare,
+    'BETR': betrRewardShare,
+    'NOICE': noiceRewardShare,
+    'DEGEN': degenRewardShare,
+  };
 
   // Fetch user points
   useEffect(() => {
@@ -473,7 +487,7 @@ export const RewardsSection = () => {
               <ShareToFarcaster
                 text={`I just claimed ${lastClaimedToken?.amount} $${lastClaimedToken?.token} tokens on @uniquehub! 🎉\n\nEarn, learn, and trade on the ultimate Web3 super app.`}
                 embeds={[
-                  `${window.location.origin}/uniquehub-share-card.png`,
+                  lastClaimedToken?.token ? tokenShareImages[lastClaimedToken.token] : `${window.location.origin}/uniquehub-share-card.png`,
                   "https://uniqueehub.vercel.app"
                 ]}
                 variant="default"
