@@ -8,7 +8,7 @@ import { Loader2, Wallet } from "lucide-react";
 import { useAccount, useConnect, useSwitchChain } from "wagmi";
 import { base, arbitrum, bsc } from "wagmi/chains";
 import { useViemClients } from "@/hooks/useViemClients";
-import { MULTI_TOKEN_REWARDS_ABI, MULTI_TOKEN_REWARDS_ADDRESS } from "@/config/wagmi";
+import { MULTI_TOKEN_REWARDS_ABI, MULTI_TOKEN_REWARDS_ADDRESS, TRIPLE_TOKEN_REWARDS_ABI, TRIPLE_TOKEN_REWARDS_ADDRESS } from "@/config/wagmi";
 import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -29,6 +29,7 @@ interface Chain {
   isOnChain: boolean; // Whether this uses the on-chain contract
   chainConfig: typeof base | typeof arbitrum | typeof bsc; // Which blockchain to use
   contractAddress: `0x${string}`; // Contract address for this chain
+  useTripleContract?: boolean; // Whether to use the triple token contract (BETR, NOICE, DEGEN)
 }
 
 const chains: Chain[] = [
@@ -64,9 +65,10 @@ const chains: Chain[] = [
     color: "from-pink-500 to-cyan-400",
     enabled: true,
     rewardPerThousand: 1000,
-    isOnChain: false,
+    isOnChain: true,
     chainConfig: base,
-    contractAddress: MULTI_TOKEN_REWARDS_ADDRESS,
+    contractAddress: TRIPLE_TOKEN_REWARDS_ADDRESS,
+    useTripleContract: true,
   },
   {
     id: "NOICE",
@@ -76,9 +78,10 @@ const chains: Chain[] = [
     color: "from-gray-100 to-gray-300",
     enabled: true,
     rewardPerThousand: 50,
-    isOnChain: false,
+    isOnChain: true,
     chainConfig: base,
-    contractAddress: MULTI_TOKEN_REWARDS_ADDRESS,
+    contractAddress: TRIPLE_TOKEN_REWARDS_ADDRESS,
+    useTripleContract: true,
   },
   {
     id: "DEGEN",
@@ -88,9 +91,10 @@ const chains: Chain[] = [
     color: "from-purple-400 to-purple-600",
     enabled: true,
     rewardPerThousand: 1,
-    isOnChain: false,
+    isOnChain: true,
     chainConfig: base,
-    contractAddress: MULTI_TOKEN_REWARDS_ADDRESS,
+    contractAddress: TRIPLE_TOKEN_REWARDS_ADDRESS,
+    useTripleContract: true,
   },
 ];
 
@@ -262,19 +266,36 @@ export const RewardsSection = () => {
           tokenId: chain.id,
           points: signatureData.points,
           chainId: targetChainId,
-          chainName: chain.name
+          chainName: chain.name,
+          useTripleContract: chain.useTripleContract
         });
 
         toast.info(`Please confirm the transaction on ${chain.name}...`);
         
-        const hash = await walletClient.writeContract({
-          address: chain.contractAddress,
-          abi: MULTI_TOKEN_REWARDS_ABI,
-          functionName: 'claimReward',
-          args: [chain.id, BigInt(signatureData.points), signatureData.signature as `0x${string}`],
-          chain: chain.chainConfig,
-          account: address,
-        });
+        // Use correct ABI and call contract based on type
+        let hash: `0x${string}`;
+        
+        if (chain.useTripleContract) {
+          // Triple token contract uses tokenSymbol (string), userPoints, signature
+          hash = await walletClient.writeContract({
+            address: chain.contractAddress,
+            abi: TRIPLE_TOKEN_REWARDS_ABI,
+            functionName: 'claimReward',
+            args: [chain.id, BigInt(signatureData.points), signatureData.signature as `0x${string}`],
+            chain: chain.chainConfig,
+            account: address,
+          });
+        } else {
+          // Multi token contract uses tokenId (string), points, signature
+          hash = await walletClient.writeContract({
+            address: chain.contractAddress,
+            abi: MULTI_TOKEN_REWARDS_ABI,
+            functionName: 'claimReward',
+            args: [chain.id, BigInt(signatureData.points), signatureData.signature as `0x${string}`],
+            chain: chain.chainConfig,
+            account: address,
+          });
+        }
 
         toast.info("Transaction submitted! Waiting for confirmation...");
         console.log("Transaction hash:", hash);

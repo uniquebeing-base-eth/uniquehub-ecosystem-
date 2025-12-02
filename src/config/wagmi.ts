@@ -332,6 +332,53 @@ export const MULTI_TOKEN_REWARDS_ABI = [
   },
 ] as const;
 
+// Triple Token Rewards Claim Contract ABI (BETR, NOICE, DEGEN)
+export const TRIPLE_TOKEN_REWARDS_ABI = [
+  {
+    inputs: [
+      { name: 'tokenSymbol', type: 'string' },
+      { name: 'userPoints', type: 'uint256' },
+      { name: 'signature', type: 'bytes' }
+    ],
+    name: 'claimReward',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'user', type: 'address' }, { name: 'tokenSymbol', type: 'string' }],
+    name: 'canClaimToday',
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'tokenSymbol', type: 'string' }, { name: 'userPoints', type: 'uint256' }],
+    name: 'calculateReward',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'user', type: 'address' }, { name: 'tokenSymbol', type: 'string' }],
+    name: 'getTimeUntilNextClaim',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'tokenSymbol', type: 'string' }],
+    name: 'tokenConfigs',
+    outputs: [
+      { name: 'tokenAddress', type: 'address' },
+      { name: 'rewardRatePerThousandPoints', type: 'uint256' },
+      { name: 'isActive', type: 'bool' }
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
 // Contract Addresses on Base Mainnet
 export const COURSE_CONTRACT_ADDRESS = '0x237b0cdC89A75B329f1b650D844F20497698a48A' as const;
 export const MARKETPLACE_CONTRACT_ADDRESS = '0x08A8A1E3E9E74005f764f449C62FCEdC5f3E9421' as const;
@@ -341,6 +388,7 @@ export const QUEST_LEARNING_HUB_ADDRESS = '0x00B794DfBFae013Fc56A1080B2b1c170330
 export const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
 export const EARN_POINTS_CLAIM_ADDRESS = '0xDc463c3b8fB2504a723B4cb4A13BbF727302bDe9' as const;
 export const MULTI_TOKEN_REWARDS_ADDRESS = '0x52e18a754907E840277bDa35F39FFB942cda9C78' as const;
+export const TRIPLE_TOKEN_REWARDS_ADDRESS = '0x546186f2e8Efc407Cea08cAd33a55433fD531F8E' as const;
 export const LISTING_FEE = 100000n; // 0.1 USDC (6 decimals)
 export const FREE_COURSE_FEE = 100000000000n; // 0.0000001 ETH
 export const MARKETPLACE_LISTING_FEE = 100000n; // 0.1 USDC (6 decimals)
