@@ -69,3 +69,6 @@ verify_jwt = false
 [functions.generate-stats-card]
 verify_jwt = true
 
+[functions.add-advanced-courses]
+verify_jwt = false
+
