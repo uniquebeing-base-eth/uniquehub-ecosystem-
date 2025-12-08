@@ -5,11 +5,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -187,7 +189,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Record point event
+    // Record point event here
     const { error: eventError } = await supabase
       .from('point_events')
       .insert({
