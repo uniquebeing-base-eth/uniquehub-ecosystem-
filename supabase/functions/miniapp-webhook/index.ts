@@ -21,7 +21,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Handle different event types
+    // Handle different types of events 
     switch (event.type) {
       case 'miniapp.added':
         console.log(`Mini app added by user FID: ${event.data?.fid}`);
