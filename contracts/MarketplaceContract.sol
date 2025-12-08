@@ -6,9 +6,9 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
- * @title MarketplaceContract
+ * @title is MarketplaceContract 
  * @notice Handles marketplace item listings (purchases are off-platform)
- * @dev Only manages listings, not transactions
+ * @dev Only manages listings, not transactions. 
  */
 contract MarketplaceContract is Ownable, ReentrancyGuard {
     // Base USDC token address on Base mainnet
