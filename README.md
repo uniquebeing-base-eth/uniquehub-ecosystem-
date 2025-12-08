@@ -1,6 +1,6 @@
 # UniqueHUB, an ecosystem for unlimited possibilities. 
 
-learn earn and trade.
+learn earn and trade 
 
 languages used
 
