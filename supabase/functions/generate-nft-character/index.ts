@@ -53,6 +53,8 @@ serve(async (req) => {
       );
     }
 
+
+    
     // Get user profile for gender detection
     const { data: profile } = await supabase
       .from('profiles')
