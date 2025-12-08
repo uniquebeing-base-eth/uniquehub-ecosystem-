@@ -75,7 +75,7 @@ serve(async (req) => {
       levelIcon = "🌱";
     }
 
-    // Count claimed achievements
+    // Count claimed achievements for users 
     const claimedAchievements = achievements.length;
 
     // Use a cute default avatar - cute penguin character
