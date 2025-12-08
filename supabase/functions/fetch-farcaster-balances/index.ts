@@ -9,6 +9,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+
+
 const BASE_ALCHEMY_URL = (apiKey: string) => `https://base-mainnet.g.alchemy.com/v2/${apiKey}`;
 const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 
