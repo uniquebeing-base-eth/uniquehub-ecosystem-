@@ -8,7 +8,7 @@ const corsHeaders = {
 
 /**
  * Processes user check-ins (daily, weekly, monthly) and awards UP points
- * Tracks streaks and prevents duplicate check-ins
+ * Tracks streaks and prevents any duplicate check-ins
  */
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -47,7 +47,7 @@ serve(async (req) => {
       throw new Error(`Failed to fetch user points: ${fetchError.message}`);
     }
 
-    // Create user points record if it doesn't exist
+    // Create user points to record if it doesn't exist
     if (!userPoints) {
       const { data: newPoints, error: createError } = await supabase
         .from('user_points')
