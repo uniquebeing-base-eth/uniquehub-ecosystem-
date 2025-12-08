@@ -16,6 +16,8 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    
+
     // Define the 6 new courses
     const courses = [
       {
@@ -68,7 +70,7 @@ serve(async (req) => {
       }
     ];
 
-    // Insert courses
+    // Insert courses here
     const { data: insertedCourses, error: coursesError } = await supabase
       .from('learning_courses')
       .insert(courses)
