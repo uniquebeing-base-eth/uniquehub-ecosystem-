@@ -7,9 +7,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 /**
- * @title CourseContract
- * @notice Handles course listings and enrollments with USDC and ETH payments
- * @dev Uses Chainlink price feed for ETH/USD conversion
+ * @title is CourseContract
+ * @notice Handles all course listings and enrollments with USDC and ETH payments
+ * Using Chainlink price feed for ETH/USD conversion
  */
 contract CourseContract is Ownable, ReentrancyGuard {
     // Base USDC token address on Base mainnet
