@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     const results = [];
 
     for (const userId of user_ids) {
-      // Get all point events for this user
+      // Get all point events for this user...
       const { data: pointEvents, error: eventsError } = await supabase
         .from('point_events')
         .select('points_earned, event_type')
@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Calculate total from ALL point events
+      // Calculate total from ALL the point events
       const totalPoints = pointEvents?.reduce((sum, e) => sum + (e.points_earned || 0), 0) || 0;
 
       console.log(`User ${userId}: Found ${pointEvents?.length} point events, total: ${totalPoints}`);
