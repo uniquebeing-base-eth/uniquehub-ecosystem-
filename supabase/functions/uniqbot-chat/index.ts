@@ -16,14 +16,14 @@ serve(async (req) => {
   try {
     const { messages, currentPage, userData } = await req.json();
 
-    // Build context-aware information
+    // Build context-aware information for uniqbot
     let contextInfo = '';
     
     if (currentPage) {
       contextInfo += `\n\n=== CURRENT USER CONTEXT ===\n`;
       contextInfo += `User is currently on: ${currentPage.toUpperCase()} section\n`;
       
-      // Add page-specific guidance
+      // Add page-specific guidance for uniqBot 
       const pageGuidance = {
         home: 'Help them understand the platform overview and get started.',
         quest: 'Focus on learning courses, modules, and earning points through education.',
