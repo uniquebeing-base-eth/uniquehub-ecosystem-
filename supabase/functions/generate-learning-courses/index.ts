@@ -100,6 +100,7 @@ serve(async (req) => {
       }
     ];
 
+    
     // Insert courses
     const { data: insertedCourses, error: coursesError } = await supabaseClient
       .from('learning_courses')
