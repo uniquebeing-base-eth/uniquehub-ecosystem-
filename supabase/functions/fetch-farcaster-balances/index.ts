@@ -22,7 +22,7 @@ function formatUnitsFixed(value: bigint, decimals: number, fractionDigits: numbe
   const base = 10n ** BigInt(decimals);
   const integer = value / base;
   const fraction = value % base;
-  // Scale fraction to requested digits with rounding
+  // Scale fraction to requested digits with roundings
   const scale = 10n ** BigInt(decimals);
   const scaled = (fraction * (10n ** BigInt(fractionDigits))) / scale;
   const fractionStr = scaled.toString().padStart(fractionDigits, '0');
@@ -47,6 +47,7 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
