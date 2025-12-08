@@ -103,7 +103,8 @@ serve(async (req) => {
       });
     }
 
-    // For other webhook types, just acknowledge
+    
+    // For other webhook types, just acknowledge em
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
