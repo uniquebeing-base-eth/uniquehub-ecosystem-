@@ -67,14 +67,14 @@ serve(async (req) => {
       userPoints = newPoints;
     }
 
-    // Update total points
+    // Update total points for every user 
     if (userPoints) {
       await supabase
         .from('user_points')
         .update({ total_points: (userPoints.total_points || 0) + pointsToAward })
         .eq('user_id', buyerUserId);
 
-      // Record point event
+      // Record point for every event
       await supabase
         .from('point_events')
         .insert({
