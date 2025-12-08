@@ -95,7 +95,7 @@ contract TripleTokenRewardsClaim is Ownable, ReentrancyGuard {
     }
     
     /**
-     * @notice Claim daily rewards for a specific token
+     * @notice Claim daily rewards for a specific token only
      * @param tokenSymbol Token to claim (BETR, NOICE, or DEGEN)
      * @param userPoints Total points the user has
      * @param signature Backend signature verifying eligibility
