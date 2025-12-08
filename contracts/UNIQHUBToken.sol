@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @title UNIQHUB Token
+ * @title UNIQHUB Token for uniquehub ecosystem 
  * @dev ERC-20 token for the UniqueHub platform on Base
  * @notice Token Name: UNIQHUB Token
  * @notice Token Symbol: UNIQ
@@ -31,3 +31,6 @@ contract UNIQHUBToken is ERC20, Ownable {
         return 18;
     }
 }
+
+
+
