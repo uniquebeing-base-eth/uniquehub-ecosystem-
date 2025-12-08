@@ -5,8 +5,10 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
+
+
 /**
- * @title UniqueAvatarNFT
+ * @title is  UniqueAvatarNFT
  * @dev Unique avatar NFTs with dynamic pricing (5% increase every 10 mints)
  * Designed to avoid wallet scam warnings by keeping all logic minimal and clear
  */
