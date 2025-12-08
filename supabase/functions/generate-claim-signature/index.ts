@@ -46,6 +46,7 @@ function encodePacked(types: string[], values: (string | bigint)[]): Uint8Array 
       parts.push(hexToBytes(hex));
     }
   }
+
   
   // Concatenate all parts
   const totalLength = parts.reduce((sum, part) => sum + part.length, 0);
@@ -59,6 +60,8 @@ function encodePacked(types: string[], values: (string | bigint)[]): Uint8Array 
   return result;
 }
 
+
+  
 // Create Ethereum signed message hash (EIP-191)
 function createEthSignedMessageHash(messageHash: Uint8Array): Uint8Array {
   const prefix = new TextEncoder().encode('\x19Ethereum Signed Message:\n32');
@@ -185,6 +188,7 @@ serve(async (req) => {
     const signature = await signMessage(messageHash, privateKey);
     console.log('Generated signature:', signature);
 
+    
     return new Response(
       JSON.stringify({
         success: true,
