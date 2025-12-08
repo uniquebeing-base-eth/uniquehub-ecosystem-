@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 /**
  * @title BaseMultiTokenRewardsClaim
  * @notice Contract for claiming daily rewards for EGGS and JESSE tokens on Base chain
- * @dev Deploy with all token addresses and reward rates - no extra setup needed!
+ * Being Deployed with all token addresses and reward rates - no extra setup needed!
  * 
  * DEPLOYMENT EXAMPLE (Remix):
  * Constructor args: 
