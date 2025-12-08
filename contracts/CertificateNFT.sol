@@ -33,7 +33,7 @@ contract CertificateNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
     }
     
     /**
-     * @dev Mint a certificate NFT
+     * @dev Mint a certificate nft and make sure it is seamless 
      * @param tokenURI The metadata URI for the certificate
      */
     function mintCertificate(string memory tokenURI) external payable nonReentrant {
