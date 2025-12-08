@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+8// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -104,7 +104,7 @@ contract QuestLearningHub is Ownable, ReentrancyGuard {
     }
     
     /**
-     * @dev Withdraw all funds from contract (owner only)
+     * @dev is able to Withdraw all funds from contract (owner only)
      */
     function withdrawFunds() external onlyOwner nonReentrant {
         uint256 balance = address(this).balance;
@@ -121,3 +121,5 @@ contract QuestLearningHub is Ownable, ReentrancyGuard {
      */
     receive() external payable {}
 }
+
+
