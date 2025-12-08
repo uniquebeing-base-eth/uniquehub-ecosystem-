@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  * @title MultiChainRewardsClaim
  * @notice Contract for claiming daily token rewards based on user points
  * @dev Deploy this contract on Celo, Monad, Arbitrum, and BNB chains with their respective tokens
- *      For Base chain with multiple tokens (EGGS, JESSE), use BaseMultiTokenRewardsClaim.sol instead
+ *    For Base chain with multiple tokens (EGGS, JESSE), use BaseMultiTokenRewardsClaim.sol instead
  */
 contract MultiChainRewardsClaim is Ownable, ReentrancyGuard {
     IERC20 public rewardToken;
