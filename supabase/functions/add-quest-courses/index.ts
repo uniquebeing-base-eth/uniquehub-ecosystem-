@@ -31,9 +31,10 @@ Deno.serve(async (req) => {
       .select()
       .single()
 
+    
     if (web3CourseError) throw web3CourseError
 
-    // Insert Crypto Basics Course
+    // Insert Crypto Basics Course here
     const { data: cryptoCourse, error: cryptoCourseError } = await supabase
       .from('learning_courses')
       .upsert({
