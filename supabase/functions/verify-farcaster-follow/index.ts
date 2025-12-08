@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
 
     console.log('Target FID:', targetFid);
     
-    // Check followers/following relationship
+    // Check followers/following relationships
     console.log('Checking follow relationship...');
     const relationshipResponse = await fetch(
       `https://api.neynar.com/v2/farcaster/user/bulk?fids=${targetFid}&viewer_fid=${profile.farcaster_fid}`,
