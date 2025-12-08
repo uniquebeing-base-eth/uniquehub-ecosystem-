@@ -8,7 +8,7 @@ const corsHeaders = {
 
 /**
  * Creates a transaction frame for course purchases on Base L2
- * Supports USDC and ETH payments
+ * Supports USDC and ETH payments only
  */
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -31,6 +31,7 @@ serve(async (req) => {
       }
     );
 
+    
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       throw new Error('Unauthorized');
@@ -42,7 +43,7 @@ serve(async (req) => {
       throw new Error('Course ID is required');
     }
 
-    // Fetch course details
+    // Fetch course details here
     const { data: course, error: courseError } = await supabase
       .from('courses')
       .select('*, user_id')
