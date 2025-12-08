@@ -33,13 +33,14 @@ contract EarnPointsClaim is Ownable, ReentrancyGuard {
         uint256 timestamp,
         uint256 feeAmount
     );
-    
+
+
     event FundsWithdrawn(address indexed owner, uint256 amount);
     
     constructor() Ownable(msg.sender) {}
     
     /**
-     * @dev Claim points for a completed task by paying the fee
+     * Claim points for a completed task by paying the fee
      * @param taskId The task identifier
      * @param pointsAmount The amount of points being claimed
      */
@@ -72,8 +73,8 @@ contract EarnPointsClaim is Ownable, ReentrancyGuard {
     
     /**
      * @dev Check if a user has claimed points for a specific task
-     * @param user The user address
-     * @param taskId The task identifier
+     * @param  user The user address
+     * @param  taskId The task identifier
      */
     function hasClaimed(
         address user,
