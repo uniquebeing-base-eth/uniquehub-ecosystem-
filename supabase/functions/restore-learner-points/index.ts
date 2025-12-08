@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
 
     console.log('Starting restoration of learner points for affected users...');
 
-    // Find all users where total_points = 0 but creator_points > 0 (affected by bug)
+    // Find all users where total_points = 0 but creator_points > 0 (affected by bug) 
     const { data: affectedUsers, error: fetchError } = await supabase
       .from('user_points')
       .select('user_id')
@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
       const totalPoints = pointEvents?.reduce((sum, e) => sum + (e.points_earned || 0), 0) || 0;
 
       if (totalPoints > 0) {
-        // Restore the learner points
+        // Restore the learner points for users who lost due to bugs
         const { error: updateError } = await supabase
           .from('user_points')
           .update({ total_points: totalPoints })
