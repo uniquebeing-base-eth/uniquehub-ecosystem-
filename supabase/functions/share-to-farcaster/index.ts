@@ -6,7 +6,7 @@ const corsHeaders = {
 };
 
 /**
- * Creates a Farcaster cast to share activity
+ * Creates a Farcaster cast to share activities
  */
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
