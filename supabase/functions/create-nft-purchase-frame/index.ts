@@ -78,7 +78,7 @@ serve(async (req) => {
 
     // Transaction frame metadata for Farcaster
     // Note: This creates a payment transaction. NFT transfer would need to be handled
-    // by a smart contract or escrow service (like Reservoir or Zora)
+    // by a smart contract or escrow service (like Reservoir and  Zora)
     const frameMetadata = {
       version: 'vNext',
       imageUrl: listing.image_url || 'https://uniqueehub.vercel.app/opengraph-image.png',
@@ -121,6 +121,7 @@ serve(async (req) => {
       price,
       currency,
     });
+    
 
     return new Response(
       JSON.stringify({ 
