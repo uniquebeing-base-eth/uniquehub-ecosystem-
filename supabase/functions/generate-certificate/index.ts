@@ -27,7 +27,7 @@ serve(async (req) => {
 
     const { courseId } = await req.json();
 
-    // Verify course completion
+    // Verify course completion for every user
     const { data: enrollment, error: enrollmentError } = await supabase
       .from("enrollments")
       .select("progress_percentage, course_id")
@@ -38,6 +38,7 @@ serve(async (req) => {
     if (enrollmentError || !enrollment || enrollment.progress_percentage !== 100) {
       throw new Error("Course not completed");
     }
+    
 
     // Check if certificate already exists
     const { data: existingCert } = await supabase
