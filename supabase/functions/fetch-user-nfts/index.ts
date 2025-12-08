@@ -6,6 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+
 /**
  * Fetches NFTs owned by a Farcaster user using Neynar API
  * Focuses on Base L2 chain and Farcaster post collectibles
