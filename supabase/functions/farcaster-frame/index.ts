@@ -19,6 +19,7 @@ serve(async (req) => {
     // Always use the main mini app URL for the action
     const miniAppUrl = 'https://uniqueehub.vercel.app';
 
+    
     // Create the Mini App Embed JSON according to Farcaster spec
     const miniAppEmbed = {
       version: "1",
@@ -35,7 +36,7 @@ serve(async (req) => {
       }
     };
 
-    // Generate HTML with proper meta tags
+    // Generate HTML with proper meta tags....
     const html = `
 <!DOCTYPE html>
 <html>
