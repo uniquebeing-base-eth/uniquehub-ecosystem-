@@ -30,6 +30,7 @@ Deno.serve(async (req) => {
 
     const { taskId, transactionHash } = await req.json();
 
+    
     // Validate that transaction hash is provided for on-chain claims
     if (!transactionHash) {
       console.error('No transaction hash provided');
@@ -56,7 +57,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify task completion based on task type
+    // Verify task completion based on task types
     let isCompleted = false;
     let pointsToAward = 1000;
 
