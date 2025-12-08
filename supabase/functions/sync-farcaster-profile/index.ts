@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 /**
- * Fetches Farcaster user profile data from Neynar and syncs to profiles table
+ * Fetches Farcaster user profile data from Neynar and automatically syncs to profiles table
  */
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -28,7 +28,7 @@ serve(async (req) => {
 
     console.log(`Fetching profile for FID: ${fid}`);
 
-    // Fetch user profile from Neynar
+    // Fetch user profile via Neynar
     const userResponse = await fetch(
       `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`,
       {
