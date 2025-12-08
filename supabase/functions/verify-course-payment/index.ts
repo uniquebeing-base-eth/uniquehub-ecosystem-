@@ -8,7 +8,7 @@ const corsHeaders = {
 
 /**
  * Verifies course payment transaction and grants access
- * Called after transaction frame execution
+ * Called immediately after transaction frame execution
  */
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
