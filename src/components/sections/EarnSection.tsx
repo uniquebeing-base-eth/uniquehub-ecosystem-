@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Circle, Coins, BookOpen, Package, Image, UserPlus, DollarSign } from "lucide-react";
+import { CheckCircle2, Circle, Coins, BookOpen, Package, Image, UserPlus, DollarSign, Gift } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,7 @@ import { useViemClients } from "@/hooks/useViemClients";
 import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
 import { EARN_POINTS_CLAIM_ABI, EARN_POINTS_CLAIM_ADDRESS, EARN_CLAIM_FEE } from "@/config/wagmi";
 import { base } from "viem/chains";
+import { DailyCheckInDialog } from "@/components/DailyCheckInDialog";
 import animeEarnBg from '@/assets/anime-earn-bg.jpg';
 import cardBgEarn from '@/assets/card-bg-earn.jpg';
 
@@ -46,6 +47,9 @@ export const EarnSection = () => {
   const [lastClaimedPoints, setLastClaimedPoints] = useState(0);
   const [totalEthEarned, setTotalEthEarned] = useState(0);
   const [totalUsdcEarned, setTotalUsdcEarned] = useState(0);
+  const [showCheckInDialog, setShowCheckInDialog] = useState(false);
+  const [currentCheckInDay, setCurrentCheckInDay] = useState(1);
+  const [canCheckIn, setCanCheckIn] = useState(true);
 
   const tasks: Task[] = [
     {
@@ -178,8 +182,40 @@ export const EarnSection = () => {
       loadCompletedTasks();
       loadUserPoints();
       loadUserEarnings();
+      loadCheckInStatus();
     }
   }, [user]);
+
+  const loadCheckInStatus = async () => {
+    if (!user) return;
+    
+    const { data } = await supabase
+      .from('user_points')
+      .select('daily_streak, last_daily_checkin')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    
+    if (data) {
+      // Calculate current day in the 6-day cycle (1-6)
+      const streak = data.daily_streak || 0;
+      const cycleDay = ((streak % 6) || 6);
+      setCurrentCheckInDay(cycleDay === 0 ? 1 : (cycleDay % 6) + 1);
+      
+      // Check if user can check in today
+      if (data.last_daily_checkin) {
+        const lastCheckin = new Date(data.last_daily_checkin);
+        const today = new Date();
+        const isSameDay = lastCheckin.toDateString() === today.toDateString();
+        setCanCheckIn(!isSameDay);
+      } else {
+        setCanCheckIn(true);
+        setCurrentCheckInDay(1);
+      }
+    } else {
+      setCanCheckIn(true);
+      setCurrentCheckInDay(1);
+    }
+  };
 
   const loadCompletedTasks = async () => {
     if (!user) return;
@@ -619,6 +655,38 @@ export const EarnSection = () => {
         </div>
       </Card>
 
+      {/* Daily Check-In Card */}
+      <Card 
+        className={`p-4 relative overflow-hidden border-primary/30 cursor-pointer transition-all hover:scale-[1.02] ${canCheckIn ? 'animate-pulse-slow' : ''}`}
+        onClick={() => canCheckIn && setShowCheckInDialog(true)}
+      >
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-50" 
+          style={{ backgroundImage: `url(${cardBgEarn})` }} 
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-amber-500/20" />
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-amber-500 flex items-center justify-center">
+              <Gift className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-foreground">Daily Check-In</h3>
+              <p className="text-xs text-muted-foreground">
+                {canCheckIn 
+                  ? `Day ${currentCheckInDay}/6 • Tap to claim!` 
+                  : "Come back tomorrow!"}
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <span className="text-xs font-medium text-primary">
+              {currentCheckInDay === 6 ? '🎁 Mystery Box' : '+100 UP'}
+            </span>
+          </div>
+        </div>
+      </Card>
+
       {/* Tasks */}
       <div className="space-y-2">
         <h3 className="text-sm font-semibold px-1">Available Tasks</h3>
@@ -719,6 +787,17 @@ export const EarnSection = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Daily Check-In Dialog */}
+      <DailyCheckInDialog
+        open={showCheckInDialog}
+        onOpenChange={setShowCheckInDialog}
+        currentDay={currentCheckInDay}
+        onSuccess={() => {
+          loadUserPoints();
+          loadCheckInStatus();
+        }}
+      />
     </div>
   );
 };
