@@ -185,37 +185,6 @@ export const ProfileSection = () => {
       
       <div className="space-y-4 pb-24">
       <h1 className="text-2xl font-bold text-foreground">Profile</h1>
-      
-      {/* User Info */}
-      <Card className="p-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center opacity-30" style={{ backgroundImage: `url(${cardBgProfile})` }} />
-        <div className="relative z-10 flex items-center gap-3">
-          <img 
-            src={profile?.avatar_url || penguinAvatar} 
-            alt="Profile Avatar" 
-            className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
-          />
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-foreground">
-              {profile?.display_name || profile?.farcaster_username || 'User'}
-            </h3>
-            {profile?.bio && (
-              <p className="text-xs text-muted-foreground line-clamp-2">{profile.bio}</p>
-            )}
-            {walletAddress && (
-              <p className="text-[10px] text-muted-foreground mt-1 font-mono">
-                {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-              </p>
-            )}
-            {creatorLevel && (
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-sm">{creatorLevel.icon}</span>
-                <span className="text-xs font-medium text-foreground">{creatorLevel.name}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </Card>
 
       {/* Shareable Profile Card */}
       <ShareableProfileCard />
