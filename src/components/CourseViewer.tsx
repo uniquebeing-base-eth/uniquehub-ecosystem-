@@ -449,6 +449,7 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
                 courseId={course.id}
                 courseTitle={course.title}
                 isCompleted={isCompleted}
+                creatorUsername={authorProfile?.farcaster_username?.replace('@', '')}
               />
             </div>
 

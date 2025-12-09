@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { BookOpen, ShoppingBag, Trophy } from "lucide-react";
 import penguinAvatar from "@/assets/penguin-avatar.png";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,7 +9,7 @@ import { useUnclaimedAchievements } from "@/hooks/useUnclaimedAchievements";
 import { AchievementClaimModal } from "@/components/AchievementClaimModal";
 import cardBgProfile from '@/assets/card-bg-profile.jpg';
 import { getAchievementTitle, getAchievementDescription } from "@/lib/achievementUtils";
-import { StatsGlowCard } from "@/components/StatsGlowCard";
+import { ShareableProfileCard } from "@/components/ShareableProfileCard";
 
 export const ProfileSection = () => {
   const { user } = useAuth();
@@ -218,8 +217,8 @@ export const ProfileSection = () => {
         </div>
       </Card>
 
-      {/* Stats Glow Card */}
-      <StatsGlowCard />
+      {/* Shareable Profile Card */}
+      <ShareableProfileCard />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-2">
