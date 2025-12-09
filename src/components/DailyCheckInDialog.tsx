@@ -1,10 +1,18 @@
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Coins, Gift, Loader2, X, Share2 } from "lucide-react";
+import { Coins, Gift, Loader2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
+import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
+import { useViemClients } from "@/hooks/useViemClients";
+import { base } from "wagmi/chains";
+import { 
+  EARN_POINTS_CLAIM_ADDRESS, 
+  EARN_POINTS_CLAIM_ABI,
+  EARN_CLAIM_FEE 
+} from "@/config/wagmi";
 
 interface DailyCheckInDialogProps {
   open: boolean;
@@ -23,11 +31,55 @@ export const DailyCheckInDialog = ({
   const [checkInComplete, setCheckInComplete] = useState(false);
   const [earnedPoints, setEarnedPoints] = useState(0);
   const [newStreak, setNewStreak] = useState(0);
+  const [step, setStep] = useState<'confirm' | 'transaction' | 'processing'>('confirm');
   const { toast } = useToast();
+  const { address } = useFarcasterWallet();
+  const { walletClient, publicClient } = useViemClients(address);
 
   const handleCheckIn = async () => {
+    if (!address || !walletClient || !publicClient) {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet to check in.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setClaiming(true);
+    setStep('transaction');
+
     try {
+      // Generate unique task ID for this check-in
+      const taskId = `daily_checkin_${new Date().toISOString().split('T')[0]}`;
+      const pointsToEarn = currentDay === 6 ? 500 : 100; // Estimate for mystery box
+
+      // Step 1: Send on-chain transaction to claim contract
+      toast({
+        title: "Confirm Transaction",
+        description: "Please confirm the transaction in your wallet.",
+      });
+
+      const hash = await walletClient.writeContract({
+        address: EARN_POINTS_CLAIM_ADDRESS,
+        abi: EARN_POINTS_CLAIM_ABI,
+        functionName: 'claimPoints',
+        args: [taskId, BigInt(pointsToEarn)],
+        value: EARN_CLAIM_FEE,
+        chain: base,
+        account: address,
+      });
+
+      setStep('processing');
+      toast({
+        title: "Transaction Submitted",
+        description: "Waiting for confirmation...",
+      });
+
+      // Wait for transaction confirmation
+      await publicClient.waitForTransactionReceipt({ hash });
+
+      // Step 2: Process check-in on backend after successful transaction
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
@@ -43,6 +95,9 @@ export const DailyCheckInDialog = ({
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
+        body: {
+          transactionHash: hash
+        }
       });
 
       if (error) throw error;
@@ -65,13 +120,24 @@ export const DailyCheckInDialog = ({
         });
         onOpenChange(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Check-in error:', error);
-      toast({
-        title: "Check-In Failed",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
+      
+      // Check if user rejected the transaction
+      if (error.message?.includes('rejected') || error.message?.includes('denied')) {
+        toast({
+          title: "Transaction Cancelled",
+          description: "You cancelled the transaction.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Check-In Failed",
+          description: error.message || "Please try again later.",
+          variant: "destructive",
+        });
+      }
+      setStep('confirm');
     } finally {
       setClaiming(false);
     }
@@ -80,6 +146,7 @@ export const DailyCheckInDialog = ({
   const handleClose = () => {
     setCheckInComplete(false);
     setEarnedPoints(0);
+    setStep('confirm');
     onOpenChange(false);
   };
 
@@ -139,18 +206,25 @@ export const DailyCheckInDialog = ({
                 })}
               </div>
 
+              {/* Transaction Info */}
+              <p className="text-xs text-muted-foreground">
+                A small transaction fee of 0.0000001 ETH is required to claim points on-chain.
+              </p>
+
               {/* Check-In Button */}
               <Button
                 onClick={handleCheckIn}
-                disabled={claiming}
+                disabled={claiming || !address}
                 className="w-full py-6 text-lg font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
                 size="lg"
               >
                 {claiming ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Checking In...
+                    {step === 'transaction' ? 'Confirm in Wallet...' : 'Processing...'}
                   </>
+                ) : !address ? (
+                  'Connect Wallet to Check In'
                 ) : (
                   <>
                     <Coins className="mr-2 h-5 w-5" />
