@@ -122,25 +122,25 @@ export const MARKETPLACE_CONTRACT_ABI = [
   },
 ] as const;
 
-// Certificate NFT Contract ABI
+// Certificate NFT Contract ABI (Updated for per-course minting)
 export const CERTIFICATE_CONTRACT_ABI = [
   {
-    inputs: [{ name: 'tokenURI', type: 'string' }],
+    inputs: [{ name: 'courseId', type: 'string' }, { name: 'tokenURI', type: 'string' }],
     name: 'mintCertificate',
     outputs: [],
     stateMutability: 'payable',
     type: 'function',
   },
   {
-    inputs: [{ name: 'user', type: 'address' }],
-    name: 'hasUserMinted',
+    inputs: [{ name: 'user', type: 'address' }, { name: 'courseId', type: 'string' }],
+    name: 'hasUserMintedCourse',
     outputs: [{ name: '', type: 'bool' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
-    inputs: [{ name: 'user', type: 'address' }],
-    name: 'getUserTokenId',
+    inputs: [{ name: 'user', type: 'address' }, { name: 'courseId', type: 'string' }],
+    name: 'getUserCourseTokenId',
     outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',

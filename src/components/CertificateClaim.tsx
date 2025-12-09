@@ -83,12 +83,12 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted, creatorUs
 
     setIsMinting(true);
     try {
-      // Call the mint function on the contract - each course gets its own certificate NFT
+      // Call the mint function on the contract with courseId for per-course tracking
       const hash = await walletClient.writeContract({
         address: CERTIFICATE_CONTRACT_ADDRESS,
         abi: CERTIFICATE_CONTRACT_ABI,
         functionName: 'mintCertificate',
-        args: [certificate.image_url],
+        args: [courseId, certificate.image_url],
         value: CERTIFICATE_MINT_FEE,
         chain: base,
         account: address,

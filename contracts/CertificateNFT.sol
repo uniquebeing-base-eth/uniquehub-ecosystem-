@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title CertificateNFT
- * @dev Simple, transparent NFT certificate minting with fixed ETH price
+ * @dev NFT certificate minting with per-course tracking (users can mint multiple certificates for different courses)
  * Designed to avoid wallet scam warnings by keeping all logic minimal and clear
  */
 contract CertificateNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
@@ -17,15 +17,15 @@ contract CertificateNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
     // Token counter
     uint256 private _tokenIdCounter;
     
-    // Track if user has minted
-    mapping(address => bool) public hasMinted;
+    // Track if user has minted for a specific course (user address => courseId => bool)
+    mapping(address => mapping(string => bool)) public hasMintedCourse;
     
-    // Map user to their token ID
-    mapping(address => uint256) public userTokenId;
+    // Map user+course to their token ID
+    mapping(address => mapping(string => uint256)) public userCourseTokenId;
     
     // Events for transparency
     event PaymentReceived(address indexed sender, uint256 amount);
-    event NFTMinted(address indexed minter, uint256 indexed tokenId, string uri);
+    event NFTMinted(address indexed minter, uint256 indexed tokenId, string courseId, string uri);
     event FundsWithdrawn(address indexed owner, uint256 amount);
     
     constructor() ERC721("UniqueHub Certificate", "UHCERT") Ownable(msg.sender) {
@@ -33,11 +33,13 @@ contract CertificateNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
     }
     
     /**
-     * @dev Mint a certificate nft and make sure it is seamless 
+     * @dev Mint a certificate NFT for a specific course
+     * @param courseId The course ID this certificate is for
      * @param tokenURI The metadata URI for the certificate
      */
-    function mintCertificate(string memory tokenURI) external payable nonReentrant {
-        require(!hasMinted[msg.sender], "Already minted certificate");
+    function mintCertificate(string memory courseId, string memory tokenURI) external payable nonReentrant {
+        require(!hasMintedCourse[msg.sender][courseId], "Already minted certificate for this course");
+        require(bytes(courseId).length > 0, "Course ID cannot be empty");
         require(bytes(tokenURI).length > 0, "Token URI cannot be empty");
         require(msg.value >= MINT_PRICE, "Insufficient payment");
         
@@ -48,13 +50,13 @@ contract CertificateNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
         _safeMint(msg.sender, tokenId);
         _setTokenURI(tokenId, tokenURI);
         
-        // Record minting
-        hasMinted[msg.sender] = true;
-        userTokenId[msg.sender] = tokenId;
+        // Record minting for this specific course
+        hasMintedCourse[msg.sender][courseId] = true;
+        userCourseTokenId[msg.sender][courseId] = tokenId;
         
         // Emit events for transparency
         emit PaymentReceived(msg.sender, msg.value);
-        emit NFTMinted(msg.sender, tokenId, tokenURI);
+        emit NFTMinted(msg.sender, tokenId, courseId, tokenURI);
         
         // Refund excess payment
         if (msg.value > MINT_PRICE) {
@@ -65,18 +67,18 @@ contract CertificateNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
     }
     
     /**
-     * @dev Check if user has minted
+     * @dev Check if user has minted for a specific course
      */
-    function hasUserMinted(address user) external view returns (bool) {
-        return hasMinted[user];
+    function hasUserMintedCourse(address user, string memory courseId) external view returns (bool) {
+        return hasMintedCourse[user][courseId];
     }
     
     /**
-     * @dev Get user's token ID
+     * @dev Get user's token ID for a specific course
      */
-    function getUserTokenId(address user) external view returns (uint256) {
-        require(hasMinted[user], "User has not minted");
-        return userTokenId[user];
+    function getUserCourseTokenId(address user, string memory courseId) external view returns (uint256) {
+        require(hasMintedCourse[user][courseId], "User has not minted for this course");
+        return userCourseTokenId[user][courseId];
     }
     
     /**
