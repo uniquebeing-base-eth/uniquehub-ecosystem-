@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { base } from 'wagmi/chains';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Award, ExternalLink, Loader2 } from 'lucide-react';
+import { Award, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import { useFarcasterWallet } from '@/hooks/useFarcasterWallet';
 import { useViemClients } from '@/hooks/useViemClients';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,13 +27,30 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
   const [certificate, setCertificate] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
+  const [hasAlreadyMintedOnChain, setHasAlreadyMintedOnChain] = useState(false);
 
-  // Check if certificate already exists
+  // Check if certificate already exists and check on-chain mint status
   useEffect(() => {
     if (isCompleted && address) {
       checkExistingCertificate();
+      checkOnChainMintStatus();
     }
   }, [isCompleted, address]);
+
+  const checkOnChainMintStatus = async () => {
+    if (!publicClient || !address) return;
+    try {
+      const hasMinted = await publicClient.readContract({
+        address: CERTIFICATE_CONTRACT_ADDRESS,
+        abi: CERTIFICATE_CONTRACT_ABI,
+        functionName: 'hasUserMinted',
+        args: [address],
+      } as any);
+      setHasAlreadyMintedOnChain(hasMinted as boolean);
+    } catch (error) {
+      console.error('Error checking on-chain mint status:', error);
+    }
+  };
 
   const checkExistingCertificate = async () => {
     const { data } = await supabase
@@ -160,30 +177,39 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
             </div>
             
             <div className="space-y-2">
-              {!certificate.minted_at ? (
-                <>
-                  <p className="text-xs text-muted-foreground">
-                    Certificate generated! Mint it as an NFT on Base blockchain.
-                  </p>
-                  <Button
-                    onClick={mintCertificate}
-                    disabled={isMinting || !address}
-                    className="w-full bg-gradient-primary"
-                    size="sm"
-                  >
-                    {isMinting ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                        Minting NFT...
-                      </>
-                    ) : (
-                      <>
-                        <Award className="w-3.5 h-3.5 mr-1.5" />
-                        Mint Certificate NFT (0.000003 ETH)
-                      </>
-                    )}
-                  </Button>
-                </>
+            {!certificate.minted_at ? (
+                hasAlreadyMintedOnChain ? (
+                  <Alert className="border-amber-500/50 bg-amber-500/10">
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
+                    <AlertDescription className="text-xs">
+                      You've already minted a certificate NFT with this wallet. The contract only allows one mint per wallet across all courses.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      Certificate generated! Mint it as an NFT on Base blockchain.
+                    </p>
+                    <Button
+                      onClick={mintCertificate}
+                      disabled={isMinting || !address}
+                      className="w-full bg-gradient-primary"
+                      size="sm"
+                    >
+                      {isMinting ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                          Minting NFT...
+                        </>
+                      ) : (
+                        <>
+                          <Award className="w-3.5 h-3.5 mr-1.5" />
+                          Mint Certificate NFT (0.000003 ETH)
+                        </>
+                      )}
+                    </Button>
+                  </>
+                )
               ) : (
                 <>
                   <p className="text-xs text-success font-semibold">✅ Certificate Minted!</p>
@@ -199,8 +225,8 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
                     </Button>
                   )}
                   <ShareToFarcaster
-                    text={`I just minted my certificate NFT for completing "${courseTitle}" on @uniquehub! 🎓✨\n\nView: ${certificate.image_url}`}
-                    embeds={['https://uniqueehub.vercel.app']}
+                    text={`I just minted my certificate NFT for completing "${courseTitle}" on @uniquehub! 🎓✨`}
+                    embeds={[certificate.image_url, 'https://uniqueehub.vercel.app']}
                     buttonText="Share Certificate"
                     variant="default"
                     size="sm"
