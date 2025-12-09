@@ -19,9 +19,10 @@ interface CertificateClaimProps {
   courseId: string;
   courseTitle: string;
   isCompleted: boolean;
+  creatorUsername?: string;
 }
 
-export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: CertificateClaimProps) => {
+export const CertificateClaim = ({ courseId, courseTitle, isCompleted, creatorUsername }: CertificateClaimProps) => {
   const { address } = useFarcasterWallet();
   const { publicClient, walletClient } = useViemClients(address);
   const [certificate, setCertificate] = useState<any>(null);
@@ -225,7 +226,7 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted }: Certifi
                     </Button>
                   )}
                   <ShareToFarcaster
-                    text={`I just minted my certificate NFT for completing "${courseTitle}" on @uniquehub! 🎓✨`}
+                    text={`I just completed "${courseTitle}" on @uniquehub${creatorUsername ? ` by @${creatorUsername}` : ''}!\n\nLearn and earn with the ultimate Web3 learning platform.`}
                     embeds={[certificate.image_url, 'https://uniqueehub.vercel.app']}
                     buttonText="Share Certificate"
                     variant="default"
