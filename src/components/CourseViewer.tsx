@@ -3,13 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
-import { Play, BookOpen, X, Star, Send, ExternalLink } from 'lucide-react';
+import { Play, BookOpen, X, Star, Send, ExternalLink, Layers } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { ShareToFarcaster } from '@/components/ShareToFarcaster';
 import { CommentItem } from '@/components/CommentItem';
 import { CertificateClaim } from '@/components/CertificateClaim';
+import { CourseModulePlayer } from '@/components/CourseModulePlayer';
 
 interface CourseViewerProps {
   course: any;
@@ -29,6 +30,8 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
   const [isGeneratingCert, setIsGeneratingCert] = useState(false);
   const [enrollmentId, setEnrollmentId] = useState<string | null>(null);
   const [savedMilestones, setSavedMilestones] = useState<Set<number>>(new Set());
+  const [hasModules, setHasModules] = useState(false);
+  const [showModulePlayer, setShowModulePlayer] = useState(false);
 
   useEffect(() => {
     fetchAuthorProfile();
@@ -36,7 +39,18 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
     fetchComments();
     checkCompletion();
     checkCertificate();
+    checkHasModules();
   }, [course.id]);
+
+  const checkHasModules = async () => {
+    const { data } = await supabase
+      .from('course_modules')
+      .select('id')
+      .eq('course_id', course.id)
+      .limit(1);
+    
+    setHasModules(data && data.length > 0);
+  };
 
   const checkCompletion = async () => {
     if (!user) return;
@@ -359,29 +373,52 @@ export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
             </Button>
           </div>
 
-          {/* Video Player */}
-          <div className="bg-black relative">
-            {course.video_url ? (
-              <video
-                controls
-                controlsList="nodownload"
-                disablePictureInPicture
-                className="w-full aspect-video"
-                src={course.video_url}
-                poster={course.thumbnail_url}
-                onContextMenu={(e) => e.preventDefault()}
-                onEnded={handleVideoEnd}
-                onTimeUpdate={handleVideoProgress}
-              >
-                Your browser does not support the video tag.
-              </video>
-            ) : (
-              <div className="w-full aspect-video bg-gradient-primary flex flex-col items-center justify-center">
-                <Play className="w-12 h-12 text-white mb-2 animate-pulse" />
-                <p className="text-white text-xs">No video uploaded yet</p>
-              </div>
-            )}
-          </div>
+          {/* Video Player or Module Player */}
+          {showModulePlayer && hasModules ? (
+            <div className="max-h-[50vh] overflow-y-auto">
+              <CourseModulePlayer 
+                courseId={course.id} 
+                onCourseComplete={() => {
+                  setIsCompleted(true);
+                  toast({ title: "Course completed! 🎉", description: "You can now claim your certificate" });
+                }}
+              />
+            </div>
+          ) : (
+            <div className="bg-black relative">
+              {hasModules ? (
+                <div 
+                  className="w-full aspect-video bg-gradient-primary flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setShowModulePlayer(true)}
+                >
+                  <Layers className="w-12 h-12 text-white mb-2" />
+                  <p className="text-white text-sm font-medium">This course has multiple lessons</p>
+                  <Button variant="secondary" size="sm" className="mt-3">
+                    Start Learning
+                  </Button>
+                </div>
+              ) : course.video_url ? (
+                <video
+                  controls
+                  controlsList="nodownload"
+                  disablePictureInPicture
+                  className="w-full aspect-video"
+                  src={course.video_url}
+                  poster={course.thumbnail_url}
+                  onContextMenu={(e) => e.preventDefault()}
+                  onEnded={handleVideoEnd}
+                  onTimeUpdate={handleVideoProgress}
+                >
+                  Your browser does not support the video tag.
+                </video>
+              ) : (
+                <div className="w-full aspect-video bg-gradient-primary flex flex-col items-center justify-center">
+                  <Play className="w-12 h-12 text-white mb-2 animate-pulse" />
+                  <p className="text-white text-xs">No video uploaded yet</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Scrollable Content */}
           <div className="max-h-[40vh] overflow-y-auto scrollbar-hide">
