@@ -72,3 +72,5 @@ verify_jwt = true
 [functions.add-advanced-courses]
 verify_jwt = false
 
+[functions.moderate-content]
+verify_jwt = true
