@@ -1414,6 +1414,15 @@ export type Database = {
         Args: { course_id: string }
         Returns: undefined
       }
+      notify_via_edge_function: {
+        Args: {
+          broadcast?: boolean
+          notification_data?: Json
+          notification_type: string
+          target_user_id?: string
+        }
+        Returns: undefined
+      }
       toggle_course_like: {
         Args: { course_id_param: string; user_id_param: string }
         Returns: boolean
