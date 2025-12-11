@@ -33,33 +33,11 @@ serve(async (req) => {
     
     console.log(`Checking for users who haven't checked in today (since ${todayStart.toISOString()})`);
     
-    // Get all users with notification tokens who have an active streak but haven't checked in today
-    // Join farcaster_notifications with profiles to get FIDs, then with user_points to check streaks
-    const { data: notifications, error: notifError } = await supabase
-      .from('farcaster_notifications')
-      .select('fid, notification_token, url');
-    
-    if (notifError) {
-      console.error('Error fetching notification tokens:', notifError);
-      throw notifError;
-    }
-    
-    if (!notifications || notifications.length === 0) {
-      console.log('No users with notification tokens found');
-      return new Response(
-        JSON.stringify({ success: true, message: 'No users to notify', sent: 0 }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-    
-    console.log(`Found ${notifications.length} users with notification tokens`);
-    
-    // Get profiles with FIDs to match with user_points
-    const fids = notifications.map(n => n.fid);
+    // Get all profiles with Farcaster FIDs
     const { data: profiles, error: profileError } = await supabase
       .from('profiles')
       .select('user_id, farcaster_fid')
-      .in('farcaster_fid', fids);
+      .not('farcaster_fid', 'is', null);
     
     if (profileError) {
       console.error('Error fetching profiles:', profileError);
@@ -67,33 +45,32 @@ serve(async (req) => {
     }
     
     if (!profiles || profiles.length === 0) {
-      console.log('No matching profiles found');
+      console.log('No users with Farcaster FIDs found');
       return new Response(
-        JSON.stringify({ success: true, message: 'No matching profiles', sent: 0 }),
+        JSON.stringify({ success: true, message: 'No users to notify', sent: 0 }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
-    // Get user_points for these users to check who hasn't checked in today
-    const userIds = profiles.map(p => p.user_id);
+    console.log(`Found ${profiles.length} users with Farcaster FIDs`);
+    
+    // Get all user_points records
     const { data: userPoints, error: pointsError } = await supabase
       .from('user_points')
-      .select('user_id, last_daily_checkin, daily_streak')
-      .in('user_id', userIds);
+      .select('user_id, last_daily_checkin, daily_streak');
     
     if (pointsError) {
       console.error('Error fetching user points:', pointsError);
       throw pointsError;
     }
     
-    // Filter users who haven't checked in today but have an active streak (or any user who wants reminders)
+    console.log(`Found ${userPoints?.length || 0} user_points records`);
+    
+    // Filter users who haven't checked in today
     const usersNeedingReminder: number[] = [];
     
     for (const profile of profiles) {
       const userPointsRecord = userPoints?.find(up => up.user_id === profile.user_id);
-      const notification = notifications.find(n => n.fid === profile.farcaster_fid);
-      
-      if (!notification) continue;
       
       // Check if they haven't checked in today
       const lastCheckin = userPointsRecord?.last_daily_checkin 
@@ -102,8 +79,8 @@ serve(async (req) => {
       
       const hasCheckedInToday = lastCheckin && lastCheckin >= todayStart;
       
-      if (!hasCheckedInToday) {
-        usersNeedingReminder.push(profile.farcaster_fid!);
+      if (!hasCheckedInToday && profile.farcaster_fid) {
+        usersNeedingReminder.push(profile.farcaster_fid);
         console.log(`User FID ${profile.farcaster_fid} needs reminder (streak: ${userPointsRecord?.daily_streak || 0})`);
       }
     }
@@ -128,6 +105,8 @@ serve(async (req) => {
       },
       target_fids: usersNeedingReminder
     };
+    
+    console.log('Sending notification payload:', JSON.stringify(notificationPayload));
     
     const neynarResponse = await fetch('https://api.neynar.com/v2/farcaster/frame/notifications/', {
       method: 'POST',
