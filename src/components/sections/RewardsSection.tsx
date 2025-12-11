@@ -17,11 +17,13 @@ import jesseLogo from "@/assets/jesse-token.jpg";
 import betrLogo from "@/assets/betr-token.jpg";
 import noiceLogo from "@/assets/noice-token.jpg";
 import degenLogo from "@/assets/degen-token.png";
+import enbLogo from "@/assets/enb-token.png";
 import eggsRewardShare from "@/assets/eggs-reward-share.png";
 import jesseRewardShare from "@/assets/jesse-reward-share.png";
 import betrRewardShare from "@/assets/betr-reward-share.png";
 import noiceRewardShare from "@/assets/noice-reward-share.png";
 import degenRewardShare from "@/assets/degen-reward-share.png";
+import enbRewardShare from "@/assets/enb-reward-share.png";
 
 interface Chain {
   id: string;
@@ -69,7 +71,7 @@ const chains: Chain[] = [
     logo: betrLogo,
     color: "from-pink-500 to-cyan-400",
     enabled: true,
-    rewardPerThousand: 1000,
+    rewardPerThousand: 500,
     isOnChain: true,
     chainConfig: base,
     contractAddress: TRIPLE_TOKEN_REWARDS_ADDRESS,
@@ -94,6 +96,19 @@ const chains: Chain[] = [
     token: "DEGEN",
     logo: degenLogo,
     color: "from-purple-400 to-purple-600",
+    enabled: true,
+    rewardPerThousand: 1,
+    isOnChain: true,
+    chainConfig: base,
+    contractAddress: TRIPLE_TOKEN_REWARDS_ADDRESS,
+    useTripleContract: true,
+  },
+  {
+    id: "ENB",
+    name: "Base",
+    token: "ENB",
+    logo: enbLogo,
+    color: "from-purple-500 to-pink-500",
     enabled: true,
     rewardPerThousand: 1,
     isOnChain: true,
@@ -129,6 +144,7 @@ export const RewardsSection = () => {
     'BETR': betrRewardShare,
     'NOICE': noiceRewardShare,
     'DEGEN': degenRewardShare,
+    'ENB': enbRewardShare,
   };
 
   // Fetch user points
