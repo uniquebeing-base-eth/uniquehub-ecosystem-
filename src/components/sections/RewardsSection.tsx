@@ -110,7 +110,7 @@ const chains: Chain[] = [
     logo: enbLogo,
     color: "from-purple-500 to-pink-500",
     enabled: true,
-    rewardPerThousand: 1,
+    rewardPerThousand: 100,
     isOnChain: true,
     chainConfig: base,
     contractAddress: TRIPLE_TOKEN_REWARDS_ADDRESS,
