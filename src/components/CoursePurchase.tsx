@@ -6,7 +6,8 @@ import { useFarcasterWallet } from '@/hooks/useFarcasterWallet';
 import { useViemClients } from '@/hooks/useViemClients';
 import { parseUnits, formatUnits } from 'viem';
 import { toast } from 'sonner';
-import { DollarSign, Zap, BookOpen, Loader2 } from 'lucide-react';
+import { DollarSign, Zap, BookOpen, Loader2, User, Star } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   COURSE_CONTRACT_ADDRESS, 
   USDC_ADDRESS, 
@@ -14,6 +15,12 @@ import {
   USDC_ABI, 
   FREE_COURSE_FEE 
 } from '@/config/wagmi';
+
+interface AuthorProfile {
+  display_name: string | null;
+  avatar_url: string | null;
+  farcaster_username: string | null;
+}
 
 interface CoursePurchaseProps {
   course: any;
@@ -29,9 +36,33 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
   const [isProcessing, setIsProcessing] = useState(false);
   const [allowance, setAllowance] = useState<bigint>(0n);
   const [requiredETH, setRequiredETH] = useState<bigint>(0n);
+  const [authorProfile, setAuthorProfile] = useState<AuthorProfile | null>(null);
 
   const priceInUSDC = parseFloat(course.price_usdc) || 0;
   const isFree = priceInUSDC === 0;
+
+  // Fetch author profile
+  useEffect(() => {
+    const fetchAuthorProfile = async () => {
+      if (!course.user_id) return;
+      
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('display_name, avatar_url, farcaster_username')
+          .eq('user_id', course.user_id)
+          .maybeSingle();
+        
+        if (data) {
+          setAuthorProfile(data);
+        }
+      } catch (error) {
+        console.error('Error fetching author profile:', error);
+      }
+    };
+
+    fetchAuthorProfile();
+  }, [course.user_id]);
 
   // Fetch USDC allowance
   useEffect(() => {
@@ -359,7 +390,61 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Course Thumbnail */}
+      {course.thumbnail_url && (
+        <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-muted">
+          <img 
+            src={course.thumbnail_url} 
+            alt={course.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
+      {/* Course Title & Rating */}
+      <div className="space-y-1">
+        <h3 className="text-lg font-bold text-foreground line-clamp-2">{course.title}</h3>
+        {course.rating > 0 && (
+          <div className="flex items-center gap-1">
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            <span className="text-sm text-muted-foreground">{course.rating?.toFixed(1)}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Author Info */}
+      {authorProfile && (
+        <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={authorProfile.avatar_url || ''} alt={authorProfile.display_name || 'Author'} />
+            <AvatarFallback>
+              <User className="w-5 h-5" />
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">
+              {authorProfile.display_name || 'Anonymous'}
+            </p>
+            {authorProfile.farcaster_username && (
+              <p className="text-xs text-muted-foreground">@{authorProfile.farcaster_username}</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Course Description */}
+      {course.description && (
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-muted-foreground">About this course</p>
+          <p className="text-sm text-foreground/80 line-clamp-3">{course.description}</p>
+        </div>
+      )}
+
+      {/* Divider */}
+      <div className="border-t border-border" />
+
+      {/* Purchase Section */}
       {isFree ? (
         <>
           <div className="flex items-center justify-center p-4 bg-success/10 rounded-lg border border-success/20">
