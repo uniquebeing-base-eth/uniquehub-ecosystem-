@@ -389,11 +389,19 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
     }
   };
 
+  // Get truncated description - first 80 characters
+  const getTruncatedDescription = (desc: string) => {
+    if (!desc) return '';
+    const firstParagraph = desc.split('\n')[0];
+    if (firstParagraph.length <= 80) return firstParagraph;
+    return firstParagraph.substring(0, 80) + '...';
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Course Thumbnail */}
+    <div className="space-y-3">
+      {/* Course Thumbnail - Compact */}
       {course.thumbnail_url && (
-        <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-muted">
+        <div className="relative w-full aspect-[2/1] rounded-lg overflow-hidden bg-muted">
           <img 
             src={course.thumbnail_url} 
             alt={course.title}
@@ -402,54 +410,43 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
         </div>
       )}
 
-      {/* Course Title & Rating */}
-      <div className="space-y-1">
-        <h3 className="text-lg font-bold text-foreground line-clamp-2">{course.title}</h3>
+      {/* Course Title & Rating - Inline */}
+      <div className="flex items-start justify-between gap-2">
+        <h3 className="text-base font-bold text-foreground line-clamp-1 flex-1">{course.title}</h3>
         {course.rating > 0 && (
-          <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm text-muted-foreground">{course.rating?.toFixed(1)}</span>
+          <div className="flex items-center gap-1 shrink-0">
+            <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+            <span className="text-xs text-muted-foreground">{course.rating?.toFixed(1)}</span>
           </div>
         )}
       </div>
 
-      {/* Author Info */}
+      {/* Author Info - Compact inline */}
       {authorProfile && (
-        <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-          <Avatar className="h-10 w-10">
+        <div className="flex items-center gap-2">
+          <Avatar className="h-6 w-6">
             <AvatarImage src={authorProfile.avatar_url || ''} alt={authorProfile.display_name || 'Author'} />
             <AvatarFallback>
-              <User className="w-5 h-5" />
+              <User className="w-3 h-3" />
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
-              {authorProfile.display_name || 'Anonymous'}
-            </p>
-            {authorProfile.farcaster_username && (
-              <p className="text-xs text-muted-foreground">@{authorProfile.farcaster_username}</p>
-            )}
-          </div>
+          <span className="text-xs text-muted-foreground truncate">
+            {authorProfile.farcaster_username ? `@${authorProfile.farcaster_username}` : authorProfile.display_name || 'Anonymous'}
+          </span>
         </div>
       )}
 
-      {/* Course Description */}
+      {/* Course Description - Very short */}
       {course.description && (
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-muted-foreground">About this course</p>
-          <p className="text-sm text-foreground/80 line-clamp-3">{course.description}</p>
-        </div>
+        <p className="text-xs text-foreground/70 line-clamp-2">{getTruncatedDescription(course.description)}</p>
       )}
-
-      {/* Divider */}
-      <div className="border-t border-border" />
 
       {/* Purchase Section */}
       {isFree ? (
         <>
-          <div className="flex items-center justify-center p-4 bg-success/10 rounded-lg border border-success/20">
+          <div className="flex items-center justify-center p-2 bg-success/10 rounded-lg border border-success/20">
             <div className="text-center">
-              <p className="text-sm font-bold text-success mb-0.5">Free Course</p>
+              <p className="text-xs font-bold text-success">Free Course</p>
               <p className="text-xs text-muted-foreground">Pay 0.0000001 ETH enrollment fee</p>
             </div>
           </div>
@@ -486,24 +483,24 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
         </>
       ) : (
         <>
-          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-            <div className="flex items-center gap-1.5">
-              <DollarSign className="w-4 h-4 text-success" />
-              <span className="text-sm font-semibold text-foreground">Price:</span>
+          <div className="flex items-center justify-between p-2 bg-muted rounded-lg">
+            <div className="flex items-center gap-1">
+              <DollarSign className="w-3.5 h-3.5 text-success" />
+              <span className="text-xs font-semibold text-foreground">Price:</span>
             </div>
-            <span className="text-lg font-bold text-primary">
+            <span className="text-base font-bold text-primary">
               ${priceInUSDC}
             </span>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-foreground">Payment Currency</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground">Pay with</label>
             <div className="grid grid-cols-2 gap-2">
               <Button
                 variant={selectedCurrency === 'USDC' ? 'default' : 'outline'}
                 onClick={() => setSelectedCurrency('USDC')}
                 disabled={isProcessing}
-                className="w-full text-xs h-9"
+                className="w-full text-xs h-8"
               >
                 USDC
               </Button>
@@ -511,33 +508,28 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
                 variant={selectedCurrency === 'ETH' ? 'default' : 'outline'}
                 onClick={() => setSelectedCurrency('ETH')}
                 disabled={isProcessing}
-                className="w-full text-xs h-9"
+                className="w-full text-xs h-8"
               >
-                ETH
+                ETH {selectedCurrency === 'ETH' && requiredETH > 0n && `(≈${formatUnits(requiredETH, 18).slice(0,8)})`}
               </Button>
             </div>
-            {selectedCurrency === 'ETH' && requiredETH > 0n && (
-              <p className="text-[10px] text-muted-foreground">
-                ≈ {formatUnits(requiredETH, 18)} ETH
-              </p>
-            )}
           </div>
 
           <Button
             onClick={handlePurchase}
             disabled={isProcessing || !user || !address || !walletClient || !publicClient}
             className="w-full gap-2 text-sm"
-            size="default"
+            size="sm"
           >
             {!address || !walletClient || !publicClient ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Connecting wallet...
+                Connecting...
               </>
             ) : isProcessing ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                {approvalStep === 'approving' ? 'Approving USDC...' : 'Processing...'}
+                {approvalStep === 'approving' ? 'Approving...' : 'Processing...'}
               </>
             ) : (
               <>
@@ -548,21 +540,10 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
           </Button>
 
           {!user && (
-            <p className="text-xs text-muted-foreground text-center">
-              Sign in with Farcaster to purchase
+            <p className="text-[10px] text-muted-foreground text-center">
+              Sign in to purchase
             </p>
           )}
-
-          <div className="pt-2 border-t space-y-1.5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Network</span>
-              <span className="font-medium text-foreground">Base L2</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Access</span>
-              <span className="font-medium text-success">Instant</span>
-            </div>
-          </div>
         </>
       )}
     </div>
