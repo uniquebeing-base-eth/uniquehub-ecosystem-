@@ -25,6 +25,7 @@ import noiceRewardShare from "@/assets/noice-reward-share.png";
 import degenRewardShare from "@/assets/degen-reward-share.png";
 import enbRewardShare from "@/assets/enb-reward-share.png";
 
+
 interface Chain {
   id: string;
   name: string;
@@ -38,6 +39,7 @@ interface Chain {
   contractAddress: `0x${string}`; // Contract address for this chain
   useTripleContract?: boolean; // Whether to use the triple token contract (BETR, NOICE, DEGEN)
 }
+
 
 const chains: Chain[] = [
   {
