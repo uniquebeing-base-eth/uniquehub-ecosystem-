@@ -18,6 +18,7 @@ import {
   USDC_ABI, 
   LISTING_FEE 
 } from '@/config/wagmi';
+import { CourseModulesEditor } from '@/components/CourseModulesEditor';
 
 interface CourseUploadProps {
   onSuccess?: () => void;
@@ -41,6 +42,8 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'uploaded'>('idle');
   const [listingStep, setListingStep] = useState<'idle' | 'approving' | 'listing'>('idle');
   const [allowance, setAllowance] = useState<bigint>(0n);
+  const [createdCourseId, setCreatedCourseId] = useState<string | null>(null);
+  const [showModulesEditor, setShowModulesEditor] = useState(false);
 
   const isPaidCourse = parseFloat(formData.price_usdc) > 0;
 
@@ -231,20 +234,12 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
       // Wait for confirmation
       await publicClient.waitForTransactionReceipt({ hash });
       
-      toast.success('Course listed on-chain and published!');
+      toast.success('Course listed on-chain! Now add modules and lessons.');
       setUploadStatus('uploaded');
-      
-      // Reset form
-      setFormData({ title: '', description: '', price_usdc: '', category: 'web3-basics' });
-      setThumbnailFile(null);
-      if (thumbPreview) URL.revokeObjectURL(thumbPreview);
-      setThumbPreview(null);
-      setVideoFile(null);
+      setCreatedCourseId(courseId);
+      setShowModulesEditor(true);
       setListingStep('idle');
       setLoading(false);
-
-      onSuccess?.();
-      window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'courses' } }));
     } catch (error: any) {
       console.error('Listing error:', error);
       
@@ -315,20 +310,12 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
       // Wait for confirmation
       await publicClient.waitForTransactionReceipt({ hash });
       
-      toast.success('Free course listed on-chain and published!');
+      toast.success('Free course listed on-chain! Now add modules and lessons.');
       setUploadStatus('uploaded');
-      
-      // Reset form
-      setFormData({ title: '', description: '', price_usdc: '', category: 'web3-basics' });
-      setThumbnailFile(null);
-      if (thumbPreview) URL.revokeObjectURL(thumbPreview);
-      setThumbPreview(null);
-      setVideoFile(null);
+      setCreatedCourseId(courseId);
+      setShowModulesEditor(true);
       setListingStep('idle');
       setLoading(false);
-
-      onSuccess?.();
-      window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'courses' } }));
     } catch (error: any) {
       console.error('Listing error:', error);
       
@@ -398,6 +385,45 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
   };
 
   const isProcessing = loading || listingStep !== 'idle' || isWalletLoading;
+
+  const handleModulesComplete = () => {
+    // Reset form
+    setFormData({ title: '', description: '', price_usdc: '', category: 'web3-basics' });
+    setThumbnailFile(null);
+    if (thumbPreview) URL.revokeObjectURL(thumbPreview);
+    setThumbPreview(null);
+    setVideoFile(null);
+    setCreatedCourseId(null);
+    setShowModulesEditor(false);
+    setUploadStatus('idle');
+    
+    onSuccess?.();
+    window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'courses' } }));
+  };
+
+  // Show modules editor after course creation
+  if (showModulesEditor && createdCourseId) {
+    return (
+      <Card className="p-6">
+        <h3 className="text-xl font-bold text-foreground mb-2">Add Course Content</h3>
+        <p className="text-sm text-muted-foreground mb-6">
+          Add modules and lessons to your course. Each module can have multiple video lessons.
+        </p>
+        <CourseModulesEditor courseId={createdCourseId} />
+        <div className="flex gap-3 mt-6">
+          <Button onClick={handleModulesComplete} className="bg-primary hover:bg-primary/90">
+            Finish & Publish Course
+          </Button>
+          <Button variant="outline" onClick={() => {
+            toast.info('You can add more content later from your course dashboard');
+            handleModulesComplete();
+          }}>
+            Skip for Now
+          </Button>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-6">
@@ -488,7 +514,7 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label>Course Video</Label>
+            <Label>Course Video (Preview)</Label>
             <div className="border-2 border-dashed rounded-lg p-6 text-center">
               <Video className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
               <input
@@ -499,7 +525,7 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
                 id="video-upload"
               />
               <label htmlFor="video-upload" className="cursor-pointer">
-                <p className="text-sm text-muted-foreground">Click to upload video</p>
+                <p className="text-sm text-muted-foreground">Preview video (optional)</p>
                 <p className="text-xs text-muted-foreground">MP4, WebM up to 100MB</p>
               </label>
               {videoFile && (
@@ -522,18 +548,13 @@ export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
                 {listingStep === 'approving' ? 'Approving...' : 
                  listingStep === 'listing' ? 'Listing...' : 'Uploading...'}
               </span>
-            ) : uploadStatus === 'uploaded' ? (
-              'Uploaded ✅'
             ) : (
-              'Upload Course'
+              'Create Course'
             )}
           </Button>
           <Button type="button" variant="outline" onClick={onCancel} disabled={isProcessing}>
             Cancel
           </Button>
-          {uploadStatus === 'uploaded' && (
-            <span className="text-xs text-success">Saved. Redirecting...</span>
-          )}
         </div>
       </form>
     </Card>

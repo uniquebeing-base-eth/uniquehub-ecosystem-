@@ -38,11 +38,12 @@ interface LessonProgress {
 
 interface CourseModulePlayerProps {
   courseId: string;
-  isEnrolled: boolean;
+  isEnrolled?: boolean;
   onBack?: () => void;
+  onCourseComplete?: () => void;
 }
 
-export const CourseModulePlayer = ({ courseId, isEnrolled, onBack }: CourseModulePlayerProps) => {
+export const CourseModulePlayer = ({ courseId, isEnrolled = true, onBack, onCourseComplete }: CourseModulePlayerProps) => {
   const { user } = useAuth();
   const [modules, setModules] = useState<ModuleData[]>([]);
   const [lessonProgress, setLessonProgress] = useState<Record<string, LessonProgress>>({});
@@ -181,6 +182,22 @@ export const CourseModulePlayer = ({ courseId, isEnrolled, onBack }: CourseModul
 
         if (isComplete) {
           toast.success('Lesson completed! 🎉');
+          
+          // Check if all lessons are now complete
+          const allLessons = modules.flatMap((m) => m.lessons);
+          const updatedProgress = {
+            ...lessonProgress,
+            [currentLesson.id]: {
+              lesson_id: currentLesson.id,
+              progress_percentage: progress,
+              completed_at: new Date().toISOString(),
+            }
+          };
+          const completedCount = allLessons.filter((l) => updatedProgress[l.id]?.completed_at).length;
+          
+          if (completedCount === allLessons.length && onCourseComplete) {
+            onCourseComplete();
+          }
         }
       } catch (error) {
         console.error('Error saving progress:', error);
