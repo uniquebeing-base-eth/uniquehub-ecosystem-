@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS public.course_comment_reactions (
   UNIQUE (comment_id, user_id, reaction)
 );
 
+
 -- Enable RLS
 ALTER TABLE public.course_comment_reactions ENABLE ROW LEVEL SECURITY;
 
