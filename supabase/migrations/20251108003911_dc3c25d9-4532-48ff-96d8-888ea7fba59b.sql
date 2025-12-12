@@ -7,3 +7,5 @@ CREATE INDEX IF NOT EXISTS idx_course_comments_parent ON public.course_comments(
 
 -- Create index for better query performance on course_id + parent_comment_id
 CREATE INDEX IF NOT EXISTS idx_course_comments_thread ON public.course_comments(course_id, parent_comment_id);
+
+
