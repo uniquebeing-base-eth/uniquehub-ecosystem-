@@ -26,3 +26,4 @@ DELETE FROM public.marketplace_items;
 -- Create index for faster lookups
 CREATE INDEX IF NOT EXISTS idx_farcaster_notifications_fid 
 ON public.farcaster_notifications(fid);
+
