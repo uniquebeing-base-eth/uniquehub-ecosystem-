@@ -24,3 +24,4 @@ WITH CHECK (auth.uid() = user_id);
 
 -- Create index for faster lookups
 CREATE INDEX idx_user_nft_generations_user_id ON public.user_nft_generations(user_id);
+
