@@ -8,6 +8,8 @@ CREATE TABLE public.marketplace_item_ratings (
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
+
+
 -- Create marketplace item comments table
 CREATE TABLE public.marketplace_item_comments (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
