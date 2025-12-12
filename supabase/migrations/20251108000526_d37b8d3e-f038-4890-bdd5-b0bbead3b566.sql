@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.course_ratings (
   UNIQUE(course_id, user_id)
 );
 
+
 -- Create course comments table
 CREATE TABLE IF NOT EXISTS public.course_comments (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
