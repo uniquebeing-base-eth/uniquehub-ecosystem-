@@ -7,6 +7,7 @@ CREATE TYPE public.point_event_type AS ENUM (
   'trade_volume'
 );
 
+
 -- Create user_points table to track total UP points
 CREATE TABLE public.user_points (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
