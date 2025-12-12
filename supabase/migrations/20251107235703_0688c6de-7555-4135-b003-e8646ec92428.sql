@@ -5,3 +5,4 @@ DELETE FROM courses WHERE id IN (
   '208f916b-b777-4b90-8309-a298a0fa6c6c',
   '38291f3d-de52-4d0a-b1f4-58c53538f1e8'
 );
+
