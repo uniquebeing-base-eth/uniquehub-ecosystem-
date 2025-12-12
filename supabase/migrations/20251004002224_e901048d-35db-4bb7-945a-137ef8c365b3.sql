@@ -13,6 +13,7 @@ CREATE TABLE public.course_payments (
   completed_at TIMESTAMP WITH TIME ZONE
 );
 
+
 -- Enable RLS on course_payments
 ALTER TABLE public.course_payments ENABLE ROW LEVEL SECURITY;
 
