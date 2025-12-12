@@ -42,3 +42,4 @@ CREATE POLICY "Users can update their own certificates"
   ON public.certificates
   FOR UPDATE
   USING (auth.uid() = user_id);
+
