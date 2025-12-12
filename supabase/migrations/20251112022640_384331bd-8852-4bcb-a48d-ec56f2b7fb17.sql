@@ -17,3 +17,4 @@ CREATE POLICY "Anyone can view certificates"
 CREATE POLICY "Authenticated users can upload certificates"
   ON storage.objects FOR INSERT
   WITH CHECK (bucket_id = 'certificates' AND auth.role() = 'authenticated');
+
