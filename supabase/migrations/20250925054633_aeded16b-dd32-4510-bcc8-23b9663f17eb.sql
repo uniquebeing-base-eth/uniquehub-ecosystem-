@@ -15,6 +15,7 @@ CREATE TABLE public.courses (
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
+
 -- Enable Row Level Security
 ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
 
