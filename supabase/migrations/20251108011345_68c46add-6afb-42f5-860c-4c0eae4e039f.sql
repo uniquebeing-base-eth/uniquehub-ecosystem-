@@ -24,3 +24,4 @@ WITH CHECK (auth.uid() = user_id);
 
 -- Create index for faster lookups
 CREATE INDEX idx_task_completions_user_task ON public.task_completions(user_id, task_id);
+
