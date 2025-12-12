@@ -36,3 +36,4 @@ USING (
   bucket_id = 'avatars' AND
   (storage.foldername(name))[1] = 'course-videos'
 );
+
