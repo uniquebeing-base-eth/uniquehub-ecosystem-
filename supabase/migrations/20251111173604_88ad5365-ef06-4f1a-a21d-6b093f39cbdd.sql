@@ -8,3 +8,4 @@ BEGIN
   WHERE id = course_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public';
+
