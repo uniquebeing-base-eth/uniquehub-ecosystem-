@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS public.learning_courses (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
+
+
 -- Create learning modules table
 CREATE TABLE IF NOT EXISTS public.learning_modules (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
