@@ -48,3 +48,4 @@ COMMENT ON TABLE public.certificates IS 'Stores course completion certificates (
 COMMENT ON COLUMN public.certificates.certificate_id IS 'Unique certificate identifier used on-chain';
 COMMENT ON COLUMN public.certificates.token_id IS 'NFT token ID after minting';
 COMMENT ON COLUMN public.certificates.token_uri IS 'IPFS or storage URL for NFT metadata';
+
