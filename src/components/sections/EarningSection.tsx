@@ -1,3 +1,4 @@
+
 import { Leaderboard } from "@/components/Leaderboard";
 import { Card } from "@/components/ui/card";
 import { Trophy, Zap, Target, Coins, Gift } from "lucide-react";
