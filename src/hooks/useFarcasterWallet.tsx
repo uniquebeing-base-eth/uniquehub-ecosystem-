@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import { useAccount, useConnect } from 'wagmi';
 import { supabase } from '@/integrations/supabase/client';
