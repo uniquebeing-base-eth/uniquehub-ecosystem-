@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { ArrowLeft, Trophy, Medal, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
