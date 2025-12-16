@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 
 interface EarningCardProps {
