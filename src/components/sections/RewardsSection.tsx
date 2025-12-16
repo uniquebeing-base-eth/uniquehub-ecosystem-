@@ -26,7 +26,6 @@ import degenRewardShare from "@/assets/degen-reward-share.png";
 import enbRewardShare from "@/assets/enb-reward-share.png";
 
 
-
 interface Chain {
   id: string;
   name: string;
