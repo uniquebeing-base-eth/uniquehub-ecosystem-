@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { HamburgerMenu } from "@/components/HamburgerMenu";
