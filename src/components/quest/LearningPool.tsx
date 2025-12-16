@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { ArrowLeft, Trophy, Lock, Star, Users, Calendar, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
