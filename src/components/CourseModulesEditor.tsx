@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 
+
 interface Lesson {
   id?: string;
   title: string;
