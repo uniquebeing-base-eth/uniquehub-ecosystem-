@@ -1,3 +1,4 @@
+
 export const getAchievementTitle = (type: string, level: number): string => {
   if (type === 'courses') {
     switch (level) {
