@@ -19,3 +19,4 @@ export const CourseCard = ({ title, icon, buttonText = "START", onAction }: Cour
     </div>
   );
 };
+
