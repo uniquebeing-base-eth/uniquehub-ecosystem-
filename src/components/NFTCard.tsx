@@ -1,3 +1,4 @@
+
 interface NFTCardProps {
   title: string;
   price: string;
