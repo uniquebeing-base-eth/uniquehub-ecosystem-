@@ -1,3 +1,4 @@
+
 import { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Share2, Loader2, BookOpen, Trophy, Award, Flame, Zap } from 'lucide-react';
