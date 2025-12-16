@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getAchievementTitle, getAchievementDescription } from "@/lib/achievementUtils";
 
+
 interface Achievement {
   id: string;
   achievement_type: string;
