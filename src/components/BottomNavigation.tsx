@@ -16,6 +16,7 @@ const navItems = [
   { id: "rewards", icon: Coins, label: "Rewards" },
 ];
 
+
 export const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-card via-card/98 to-card/95 backdrop-blur-md border-t border-primary/20 z-50 shadow-[0_-10px_40px_-10px_hsl(var(--primary)/0.3)]">
