@@ -21,6 +21,7 @@ interface CertificateClaimProps {
   creatorUsername?: string;
 }
 
+
 export const CertificateClaim = ({ courseId, courseTitle, isCompleted, creatorUsername }: CertificateClaimProps) => {
   const { address } = useFarcasterWallet();
   const { publicClient, walletClient } = useViemClients(address);
