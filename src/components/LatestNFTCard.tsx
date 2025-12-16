@@ -1,3 +1,4 @@
+
 import { Card } from '@/components/ui/card';
 import { Image } from 'lucide-react';
 import { ShareToFarcaster } from './ShareToFarcaster';
