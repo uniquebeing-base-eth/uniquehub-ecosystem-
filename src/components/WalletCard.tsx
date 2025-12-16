@@ -1,3 +1,4 @@
+
 import { DollarSign, Star } from 'lucide-react';
 
 interface WalletCardProps {
