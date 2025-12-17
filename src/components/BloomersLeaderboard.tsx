@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface BloomersUser {
-  user_id: string;
+  wallet_address: string;
   display_name: string | null;
   farcaster_username: string | null;
   avatar_url: string | null;
@@ -23,46 +23,48 @@ export const BloomersLeaderboard = () => {
   const loadLeaderboard = async () => {
     setIsLoading(true);
     try {
-      // Get all minted NFTs grouped by user
-      const { data: nfts, error: nftError } = await supabase
-        .from("user_nft_generations")
-        .select("user_id")
-        .eq("is_minted", true);
+      // Get all bloomers mints grouped by wallet
+      const { data: mints, error: mintError } = await supabase
+        .from("bloomers_mints")
+        .select("wallet_address");
 
-      if (nftError) throw nftError;
+      if (mintError) throw mintError;
 
-      // Count bloomers per user
-      const userBloomers: Record<string, number> = {};
-      nfts?.forEach((nft) => {
-        userBloomers[nft.user_id] = (userBloomers[nft.user_id] || 0) + 1;
+      // Count bloomers per wallet (case-insensitive)
+      const walletBloomers: Record<string, number> = {};
+      mints?.forEach((mint) => {
+        const wallet = mint.wallet_address.toLowerCase();
+        walletBloomers[wallet] = (walletBloomers[wallet] || 0) + 1;
       });
 
-      // Get unique user IDs
-      const userIds = Object.keys(userBloomers);
+      // Get unique wallet addresses
+      const walletAddresses = Object.keys(walletBloomers);
       
-      if (userIds.length === 0) {
+      if (walletAddresses.length === 0) {
         setLeaderboard([]);
         setIsLoading(false);
         return;
       }
 
-      // Fetch profiles for these users
+      // Fetch profiles that match these wallets (case-insensitive)
       const { data: profiles, error: profileError } = await supabase
         .from("profiles")
-        .select("user_id, display_name, farcaster_username, avatar_url")
-        .in("user_id", userIds);
+        .select("wallet_address, display_name, farcaster_username, avatar_url");
 
       if (profileError) throw profileError;
 
       // Build leaderboard data
-      const leaderboardData: BloomersUser[] = userIds.map((userId) => {
-        const profile = profiles?.find((p) => p.user_id === userId);
-        const bloomerCount = userBloomers[userId];
+      const leaderboardData: BloomersUser[] = walletAddresses.map((wallet) => {
+        // Find matching profile (case-insensitive)
+        const profile = profiles?.find((p) => 
+          p.wallet_address?.toLowerCase() === wallet.toLowerCase()
+        );
+        const bloomerCount = walletBloomers[wallet];
         const bloomPoints = bloomerCount * 300;
         const tokens = bloomPoints * 10;
 
         return {
-          user_id: userId,
+          wallet_address: wallet,
           display_name: profile?.display_name || null,
           farcaster_username: profile?.farcaster_username || null,
           avatar_url: profile?.avatar_url || null,
@@ -89,10 +91,16 @@ export const BloomersLeaderboard = () => {
     }
   }, [isOpen]);
 
-  const handleUsernameClick = (username: string | null) => {
+  const handleUsernameClick = (username: string | null, wallet: string) => {
     if (username) {
       window.open(`https://warpcast.com/${username}`, "_blank");
+    } else {
+      window.open(`https://basescan.org/address/${wallet}`, "_blank");
     }
+  };
+
+  const formatWallet = (wallet: string) => {
+    return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
   };
 
   return (
@@ -115,10 +123,10 @@ export const BloomersLeaderboard = () => {
         </SheetHeader>
 
         {/* Token Airdrop Notice */}
-        <div className="bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl p-4 mb-4 border border-primary/30">
+        <div className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-xl p-4 mb-4 border border-pink-500/30">
           <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-sm">Token Airdrop Coming Soon!</span>
+            <Sparkles className="h-5 w-5 text-pink-500" />
+            <span className="font-semibold text-sm">$BLOOM Token Airdrop Coming Soon!</span>
           </div>
           <p className="text-xs text-muted-foreground">
             $BLOOM token will launch soon. Users will be able to claim their token allocation based on their Bloom Points. The more you mint, the more tokens you'll receive!
@@ -138,17 +146,17 @@ export const BloomersLeaderboard = () => {
         <div className="overflow-y-auto max-h-[calc(85vh-280px)] space-y-2">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : leaderboard.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <Flower2 className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <Flower2 className="h-12 w-12 mx-auto mb-3 opacity-50 text-pink-500" />
               <p>No bloomers yet. Be the first to mint!</p>
             </div>
           ) : (
             leaderboard.map((user, index) => (
               <div
-                key={user.user_id}
+                key={user.wallet_address}
                 className={`grid grid-cols-12 gap-2 items-center px-3 py-3 rounded-xl transition-colors ${
                   index === 0
                     ? "bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30"
@@ -180,16 +188,15 @@ export const BloomersLeaderboard = () => {
                 <div className="col-span-4 flex items-center gap-2 min-w-0">
                   <Avatar className="h-8 w-8 flex-shrink-0">
                     <AvatarImage src={user.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/20 text-xs">
-                      {(user.display_name || user.farcaster_username || "U")[0].toUpperCase()}
+                    <AvatarFallback className="bg-pink-500/20 text-xs">
+                      {(user.display_name || user.farcaster_username || "B")[0].toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <button
-                    onClick={() => handleUsernameClick(user.farcaster_username)}
-                    className="truncate text-sm font-medium hover:text-primary transition-colors text-left"
-                    disabled={!user.farcaster_username}
+                    onClick={() => handleUsernameClick(user.farcaster_username, user.wallet_address)}
+                    className="truncate text-sm font-medium hover:text-pink-500 transition-colors text-left"
                   >
-                    {user.display_name || user.farcaster_username || "Anonymous"}
+                    {user.display_name || user.farcaster_username || formatWallet(user.wallet_address)}
                   </button>
                 </div>
 
@@ -210,8 +217,8 @@ export const BloomersLeaderboard = () => {
                 {/* Tokens */}
                 <div className="col-span-3 text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <Coins className="h-3 w-3 text-primary" />
-                    <span className="text-sm font-bold text-primary">
+                    <Coins className="h-3 w-3 text-pink-500" />
+                    <span className="text-sm font-bold text-pink-500">
                       {user.tokens.toLocaleString()}
                     </span>
                   </div>
@@ -238,7 +245,7 @@ export const BloomersLeaderboard = () => {
                 <p className="text-xs text-muted-foreground">Total Points</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-primary">
+                <p className="text-2xl font-bold text-pink-500">
                   {leaderboard.reduce((sum, u) => sum + u.tokens, 0).toLocaleString()}
                 </p>
                 <p className="text-xs text-muted-foreground">Total Tokens</p>
