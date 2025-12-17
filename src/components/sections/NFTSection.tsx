@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
@@ -11,6 +10,7 @@ import nftPlaceholder from "@/assets/nft-placeholder.png";
 import { useViemClients } from "@/hooks/useViemClients";
 import { UNIQUE_NFT_ABI, UNIQUE_NFT_ADDRESS } from "@/config/wagmi";
 import { base } from "wagmi/chains";
+import { BloomersLeaderboard } from "@/components/BloomersLeaderboard";
 
 export const NFTSection = () => {
   const { user } = useAuth();
@@ -394,39 +394,52 @@ export const NFTSection = () => {
                 </div>
 
                 {!hasMinted && (
-                  <Button
-                    onClick={mintNFT}
-                    disabled={isMinting || !address}
-                    variant="default"
-                    className="w-full"
-                  >
-                    {isMinting ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                        Minting...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="mr-2 h-5 w-5" />
-                        Mint as NFT on Base (0.0002 ETH)
-                      </>
-                    )}
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={mintNFT}
+                      disabled={isMinting || !address}
+                      variant="default"
+                      className="flex-1"
+                    >
+                      {isMinting ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                          Minting...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="mr-2 h-5 w-5" />
+                          Mint Now
+                        </>
+                      )}
+                    </Button>
+                    <BloomersLeaderboard />
+                  </div>
+                )}
+
+                {!hasMinted && (
+                  <p className="text-xs text-center text-muted-foreground">
+                    Mint fee: 0.0002 ETH
+                  </p>
                 )}
 
                 {hasMinted && (
                   <>
-                    {tokenId !== null && (
-                      <a
-                        href={`https://basescan.org/nft/${UNIQUE_NFT_ADDRESS}/${tokenId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Button variant="default" className="w-full">
-                          View on Basescan
-                        </Button>
-                      </a>
-                    )}
+                    <div className="flex gap-3">
+                      {tokenId !== null && (
+                        <a
+                          href={`https://basescan.org/nft/${UNIQUE_NFT_ADDRESS}/${tokenId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1"
+                        >
+                          <Button variant="default" className="w-full">
+                            View on Basescan
+                          </Button>
+                        </a>
+                      )}
+                      <BloomersLeaderboard />
+                    </div>
 
                     <div className="mt-3">
                       <ShareToFarcaster
