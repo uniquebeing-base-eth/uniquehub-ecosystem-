@@ -14,7 +14,6 @@ import { UploadSection } from "@/components/sections/UploadSection";
 import { WalletSection } from "@/components/sections/WalletSection";
 import { EarnSection } from "@/components/sections/EarnSection";
 import { NFTSection } from "@/components/sections/NFTSection";
-import { BloomersSection } from "@/components/sections/BloomersSection";
 import { BlogSection } from "@/components/sections/BlogSection";
 import { CertificatesSection } from "@/components/sections/CertificatesSection";
 import { QuestSection } from "@/components/sections/QuestSection";
@@ -119,8 +118,6 @@ const Dashboard = () => {
         return <EarnSection />;
       case "nft":
         return <NFTSection />;
-      case "bloomers":
-        return <BloomersSection />;
       case "leaderboard":
         return <Leaderboard />;
       case "blog":
