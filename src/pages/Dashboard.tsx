@@ -174,14 +174,14 @@ const Dashboard = () => {
                   <span className="text-lg">📩</span>
                   <div>
                     <p className="text-xs text-muted-foreground">Email</p>
-                    <p className="text-sm font-semibold text-foreground">support@uniqueehub.vercel.app</p>
+                    <p className="text-sm font-semibold text-foreground">support@uniquehub.xyz</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="text-lg">🌐</span>
                   <div>
                     <p className="text-xs text-muted-foreground">Website</p>
-                    <p className="text-sm font-semibold text-foreground">uniqueehub.vercel.app</p>
+                    <p className="text-sm font-semibold text-foreground">uniquehub.xyz</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">

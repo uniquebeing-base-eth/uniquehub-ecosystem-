@@ -38,6 +38,33 @@ export type Database = {
         }
         Relationships: []
       }
+      bloomers_mints: {
+        Row: {
+          created_at: string
+          id: string
+          minted_at: string | null
+          token_id: number | null
+          transaction_hash: string | null
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          minted_at?: string | null
+          token_id?: number | null
+          transaction_hash?: string | null
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          minted_at?: string | null
+          token_id?: number | null
+          transaction_hash?: string | null
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       certificates: {
         Row: {
           certificate_id: string

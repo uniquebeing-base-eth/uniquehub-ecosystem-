@@ -202,7 +202,7 @@ export const TutorSection = () => {
                   {course.status === 'published' && (
                     <ShareToFarcaster
                       text={`Check out my course: ${course.title} on @uniquehub! 🎓 Learn now for just $${course.price_usdc} USDC! 💎`}
-                      embeds={course.thumbnail_url ? [course.thumbnail_url, 'https://uniqueehub.vercel.app'] : ['https://uniqueehub.vercel.app']}
+                      embeds={course.thumbnail_url ? [course.thumbnail_url, 'https://uniquehub.xyz'] : ['https://uniquehub.xyz']}
                       buttonText="Share"
                       size="sm"
                       variant="ghost"

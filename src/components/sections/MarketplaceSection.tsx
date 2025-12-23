@@ -158,7 +158,7 @@ export const MarketplaceSection = () => {
                       </Button>
                       <ShareToFarcaster
                         text={`Check out ${item.title} on @uniquehub marketplace! 🛍️ $${item.price_usdc} USDC`}
-                        embeds={item.image_url ? [item.image_url, 'https://uniqueehub.vercel.app'] : ['https://uniqueehub.vercel.app']}
+                        embeds={item.image_url ? [item.image_url, 'https://uniquehub.xyz'] : ['https://uniquehub.xyz']}
                         variant="ghost"
                         size="icon"
                         className="flex-shrink-0"

@@ -252,7 +252,7 @@ export const DailyCheckInDialog = ({
               <div className="space-y-3">
                 <ShareToFarcaster
                   text={`I just checked in on @uniquehub!\n\n${newStreak} Day Streak | +${earnedPoints} UP Points\n\nShowing up daily to learn and earn. Join the ultimate Web3 learning platform!`}
-                  embeds={['https://uniqueehub.vercel.app']}
+                  embeds={['https://uniquehub.xyz']}
                   buttonText="Share Check-In"
                   variant="default"
                   size="lg"

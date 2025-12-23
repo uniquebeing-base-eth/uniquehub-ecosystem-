@@ -770,8 +770,8 @@ export const EarnSection = () => {
             <ShareToFarcaster
               text={`Just earned ${lastClaimedPoints} UP points on @uniquehub! 🎉 Join me and start earning rewards for completing tasks! 💎`}
               embeds={[
-                'https://uniqueehub.vercel.app/opengraph-image.png',
-                'https://uniqueehub.vercel.app'
+                'https://uniquehub.xyz/opengraph-image.png',
+                'https://uniquehub.xyz'
               ]}
               buttonText="Share on Farcaster"
               variant="default"
