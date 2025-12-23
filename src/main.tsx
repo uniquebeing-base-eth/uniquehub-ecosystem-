@@ -6,9 +6,9 @@ import { WagmiProvider } from 'wagmi';
 import { Toaster } from "@/components/ui/sonner";
 import { PrivyProvider } from '@/providers/PrivyProvider';
 import { AuthProvider } from '@/hooks/useAuth';
-import { PlatformGuard } from '@/components/PlatformGuard';
 import { wagmiConfig } from '@/config/wagmi';
 import Dashboard from './pages/Dashboard.tsx'
+import Auth from './pages/Auth.tsx'
 import NotFound from './pages/NotFound.tsx'
 import './index.css'
 
@@ -25,22 +25,21 @@ if ('serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <PlatformGuard>
-      <PrivyProvider>
-        <WagmiProvider config={wagmiConfig}>
-          <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <Toaster />
-              </BrowserRouter>
-            </AuthProvider>
-          </QueryClientProvider>
-        </WagmiProvider>
-      </PrivyProvider>
-    </PlatformGuard>
+    <PrivyProvider>
+      <WagmiProvider config={wagmiConfig}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <Toaster />
+            </BrowserRouter>
+          </AuthProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </PrivyProvider>
   </StrictMode>,
 )
