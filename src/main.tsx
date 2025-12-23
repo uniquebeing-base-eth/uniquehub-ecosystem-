@@ -1,10 +1,10 @@
-
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WagmiProvider } from 'wagmi';
 import { Toaster } from "@/components/ui/sonner";
+import { PrivyProvider } from '@/providers/PrivyProvider';
 import { AuthProvider } from '@/hooks/useAuth';
 import { PlatformGuard } from '@/components/PlatformGuard';
 import { wagmiConfig } from '@/config/wagmi';
@@ -26,19 +26,21 @@ if ('serviceWorker' in navigator) {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <PlatformGuard>
-      <WagmiProvider config={wagmiConfig}>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <Toaster />
-            </BrowserRouter>
-          </AuthProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
+      <PrivyProvider>
+        <WagmiProvider config={wagmiConfig}>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <Toaster />
+              </BrowserRouter>
+            </AuthProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
+      </PrivyProvider>
     </PlatformGuard>
   </StrictMode>,
 )
