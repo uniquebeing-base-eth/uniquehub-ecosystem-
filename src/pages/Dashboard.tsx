@@ -41,26 +41,22 @@ const Dashboard = () => {
   };
   
 
-  // Initialize Farcaster SDK when component mounts
+  // Initialize Farcaster SDK immediately on mount - must call ready() ASAP to dismiss splash
   useEffect(() => {
     const initializeFarcaster = async () => {
       try {
         const { sdk } = await import('@farcaster/miniapp-sdk');
-        // Wait a bit for auth to complete before calling ready
-        setTimeout(() => {
-          sdk.actions.ready();
-        }, 500);
+        // Call ready immediately to dismiss Farcaster splash screen
+        sdk.actions.ready();
       } catch (error) {
         // SDK not available or not in Farcaster context, continue normally
         console.log('Farcaster SDK not available');
       }
     };
 
-    // Only initialize once user is loaded
-    if (!loading) {
-      initializeFarcaster();
-    }
-  }, [loading]);
+    // Initialize immediately, don't wait for auth
+    initializeFarcaster();
+  }, []);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
