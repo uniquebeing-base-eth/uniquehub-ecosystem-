@@ -66,7 +66,7 @@ export const CourseCompletionShareDialog = ({
             </Button>
             <ShareToFarcaster
               text={`🎓 Just completed "${courseTitle}" on @uniquehub! Finished ${totalModules} modules and earned ${totalPoints} UP points! 🚀\n\nJoin me in learning Web3! 💎`}
-              embeds={['https://uniqueehub.vercel.app']}
+              embeds={['https://uniquehub.xyz']}
               buttonText="Share"
               size="default"
               variant="default"

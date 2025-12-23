@@ -82,7 +82,7 @@ serve(async (req) => {
     // Transaction frame metadata for Farcaster
     const frameMetadata = {
       version: 'vNext',
-      imageUrl: course.thumbnail_url || 'https://uniqueehub.vercel.app/opengraph-image.png',
+      imageUrl: course.thumbnail_url || 'https://uniquehub.xyz/opengraph-image.png',
       button: {
         title: `Buy Course for ${priceInUsdc} ${selectedCurrency}`,
         action: {

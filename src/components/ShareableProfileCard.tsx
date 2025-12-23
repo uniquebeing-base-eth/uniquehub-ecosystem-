@@ -214,7 +214,7 @@ export const ShareableProfileCard = () => {
       {shareUrl ? (
         <ShareToFarcaster
           text={`Check out my stats on @uniquehub!\n\n${stats.upPoints.toLocaleString()} UP Points | ${stats.dailyStreak} Day Streak\n\nLearn, earn, and grow with the ultimate Web3 learning platform.`}
-          embeds={[shareUrl, 'https://uniqueehub.vercel.app']}
+          embeds={[shareUrl, 'https://uniquehub.xyz']}
           buttonText="Share to Farcaster"
           variant="default"
           size="default"

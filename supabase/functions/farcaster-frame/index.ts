@@ -14,10 +14,10 @@ serve(async (req) => {
     const url = new URL(req.url);
     const title = url.searchParams.get('title') || 'UniqueHub';
     const description = url.searchParams.get('description') || 'Learn, Trade, Earn on Base';
-    const imageUrl = url.searchParams.get('image') || 'https://uniqueehub.vercel.app/opengraph-image.png';
+    const imageUrl = url.searchParams.get('image') || 'https://uniquehub.xyz/opengraph-image.png';
     
     // Always use the main mini app URL for the action
-    const miniAppUrl = 'https://uniqueehub.vercel.app';
+    const miniAppUrl = 'https://uniquehub.xyz';
 
     
     // Create the Mini App Embed JSON according to Farcaster spec
@@ -30,7 +30,7 @@ serve(async (req) => {
           type: "launch_miniapp",
           name: "UniqueHub",
           url: miniAppUrl,
-          splashImageUrl: "https://uniqueehub.vercel.app/icon.png",
+          splashImageUrl: "https://uniquehub.xyz/icon.png",
           splashBackgroundColor: "#1a4d8f"
         }
       }

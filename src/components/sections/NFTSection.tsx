@@ -434,8 +434,8 @@ export const NFTSection = () => {
                         text="Check out my unique avatar on @uniquehub! 🎨✨"
                         embeds={
                           shareImageUrl
-                            ? [shareImageUrl, "https://uniqueehub.vercel.app"]
-                            : ["https://uniqueehub.vercel.app"]
+                            ? [shareImageUrl, "https://uniquehub.xyz"]
+                            : ["https://uniquehub.xyz"]
                         }
                         variant="default"
                         className="w-full"

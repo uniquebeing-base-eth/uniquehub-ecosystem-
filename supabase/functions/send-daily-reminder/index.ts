@@ -101,7 +101,7 @@ serve(async (req) => {
       notification: {
         title: "⏰ Don't lose your streak!",
         body: "Claim your daily reward before the day ends! Keep your streak alive.",
-        target_url: "https://uniqueehub.vercel.app",
+        target_url: "https://uniquehub.xyz",
         uuid: crypto.randomUUID()
       },
       target_fids: usersNeedingReminder

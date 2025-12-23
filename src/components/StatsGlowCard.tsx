@@ -103,7 +103,7 @@ export const StatsGlowCard = () => {
               
               <ShareToFarcaster 
                 text={`Check out my UniqueHub stats! 🎮\n\n${username} on @uniquehub\n\nLearn, earn, and trade on Base!`}
-                embeds={[generatedCardUrl, 'https://uniqueehub.vercel.app']}
+                embeds={[generatedCardUrl, 'https://uniquehub.xyz']}
                 buttonText="Share to Farcaster"
                 variant="default"
                 size="default"

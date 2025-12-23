@@ -1,18 +1,18 @@
 {
   "accountAssociation": {
     "header": "eyJmaWQiOjg0OTExNiwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweGQzRDViRmMyOGJjMjA5OTg4NGEzNmVkNDE2NTY4NzRCQ2RENDYzMTUifQ",
-    "payload": "eyJkb21haW4iOiJ1bmlxdWVlaHViLnZlcmNlbC5hcHAifQ",
+    "payload": "eyJkb21haW4iOiJ1bmlxdWVodWIueHl6In0",
     "signature": "mCE5f8HlN/IZpSJqO8VLfw+MU9Zvng/I44zQuRaMJQMDbc8ltK/h6m8kX6OTGe9p73llpAUOPT0du0w+unYfBxw="
   },
   "miniapp": {
     "version": "1",
     "name": "UniqueHub",
-    "iconUrl": "https://uniqueehub.vercel.app/icon.png",
-    "homeUrl": "https://uniqueehub.vercel.app",
-    "castShareUrl": "https://uniqueehub.vercel.app",
-    "imageUrl": "https://uniqueehub.vercel.app/uniquehub-preview.png",
+    "iconUrl": "https://uniquehub.xyz/icon.png",
+    "homeUrl": "https://uniquehub.xyz",
+    "castShareUrl": "https://uniquehub.xyz",
+    "imageUrl": "https://uniquehub.xyz/uniquehub-preview.png",
     "buttonTitle": "Launch UniqueHub",
-    "splashImageUrl": "https://uniqueehub.vercel.app/uniquehub-splash.png",
+    "splashImageUrl": "https://uniquehub.xyz/uniquehub-splash.png",
     "splashBackgroundColor": "#1a4d8f",
     "webhookUrl": "https://api.neynar.com/f/app/916259b6-b248-4d47-b5e2-28d9e4bcb1c6/event",
     "subtitle": "Learn Earn and Trade on Base",
@@ -25,15 +25,13 @@
       "base",
       "learning"
     ],
-    "heroImageUrl": "https://uniqueehub.vercel.app/uniquehub-preview.png",
+    "heroImageUrl": "https://uniquehub.xyz/uniquehub-preview.png",
     "tagline": "Learn Earn and Trade on Base",
     "ogTitle": "UniqueHub",
     "ogDescription": "Blockchain learning and digital trading",
-    "ogImageUrl": "https://uniqueehub.vercel.app/uniquehub-preview.png"
+    "ogImageUrl": "https://uniquehub.xyz/uniquehub-preview.png"
   },
   "baseBuilder": {
     "ownerAddress": "0x170c5a413136F094421fad8Dd20285b5e05Fff5e"
   }
 }
-
-

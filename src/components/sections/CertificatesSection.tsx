@@ -193,7 +193,7 @@ export const CertificatesSection = () => {
 
                 <ShareToFarcaster
                   text={`I just earned my "${cert.course_title}" certificate NFT on UniqueHub! 🎓✨`}
-                  embeds={[cert.image_url, 'https://uniqueehub.vercel.app']}
+                  embeds={[cert.image_url, 'https://uniquehub.xyz']}
                   variant="outline"
                   size="sm"
                   buttonText="Share"

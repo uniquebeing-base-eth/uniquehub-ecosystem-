@@ -67,12 +67,12 @@ const NFTs = () => {
         <meta name="description" content="Generate your own unique Avatar NFT on UniqueHub" />
         <meta property="og:title" content="Unique NFTs - UniqueHub" />
         <meta property="og:description" content="Generate your own unique Avatar NFT on UniqueHub" />
-        <meta property="og:image" content="https://uniqueehub.vercel.app/opengraph-image.png" />
-        <meta property="og:url" content="https://uniqueehub.vercel.app/nfts" />
+        <meta property="og:image" content="https://uniquehub.xyz/opengraph-image.png" />
+        <meta property="og:url" content="https://uniquehub.xyz/nfts" />
         
         {/* Farcaster Mini App Meta */}
-        <meta name="fc:miniapp" content='{"version":"1","imageUrl":"https://uniqueehub.vercel.app/opengraph-image.png","button":{"title":"Launch UniqueHub NFTs","action":{"type":"launch_miniapp","name":"UniqueHub NFTs","url":"https://uniqueehub.vercel.app/nfts","splashImageUrl":"https://uniqueehub.vercel.app/opengraph-image.png","splashBackgroundColor":"#1a4d8f"}}}' />
-        <meta name="fc:frame" content='{"version":"1","imageUrl":"https://uniqueehub.vercel.app/opengraph-image.png","button":{"title":"Launch UniqueHub NFTs","action":{"type":"launch_miniapp","name":"UniqueHub NFTs","url":"https://uniqueehub.vercel.app/nfts","splashImageUrl":"https://uniqueehub.vercel.app/opengraph-image.png","splashBackgroundColor":"#1a4d8f"}}}' />
+        <meta name="fc:miniapp" content='{"version":"1","imageUrl":"https://uniquehub.xyz/opengraph-image.png","button":{"title":"Launch UniqueHub NFTs","action":{"type":"launch_miniapp","name":"UniqueHub NFTs","url":"https://uniquehub.xyz/nfts","splashImageUrl":"https://uniquehub.xyz/opengraph-image.png","splashBackgroundColor":"#1a4d8f"}}}' />
+        <meta name="fc:frame" content='{"version":"1","imageUrl":"https://uniquehub.xyz/opengraph-image.png","button":{"title":"Launch UniqueHub NFTs","action":{"type":"launch_miniapp","name":"UniqueHub NFTs","url":"https://uniquehub.xyz/nfts","splashImageUrl":"https://uniquehub.xyz/opengraph-image.png","splashBackgroundColor":"#1a4d8f"}}}' />
       </Helmet>
       
       <MiniAppPrompt />
