@@ -11,21 +11,6 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  build: {
-    rollupOptions: {
-      onwarn(warning, warn) {
-        // Suppress pure annotation warnings from Privy
-        if (warning.code === 'INVALID_ANNOTATION') return;
-        warn(warning);
-      },
-    },
-  },
-  optimizeDeps: {
-    include: ['@privy-io/react-auth'],
-    esbuildOptions: {
-      target: 'esnext',
-    },
-  },
   plugins: [
     react(), 
     mode === "development" && componentTagger(),

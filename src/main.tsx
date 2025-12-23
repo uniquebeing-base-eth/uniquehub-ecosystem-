@@ -1,14 +1,14 @@
+
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WagmiProvider } from 'wagmi';
 import { Toaster } from "@/components/ui/sonner";
-import { PrivyProvider } from '@/providers/PrivyProvider';
 import { AuthProvider } from '@/hooks/useAuth';
+import { PlatformGuard } from '@/components/PlatformGuard';
 import { wagmiConfig } from '@/config/wagmi';
 import Dashboard from './pages/Dashboard.tsx'
-import Auth from './pages/Auth.tsx'
 import NotFound from './pages/NotFound.tsx'
 import './index.css'
 
@@ -25,14 +25,13 @@ if ('serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <PrivyProvider>
+    <PlatformGuard>
       <WagmiProvider config={wagmiConfig}>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/auth" element={<Auth />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <Toaster />
@@ -40,6 +39,6 @@ createRoot(document.getElementById('root')!).render(
           </AuthProvider>
         </QueryClientProvider>
       </WagmiProvider>
-    </PrivyProvider>
+    </PlatformGuard>
   </StrictMode>,
 )

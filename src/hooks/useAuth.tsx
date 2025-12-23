@@ -1,17 +1,13 @@
+
 import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  privyUser: any;
-  privyAuthenticated: boolean;
-  walletAddress: string | null;
-  login: () => void;
-  logout: () => Promise<void>;
+  signInWithFarcaster: (farcasterData: any) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -22,163 +18,193 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const { login, logout, authenticated, user: privyUser, ready } = usePrivy();
-  const { wallets } = useWallets();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Get wallet address from connected wallet
-  const walletAddress = wallets.length > 0 ? wallets[0].address : null;
-
-  // Sync Privy auth with Supabase
   useEffect(() => {
-    if (!ready) return;
+    let mounted = true;
 
-    const syncAuthWithSupabase = async () => {
-      if (authenticated && privyUser) {
-        try {
-          // Check for existing session
-          const { data: { session: existingSession } } = await supabase.auth.getSession();
-          
-          if (!existingSession) {
-            // Create anonymous session for Supabase RLS
-            const { data, error } = await supabase.auth.signInAnonymously();
-            if (error) {
-              console.error('Error creating Supabase session:', error);
+    const initializeAuth = async () => {
+      try {
+        // Set up auth state listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (!mounted) return;
+            setSession(session);
+            setUser(session?.user ?? null);
+            setLoading(false);
+
+            // Create profile if user signs in and doesn't have one
+            if (event === 'SIGNED_IN' && session?.user) {
+              setTimeout(() => {
+                createOrUpdateProfile(session.user);
+              }, 0);
+            }
+          }
+        );
+
+        // Check for existing session first
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // User already has a session
+          if (mounted) {
+            setSession(session);
+            setUser(session?.user ?? null);
+            setLoading(false);
+          }
+        } else {
+          // No session - try to auto-authenticate with Farcaster
+          try {
+            const { sdk } = await import('@farcaster/miniapp-sdk');
+            const context = await sdk.context;
+            
+            if (context?.user) {
+              // We have Farcaster user context - auto sign in
+              console.log('Farcaster user detected:', context.user);
+              await signInWithFarcaster({
+                fid: context.user.fid,
+                username: context.user.username,
+                displayName: context.user.displayName || context.user.username,
+                pfpUrl: context.user.pfpUrl,
+                custodyAddress: '', // Will be fetched from Neynar
+              });
             } else {
-              setSession(data.session);
-              setUser(data.user);
+              // Not in Farcaster context - sign in anonymously
+              const { error } = await supabase.auth.signInAnonymously();
+              if (error) throw error;
             }
-          } else {
-            setSession(existingSession);
-            setUser(existingSession.user);
-          }
-
-          // Create or update profile with Privy user data
-          if (user || existingSession?.user) {
-            const userId = user?.id || existingSession?.user?.id;
-            if (userId) {
-              await createOrUpdateProfile(userId, privyUser);
+          } catch (sdkError) {
+            // Farcaster SDK not available - sign in anonymously
+            console.log('Farcaster SDK not available, signing in anonymously');
+            const { error } = await supabase.auth.signInAnonymously();
+            if (error && mounted) {
+              console.error('Anonymous sign in error:', error);
             }
           }
-        } catch (error) {
-          console.error('Error syncing auth:', error);
         }
-      } else if (!authenticated) {
-        // Clear session when logged out
-        setSession(null);
-        setUser(null);
+
+        if (mounted) {
+          setLoading(false);
+        }
+
+        return () => subscription.unsubscribe();
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        if (mounted) {
+          setLoading(false);
+        }
       }
-      
-      setLoading(false);
     };
 
-    syncAuthWithSupabase();
-  }, [authenticated, privyUser, ready]);
+    initializeAuth();
 
-  // Set up Supabase auth listener
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (event === 'SIGNED_IN' && session?.user && authenticated && privyUser) {
-          setTimeout(() => {
-            createOrUpdateProfile(session.user.id, privyUser);
-          }, 0);
-        }
-      }
-    );
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
-    return () => subscription.unsubscribe();
-  }, [authenticated, privyUser]);
-
-  const createOrUpdateProfile = async (userId: string, privyUserData: any) => {
+  const createOrUpdateProfile = async (user: User) => {
     try {
-      // Extract user data from Privy
-      const farcasterAccount = privyUserData.linkedAccounts?.find(
-        (acc: any) => acc.type === 'farcaster'
-      );
-      const twitterAccount = privyUserData.linkedAccounts?.find(
-        (acc: any) => acc.type === 'twitter_oauth'
-      );
-      const emailAccount = privyUserData.linkedAccounts?.find(
-        (acc: any) => acc.type === 'email'
-      );
-      const walletAccount = privyUserData.linkedAccounts?.find(
-        (acc: any) => acc.type === 'wallet'
-      );
-
-      const displayName = 
-        farcasterAccount?.displayName || 
-        twitterAccount?.name || 
-        emailAccount?.address?.split('@')[0] || 
-        'User';
-
-      const avatarUrl = 
-        farcasterAccount?.pfp || 
-        twitterAccount?.profilePictureUrl || 
-        null;
-
-      const profileData = {
-        user_id: userId,
-        display_name: displayName,
-        avatar_url: avatarUrl,
-        wallet_address: walletAddress || walletAccount?.address,
-        farcaster_username: farcasterAccount?.username,
-        farcaster_fid: farcasterAccount?.fid,
-        bio: farcasterAccount?.bio || twitterAccount?.bio,
-      };
-
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .single();
 
       if (!existingProfile) {
-        await supabase.from('profiles').insert(profileData);
-      } else {
-        // Only update fields that have new values
-        const updateData: any = {};
-        Object.entries(profileData).forEach(([key, value]) => {
-          if (value && key !== 'user_id') {
-            updateData[key] = value;
-          }
+        await supabase.from('profiles').insert({
+          user_id: user.id,
+          display_name: user.user_metadata.display_name || user.email?.split('@')[0] || 'User',
+          farcaster_username: user.user_metadata.farcaster_username,
+          farcaster_fid: user.user_metadata.farcaster_fid ? parseInt(user.user_metadata.farcaster_fid) : null,
+          wallet_address: user.user_metadata.wallet_address,
+          avatar_url: user.user_metadata.avatar_url,
         });
-        
-        if (Object.keys(updateData).length > 0) {
-          await supabase.from('profiles').update(updateData).eq('user_id', userId);
-        }
+      } else {
+        // Update existing profile with new data
+        await supabase.from('profiles').update({
+          display_name: user.user_metadata.display_name || existingProfile.display_name,
+          farcaster_username: user.user_metadata.farcaster_username || existingProfile.farcaster_username,
+          farcaster_fid: user.user_metadata.farcaster_fid ? parseInt(user.user_metadata.farcaster_fid) : existingProfile.farcaster_fid,
+          wallet_address: user.user_metadata.wallet_address || existingProfile.wallet_address,
+          avatar_url: user.user_metadata.avatar_url || existingProfile.avatar_url,
+        }).eq('user_id', user.id);
       }
     } catch (error) {
-      console.error('Error creating/updating profile:', error);
+      console.error('Error creating profile:', error);
     }
   };
 
-  const handleLogout = async () => {
+  const signInWithFarcaster = async (farcasterData: any) => {
     try {
-      await logout();
-      await supabase.auth.signOut();
-      setSession(null);
-      setUser(null);
+      // Create an anonymous session if not already signed in
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      
+      if (!existingSession) {
+        const { error: authError } = await supabase.auth.signInAnonymously();
+        if (authError) throw authError;
+      }
+
+      // Update user metadata with Farcaster data
+      const { data: updated, error: updateError } = await supabase.auth.updateUser({
+        data: {
+          display_name: farcasterData.displayName,
+          farcaster_username: farcasterData.username,
+          farcaster_fid: String(farcasterData.fid),
+          wallet_address: farcasterData.custodyAddress,
+          avatar_url: farcasterData.pfpUrl,
+        },
+      });
+      if (updateError) throw updateError;
+
+      // Fetch and store full profile data from Neynar
+      if (updated.user && farcasterData.fid) {
+        setTimeout(async () => {
+          try {
+            const { data: profileData } = await supabase.functions.invoke(
+              'sync-farcaster-profile',
+              { body: { fid: farcasterData.fid } }
+            );
+
+            if (profileData?.success && profileData.profile) {
+              // Update profile with full data including bio
+              await supabase.from('profiles').upsert({
+                user_id: updated.user.id,
+                farcaster_fid: farcasterData.fid,
+                farcaster_username: profileData.profile.username,
+                display_name: profileData.profile.displayName,
+                avatar_url: profileData.profile.pfpUrl,
+                bio: profileData.profile.bio,
+                wallet_address: profileData.profile.custodyAddress,
+              }, { onConflict: 'user_id' });
+            }
+          } catch (error) {
+            console.error('Error syncing Farcaster profile:', error);
+          }
+        }, 0);
+
+        // Also ensure there's a basic profile row
+        await createOrUpdateProfile(updated.user);
+      }
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Farcaster sign in error:', error);
+      throw error;
     }
   };
 
-  const value: AuthContextType = {
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  };
+
+  const value = {
     user,
     session,
-    loading: loading || !ready,
-    privyUser,
-    privyAuthenticated: authenticated,
-    walletAddress,
-    login,
-    logout: handleLogout,
-    signOut: handleLogout,
+    loading,
+    signInWithFarcaster,
+    signOut,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
