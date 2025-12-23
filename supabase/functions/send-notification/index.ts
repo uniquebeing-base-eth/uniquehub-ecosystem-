@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface NotificationPayload {
-  type: 'course_completion' | 'new_course' | 'new_learning_course' | 'new_marketplace_item' | 'new_blog_article' | 'course_comment' | 'course_rating';
+  type: 'course_completion' | 'new_course' | 'new_learning_course' | 'new_marketplace_item' | 'new_blog_article' | 'course_comment' | 'course_rating' | 'streak_reminder' | 'new_nft_listing' | 'achievement_unlocked' | 'welcome';
   target_user_id?: string; // For individual notifications
   target_fids?: number[]; // For bulk notifications
   broadcast?: boolean; // Send to all users
@@ -21,37 +21,65 @@ interface NotificationPayload {
     commenter_name?: string;
     rating?: number;
     author_name?: string;
+    streak_days?: number;
+    nft_name?: string;
+    nft_price?: string;
+    achievement_name?: string;
+    points_awarded?: number;
+    username?: string;
   };
 }
 
-const notificationTemplates = {
-  course_completion: (data: NotificationPayload['data']) => ({
+const notificationTemplates: Record<NotificationPayload['type'], (data: NotificationPayload['data']) => { title: string; body: string }> = {
+  course_completion: (data) => ({
     title: "🎓 Course Completed!",
     body: `Congratulations! You've completed "${data?.course_title || 'a course'}". Claim your certificate!`,
   }),
-  new_course: (data: NotificationPayload['data']) => ({
+  new_course: (data) => ({
     title: "📚 New Course Available!",
     body: `Check out "${data?.course_title || 'a new course'}" by ${data?.author_name || 'a creator'}!`,
   }),
-  new_learning_course: (data: NotificationPayload['data']) => ({
+  new_learning_course: (data) => ({
     title: "🎯 New Learning Quest!",
     body: `New learning course available: "${data?.course_title || 'Learn something new'}". Earn points!`,
   }),
-  new_marketplace_item: (data: NotificationPayload['data']) => ({
+  new_marketplace_item: (data) => ({
     title: "🛒 New Marketplace Item!",
     body: `Check out "${data?.item_title || 'a new item'}" in the marketplace!`,
   }),
-  new_blog_article: (data: NotificationPayload['data']) => ({
+  new_blog_article: (data) => ({
     title: "📰 New Article!",
     body: `Read the latest: "${data?.article_title || 'New article'}" on UniqueHub!`,
   }),
-  course_comment: (data: NotificationPayload['data']) => ({
+  course_comment: (data) => ({
     title: "💬 New Comment!",
     body: `${data?.commenter_name || 'Someone'} commented on your course "${data?.course_title || ''}"`,
   }),
-  course_rating: (data: NotificationPayload['data']) => ({
+  course_rating: (data) => ({
     title: "⭐ New Rating!",
     body: `Your course "${data?.course_title || ''}" received a ${data?.rating || 5}-star rating!`,
+  }),
+  streak_reminder: (data) => ({
+    title: "⏰ Don't Lose Your Streak!",
+    body: data?.streak_days 
+      ? `You have a ${data.streak_days}-day streak! Check in now to keep it alive.`
+      : "Claim your daily reward before the day ends! Keep your streak alive.",
+  }),
+  new_nft_listing: (data) => ({
+    title: "🖼️ New NFT Listed!",
+    body: `Check out "${data?.nft_name || 'a new NFT'}" listed for ${data?.nft_price || 'sale'} in the marketplace!`,
+  }),
+  achievement_unlocked: (data) => ({
+    title: "🏆 Achievement Unlocked!",
+    body: data?.points_awarded 
+      ? `You earned "${data?.achievement_name || 'an achievement'}" and received ${data.points_awarded} points!`
+      : `You unlocked "${data?.achievement_name || 'a new achievement'}"! Check your profile.`,
+  }),
+  welcome: (data) => ({
+    title: "🎉 Welcome to UniqueHub!",
+    body: data?.username 
+      ? `Hey ${data.username}! Start learning, earn rewards, and trade on Base.`
+      : "Start your Web3 learning journey. Earn rewards and trade on Base!",
   }),
 };
 

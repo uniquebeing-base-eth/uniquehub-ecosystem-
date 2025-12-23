@@ -14,7 +14,7 @@
     "buttonTitle": "Launch UniqueHub",
     "splashImageUrl": "https://uniquehub.xyz/uniquehub-splash.png",
     "splashBackgroundColor": "#1a4d8f",
-    "webhookUrl": "https://api.neynar.com/f/app/d72fc6fc-2ae5-4b1d-87ef-ff6be0f6c165/event",
+    "webhookUrl": "https://ucqcrhfcflrepsdlcvpq.supabase.co/functions/v1/miniapp-webhook",
     "subtitle": "Learn Earn and Trade on Base",
     "description": "Learn blockchain earn rewards and trade on Base",
     "primaryCategory": "education",
