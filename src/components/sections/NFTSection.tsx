@@ -25,6 +25,7 @@ export const NFTSection = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
 
+  
   useEffect(() => {
     loadExistingNFT();
     checkMintStatus();
