@@ -9,6 +9,7 @@ import { CourseUpload } from "@/components/CourseUpload";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 import cardBgTutor from '@/assets/card-bg-tutor.jpg';
 
+
 export const TutorSection = () => {
   const { user } = useAuth();
   const [showCreateForm, setShowCreateForm] = useState(false);
