@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import animeUploadBg from '@/assets/anime-upload-bg.jpg';
 import cardBgUpload from '@/assets/card-bg-upload.jpg';
 
+
 export const UploadSection = () => {
   const [showCourseUpload, setShowCourseUpload] = useState(false);
   const [showNFTUpload, setShowNFTUpload] = useState(false);
