@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
+
 export const CoursesSection = () => {
   const { user } = useAuth();
   const [courses, setCourses] = useState<any[]>([]);
