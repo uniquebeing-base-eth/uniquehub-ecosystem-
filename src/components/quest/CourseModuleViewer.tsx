@@ -12,6 +12,7 @@ import { QUEST_LEARNING_HUB_ABI, QUEST_LEARNING_HUB_ADDRESS, MODULE_COMPLETION_F
 import { base } from 'wagmi/chains';
 import { CourseCompletionShareDialog } from './CourseCompletionShareDialog';
 
+
 interface Course {
   id: string;
   title: string;
