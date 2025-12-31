@@ -36,3 +36,4 @@ export const getAchievementDescription = (type: string, value: number): string =
   }
   return `Milestone: ${value}`;
 };
+
