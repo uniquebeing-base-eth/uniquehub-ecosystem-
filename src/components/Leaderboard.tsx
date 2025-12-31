@@ -1,10 +1,12 @@
 
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Trophy, Users, Flame } from "lucide-react";
 import { CreatorLeaderboard } from "@/components/CreatorLeaderboard";
 import { LearnerLeaderboard } from "@/components/LearnerLeaderboard";
 import animeEarnBg from "@/assets/anime-earn-bg.jpg";
+
 
 export const Leaderboard = () => {
   const [activeView, setActiveView] = useState<"creators" | "learners">("learners");
