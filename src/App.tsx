@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import { AchievementClaimModal } from "@/components/AchievementClaimModal";
 import { useUnclaimedAchievements } from "@/hooks/useUnclaimedAchievements";
 
+
 const queryClient = new QueryClient();
 
 const AppContent = () => {
