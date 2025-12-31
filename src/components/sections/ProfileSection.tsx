@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -11,6 +12,7 @@ import { AchievementClaimModal } from "@/components/AchievementClaimModal";
 import cardBgProfile from '@/assets/card-bg-profile.jpg';
 import { getAchievementTitle, getAchievementDescription } from "@/lib/achievementUtils";
 import { ShareableProfileCard } from "@/components/ShareableProfileCard";
+
 
 export const ProfileSection = () => {
   const { user } = useAuth();
