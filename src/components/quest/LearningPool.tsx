@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from "react";
 import { ArrowLeft, Trophy, Lock, Star, Users, Calendar, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { PoolLeaderboard } from "./PoolLeaderboard";
+
 
 interface LearningPoolProps {
   onBack: () => void;
