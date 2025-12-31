@@ -13,11 +13,13 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
+
 const NFTs = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
+  
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme);
