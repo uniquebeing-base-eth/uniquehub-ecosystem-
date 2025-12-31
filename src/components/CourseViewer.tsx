@@ -12,6 +12,7 @@ import { ShareToFarcaster } from '@/components/ShareToFarcaster';
 import { CommentItem } from '@/components/CommentItem';
 import { CertificateClaim } from '@/components/CertificateClaim';
 
+
 interface CourseViewerProps {
   course: any;
   onClose: () => void;
