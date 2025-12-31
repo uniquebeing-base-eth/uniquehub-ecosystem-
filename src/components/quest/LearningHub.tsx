@@ -12,6 +12,7 @@ import cryptoBg from "@/assets/course-crypto-basics-bg.jpg";
 import web3Bg from "@/assets/course-web3-basics-bg.jpg";
 import placeholderBg from "@/assets/course-placeholder-bg.jpg";
 
+
 interface LearningHubProps {
   onBack: () => void;
 }
