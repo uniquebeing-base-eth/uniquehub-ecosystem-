@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import animeEarnBg from "@/assets/anime-earn-bg.jpg";
 
+
 interface LearnerEntry {
   user_id: string;
   display_name: string | null;
