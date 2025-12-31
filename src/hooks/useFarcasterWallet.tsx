@@ -4,6 +4,7 @@ import { useAccount, useConnect } from 'wagmi';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
+
 export const useFarcasterWallet = () => {
   const { user } = useAuth();
   const { address: wagmiAddress, status, isConnected } = useAccount();
