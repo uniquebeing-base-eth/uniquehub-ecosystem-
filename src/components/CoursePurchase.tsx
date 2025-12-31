@@ -39,9 +39,11 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
   const [requiredETH, setRequiredETH] = useState<bigint>(0n);
   const [authorProfile, setAuthorProfile] = useState<AuthorProfile | null>(null);
 
+  
   const priceInUSDC = parseFloat(course.price_usdc) || 0;
   const isFree = priceInUSDC === 0;
 
+  
   // Fetch author profile
   useEffect(() => {
     const fetchAuthorProfile = async () => {
