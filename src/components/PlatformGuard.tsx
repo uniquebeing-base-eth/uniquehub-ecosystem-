@@ -1,4 +1,5 @@
 
+
 import { useEffect, useState } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk';
 import { Button } from '@/components/ui/button';
