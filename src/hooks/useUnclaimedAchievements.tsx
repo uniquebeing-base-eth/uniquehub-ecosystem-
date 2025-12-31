@@ -13,6 +13,7 @@ interface Achievement {
   badge_color: string;
 }
 
+
 export const useUnclaimedAchievements = () => {
   const { user } = useAuth();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
