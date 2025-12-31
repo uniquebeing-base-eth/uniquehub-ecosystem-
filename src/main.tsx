@@ -12,6 +12,7 @@ import Dashboard from './pages/Dashboard.tsx'
 import NotFound from './pages/NotFound.tsx'
 import './index.css'
 
+
 const queryClient = new QueryClient();
 
 // Register service worker for PWA
