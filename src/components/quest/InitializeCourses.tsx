@@ -1,9 +1,11 @@
 
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+
 
 export const InitializeCourses = ({ onComplete }: { onComplete: () => void }) => {
   const [loading, setLoading] = useState(false);
