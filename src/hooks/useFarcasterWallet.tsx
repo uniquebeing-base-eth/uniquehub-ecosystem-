@@ -12,6 +12,7 @@ export const useFarcasterWallet = () => {
   const [fallbackAddress, setFallbackAddress] = useState<`0x${string}` | undefined>();
   const attemptedRef = useRef(false);
 
+  
   // Try to auto-connect to Farcaster Mini App connector once
   useEffect(() => {
     if (attemptedRef.current) return;
