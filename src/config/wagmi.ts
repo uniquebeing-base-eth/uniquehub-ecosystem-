@@ -5,6 +5,7 @@ import { base, arbitrum, bsc } from 'wagmi/chains';
 import { fallback } from 'viem';
 import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
 
+
 export const wagmiConfig = createConfig({
   chains: [base, arbitrum, bsc],
   connectors: [farcasterMiniApp()],
