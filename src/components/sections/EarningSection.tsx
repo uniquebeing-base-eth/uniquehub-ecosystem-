@@ -1,4 +1,5 @@
 
+
 import { Leaderboard } from "@/components/Leaderboard";
 import { Card } from "@/components/ui/card";
 import { Trophy, Zap, Target, Coins, Gift } from "lucide-react";
@@ -8,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { DailyCheckInDialog } from "@/components/DailyCheckInDialog";
+
 
 export const EarningSection = () => {
   const { user } = useAuth();
