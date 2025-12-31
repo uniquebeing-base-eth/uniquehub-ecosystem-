@@ -1,3 +1,4 @@
+
 import { Home, BookOpen, Box, ShoppingBag, Coins, Trophy, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 
