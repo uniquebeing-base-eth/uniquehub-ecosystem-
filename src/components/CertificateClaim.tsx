@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { base } from 'wagmi/chains';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import {
   CERTIFICATE_CONTRACT_ADDRESS,
   CERTIFICATE_MINT_FEE
 } from '@/config/wagmi';
+
 
 interface CertificateClaimProps {
   courseId: string;
