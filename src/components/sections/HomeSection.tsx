@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import animeHeroBg from '@/assets/anime-hero-bg.jpg';
 import animeNftBg from '@/assets/anime-nft-bg.jpg';
 import animeEarnBg from '@/assets/anime-earn-bg.jpg';
 import animeFactsBg from '@/assets/anime-facts-bg.jpg';
+
 
 interface HomeSectionProps {
   onNavigate?: (tab: string) => void;
