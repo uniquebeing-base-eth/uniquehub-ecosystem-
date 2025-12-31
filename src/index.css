@@ -3,6 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 /* Mobile-first responsive adjustments */
 @layer base {
   * {
