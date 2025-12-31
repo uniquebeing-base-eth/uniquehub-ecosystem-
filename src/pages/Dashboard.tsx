@@ -24,11 +24,13 @@ import { UniqBot } from "@/components/UniqBot";
 import cubeLogo from "@/assets/uniquehub-cube.png";
 import { useAuth } from "@/hooks/useAuth";
 
+
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const { user, loading } = useAuth();
 
+  
   // Toggle theme
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
