@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { MarketplaceCommentItem } from "./MarketplaceCommentItem";
+
 
 interface MarketplaceItemDetailProps {
   item: any;
