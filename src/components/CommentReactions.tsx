@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Heart, Sparkles, Flame } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -5,11 +6,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
 
+
 interface CommentReactionsProps {
   commentId: string;
 }
 
 type ReactionType = 'blue_heart' | 'sparkles' | 'fire';
+
 
 interface Reaction {
   type: ReactionType;
