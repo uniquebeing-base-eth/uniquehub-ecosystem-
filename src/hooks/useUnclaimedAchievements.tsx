@@ -20,6 +20,7 @@ export const useUnclaimedAchievements = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
+  
   useEffect(() => {
     if (!user) {
       setLoading(false);
