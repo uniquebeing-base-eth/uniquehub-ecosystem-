@@ -1,9 +1,11 @@
 
+
 import { useEffect, useState } from "react";
 import { ArrowLeft, Trophy, Medal, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+
 
 interface Pool {
   id: string;
