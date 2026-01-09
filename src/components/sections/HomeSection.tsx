@@ -1,300 +1,284 @@
 
-
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Sparkles, TrendingUp, Wallet, BookOpen, Users, Star } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { ChevronRight, Trophy, Coins, Target } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import animeLearnBg from '@/assets/anime-bg-learn.jpg';
-import animeHeroBg from '@/assets/anime-hero-bg.jpg';
-import animeNftBg from '@/assets/anime-nft-bg.jpg';
-import animeEarnBg from '@/assets/anime-earn-bg.jpg';
-import animeFactsBg from '@/assets/anime-facts-bg.jpg';
-
+import { useAuth } from '@/hooks/useAuth';
 
 interface HomeSectionProps {
   onNavigate?: (tab: string) => void;
   userName?: string;
 }
 
-interface TrendingCourse {
+interface UserStats {
+  totalPoints: number;
+  missionsCompleted: number;
+  totalMissions: number;
+}
+
+interface RecentAchievement {
   id: string;
-  title: string;
+  type: string;
   description: string;
-  rating: number;
-  enrollment_count: number;
-  thumbnail_url?: string;
+  avatar_url?: string;
+  display_name?: string;
+  created_at: string;
 }
 
 export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [trendingCourses, setTrendingCourses] = useState<TrendingCourse[]>([]);
-  const [startX, setStartX] = useState(0);
+  const { user } = useAuth();
+  const [userStats, setUserStats] = useState<UserStats>({
+    totalPoints: 0,
+    missionsCompleted: 0,
+    totalMissions: 3,
+  });
+  const [nextMission, setNextMission] = useState<any>(null);
+  const [recentAchievements, setRecentAchievements] = useState<RecentAchievement[]>([]);
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    fetchTrendingCourses();
-  }, []);
+    if (user) {
+      fetchUserData();
+      fetchNextMission();
+      fetchRecentAchievements();
+    }
+  }, [user]);
 
-  const fetchTrendingCourses = async () => {
-    const { data } = await supabase
-      .from('courses')
-      .select('id, title, description, rating, enrollment_count, thumbnail_url')
-      .eq('status', 'published')
-      .order('rating', { ascending: false })
-      .order('enrollment_count', { ascending: false })
-      .limit(2);
+  const fetchUserData = async () => {
+    if (!user) return;
 
-    if (data) {
-      setTrendingCourses(data);
+    // Fetch profile
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (profileData) {
+      setProfile(profileData);
+    }
+
+    // Fetch points
+    const { data: pointsData } = await supabase
+      .from('user_points')
+      .select('total_points')
+      .eq('user_id', user.id)
+      .single();
+
+    // Fetch completed courses/missions
+    const { data: completions } = await supabase
+      .from('module_completions')
+      .select('id')
+      .eq('user_id', user.id);
+
+    // Count unique courses completed
+    const { data: courseCompletions } = await supabase
+      .from('enrollments')
+      .select('id')
+      .eq('user_id', user.id)
+      .not('completed_at', 'is', null);
+
+    setUserStats({
+      totalPoints: pointsData?.total_points || 0,
+      missionsCompleted: courseCompletions?.length || 0,
+      totalMissions: 3,
+    });
+  };
+
+  const fetchNextMission = async () => {
+    // Fetch next available learning course as mission
+    const { data: courses } = await supabase
+      .from('learning_courses')
+      .select('*, learning_modules(*)')
+      .eq('is_active', true)
+      .limit(1);
+
+    if (courses && courses.length > 0) {
+      const course = courses[0];
+      
+      // Get completion status for this user
+      let completedModules = 0;
+      if (user) {
+        const { data: completions } = await supabase
+          .from('module_completions')
+          .select('module_id')
+          .eq('user_id', user.id)
+          .eq('course_id', course.id);
+        completedModules = completions?.length || 0;
+      }
+
+      const totalModules = course.learning_modules?.length || 0;
+      const tasks = [
+        { id: 1, title: 'Connect Wallet', completed: true },
+        { id: 2, title: `Complete ${completedModules}/${totalModules} modules`, completed: completedModules > 0 },
+        { id: 3, title: 'Earn your first points', completed: userStats.totalPoints > 0 },
+      ];
+
+      setNextMission({
+        title: course.title || 'Build Your Base Presence',
+        tasks,
+        reward: '50 Points',
+      });
+    } else {
+      // Default mission
+      setNextMission({
+        title: 'Build Your Base Presence',
+        tasks: [
+          { id: 1, title: 'Connect Wallet', completed: true },
+          { id: 2, title: 'Do 3 Onchain Actions (2/3)', completed: false },
+          { id: 3, title: 'Post Your First gBase Cast', completed: false },
+        ],
+        reward: '50 Points',
+      });
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setStartX(e.touches[0].clientX);
-  };
+  const fetchRecentAchievements = async () => {
+    // Fetch recent activity from various sources
+    const achievements: RecentAchievement[] = [];
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const endX = e.changedTouches[0].clientX;
-    const diff = startX - endX;
+    // Get recent module completions with user info
+    const { data: completions } = await supabase
+      .from('module_completions')
+      .select(`
+        id,
+        completed_at,
+        points_earned,
+        course_id,
+        learning_courses(title)
+      `)
+      .order('completed_at', { ascending: false })
+      .limit(3);
 
-    if (Math.abs(diff) > 50) {
-      if (diff > 0 && currentSlide < 3) {
-        setCurrentSlide(currentSlide + 1);
-      } else if (diff < 0 && currentSlide > 0) {
-        setCurrentSlide(currentSlide - 1);
+    if (completions) {
+      for (const completion of completions) {
+        achievements.push({
+          id: completion.id,
+          type: 'mission',
+          description: `completed "${(completion as any).learning_courses?.title || 'a mission'}"`,
+          created_at: completion.completed_at || '',
+        });
       }
     }
+
+    // Get recent point events
+    const { data: pointEvents } = await supabase
+      .from('point_events')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(3);
+
+    if (pointEvents) {
+      for (const event of pointEvents) {
+        if (event.event_type === 'course_completion') {
+          achievements.push({
+            id: event.id,
+            type: 'earn',
+            description: `earned ${event.points_earned} points`,
+            created_at: event.created_at,
+          });
+        }
+      }
+    }
+
+    // Sort and limit
+    achievements.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    setRecentAchievements(achievements.slice(0, 3));
   };
 
-  const slides = [
-    {
-      type: 'web3',
-      title: 'Learn Web3.0',
-      description: 'Master blockchain technology, smart contracts, and decentralized applications',
-      icon: '🔗',
-      action: () => onNavigate?.('courses'),
-    },
-    {
-      type: 'facts',
-      title: 'About UniqueHub',
-      description: 'Your all-in-one platform',
-      icon: '✨',
-    },
-    ...(trendingCourses.length >= 1 ? [{
-      type: 'course',
-      course: trendingCourses[0],
-    }] : []),
-    ...(trendingCourses.length >= 2 ? [{
-      type: 'course',
-      course: trendingCourses[1],
-    }] : []),
-  ];
+  const pointsValue = (userStats.totalPoints * 0.0267).toFixed(2);
 
   return (
-    <div className="space-y-3 pb-20 animate-fade-in">
-      {/* Hero Section */}
-      <div className="rounded-2xl p-4 space-y-2 relative overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-100"
-          style={{ backgroundImage: `url(${animeHeroBg})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-black/20 to-black/30" />
-        <div className="relative z-10">
-          <h2 className="text-sm font-semibold text-white mb-3">
-            Hi {userName}
-          </h2>
-          <h1 className="text-base font-bold leading-snug text-white">
-            Welcome to UniqueHub your super app for learning, earning and trading.
-          </h1>
-          <Button 
-            variant="secondary" 
-            className="bg-white/90 text-blue-600 hover:bg-white hover:shadow-lg font-semibold rounded-2xl px-5 py-1.5 h-auto text-xs transition-all duration-300 hover:scale-105 mt-2"
-            onClick={() => onNavigate?.('courses')}
-          >
-            Get started
-          </Button>
+    <div className="space-y-4 pb-24 animate-fade-in">
+      {/* User Profile Card */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold text-foreground">
+          Hello, {userName || profile?.display_name || 'User'} 👋
+        </h1>
+        <p className="text-sm text-muted-foreground">Status: Rising Star</p>
+      </div>
+
+      {/* Stats Row */}
+      <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-1.5">
+          <Target className="w-4 h-4 text-primary" />
+          <span className="text-foreground">Missions Completed: <strong>{userStats.missionsCompleted} / {userStats.totalMissions}</strong></span>
         </div>
       </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-2">
-        <Card 
-          className="p-3 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group rounded-2xl hover:scale-105 relative overflow-hidden border-none"
-          onClick={() => onNavigate?.('marketplace')}
-        >
-          <div 
-            className="absolute inset-0 bg-cover bg-center opacity-100"
-            style={{ backgroundImage: `url(${animeNftBg})` }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 to-slate-800/85" />
-          <div className="space-y-1.5 relative z-10">
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <h3 className="font-semibold text-sm text-white">Discover NFTs</h3>
-            <p className="text-xs text-white/80">Explore digital art</p>
-          </div>
-        </Card>
-        <Card 
-          className="p-3 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group rounded-2xl hover:scale-105 relative overflow-hidden border-none"
-          onClick={() => onNavigate?.('earn')}
-        >
-          <div 
-            className="absolute inset-0 bg-cover bg-center opacity-100"
-            style={{ backgroundImage: `url(${animeEarnBg})` }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-green-900/80 to-emerald-800/85" />
-          <div className="space-y-1.5 relative z-10">
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <TrendingUp className="w-4 h-4 text-white" />
-            </div>
-            <h3 className="font-semibold text-sm text-white">Start Earning</h3>
-            <p className="text-xs text-white/80">Complete tasks & earn</p>
-          </div>
-        </Card>
+      <div className="flex items-center gap-1.5 text-sm">
+        <Coins className="w-4 h-4 text-primary" />
+        <span className="text-foreground">Points: <strong>{userStats.totalPoints}</strong> (~${pointsValue})</span>
       </div>
 
-      {/* Featured Carousel */}
-      <div 
-        className="relative overflow-hidden"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        <div 
-          className="flex transition-transform duration-300 ease-out"
-          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-        >
-          {slides.map((slide, index) => (
-            <div key={index} className="w-full flex-shrink-0">
-              {slide.type === 'web3' && (
-                <Card className="p-4 text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col">
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center opacity-100"
-                    style={{ 
-                      backgroundImage: `url(${animeLearnBg})`,
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-br from-black/40 to-black/50" />
-                  <div className="flex-1 relative z-10">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Wallet className="w-5 h-5" />
-                      <h3 className="text-base font-bold">{slide.title}</h3>
-                    </div>
-                    <p className="text-sm text-white/90 leading-relaxed">{slide.description}</p>
+      {/* Next Mission Card */}
+      {nextMission && (
+        <Card className="bg-primary text-primary-foreground p-4 rounded-2xl space-y-3">
+          <h3 className="font-semibold text-sm">Next Mission: {nextMission.title}</h3>
+          <div className="space-y-2">
+            {nextMission.tasks.map((task: any) => (
+              <div key={task.id} className="flex items-center gap-2 text-sm">
+                {task.completed ? (
+                  <div className="w-4 h-4 rounded-full bg-green-400 flex items-center justify-center">
+                    <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
                   </div>
-                  <div className="flex items-center justify-between relative z-10">
-                    <div className="flex gap-1.5">
-                      {slides.map((_, dotIndex) => (
-                        <div
-                          key={dotIndex}
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            dotIndex === currentSlide ? 'bg-white' : 'bg-white/40'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <Button 
-                      variant="secondary"
-                      className="bg-white/90 text-primary hover:bg-white hover:shadow-lg rounded-xl px-3 py-1 h-auto text-xs font-medium transition-all duration-300 hover:scale-105"
-                      onClick={slide.action}
-                    >
-                      Start Now
-                    </Button>
-                  </div>
-                </Card>
-              )}
-              
-              {slide.type === 'facts' && (
-                <Card className="p-4 text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col">
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${animeFactsBg})` }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/85 via-primary/75 to-primary/65" />
-                  <div className="flex-1 relative z-10">
-                    <h3 className="text-base font-bold mb-3">{slide.title}</h3>
-                    <div className="space-y-1.5 text-xs text-white/90">
-                      <p>• Learn Web3 skills from expert tutors</p>
-                      <p>• Trade NFTs and digital collectibles</p>
-                      <p>• Earn rewards by completing tasks</p>
-                      <p>• Built on Base blockchain</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-1.5 mt-auto relative z-10">
-                    {slides.map((_, dotIndex) => (
-                      <div
-                        key={dotIndex}
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          dotIndex === currentSlide ? 'bg-white' : 'bg-white/40'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </Card>
-              )}
-              
-              {slide.type === 'course' && slide.course && (
-                <Card className="p-4 text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col">
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{ 
-                      backgroundImage: slide.course.thumbnail_url 
-                        ? `url(${slide.course.thumbnail_url})` 
-                        : `url(${animeLearnBg})`
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/85 to-primary/80" />
-                  <div className="flex gap-3 flex-1 relative z-10">
-                    {slide.course.thumbnail_url && (
-                      <div className="w-24 h-full rounded-xl overflow-hidden flex-shrink-0 bg-white/10 border border-white/20">
-                        <img 
-                          src={slide.course.thumbnail_url} 
-                          alt={slide.course.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0 flex flex-col">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <BookOpen className="w-4 h-4" />
-                        <span className="text-xs font-medium opacity-80">Trending</span>
-                      </div>
-                      <h3 className="text-sm font-bold mb-1 line-clamp-2">{slide.course.title}</h3>
-                      <div className="flex items-center gap-2 text-xs mb-2">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-3 h-3 fill-white" />
-                          <span className="font-medium">{slide.course.rating.toFixed(1)}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="w-3 h-3" />
-                          <span className="font-medium">{slide.course.enrollment_count}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between relative z-10 mt-2">
-                    <div className="flex gap-1.5">
-                      {slides.map((_, dotIndex) => (
-                        <div
-                          key={dotIndex}
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            dotIndex === currentSlide ? 'bg-white' : 'bg-white/40'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <Button 
-                      variant="secondary"
-                      className="bg-white/90 text-primary hover:bg-white hover:shadow-lg rounded-xl px-3 py-1 h-auto text-xs font-medium transition-all duration-300 hover:scale-105"
-                      onClick={() => onNavigate?.('courses')}
-                    >
-                      View Course
-                    </Button>
-                  </div>
-                </Card>
-              )}
-            </div>
-          ))}
+                ) : (
+                  <div className="w-4 h-4 rounded border-2 border-white/50" />
+                )}
+                <span className={task.completed ? 'opacity-70' : ''}>{task.title}</span>
+              </div>
+            ))}
+          </div>
+          <Button 
+            variant="secondary" 
+            className="bg-white text-primary hover:bg-white/90 font-semibold rounded-xl"
+            onClick={() => onNavigate?.('missions')}
+          >
+            Start Mission <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        </Card>
+      )}
+
+      {/* Recent Achievements */}
+      <div className="space-y-3">
+        <h3 className="font-semibold text-base text-foreground">Recent Achievements</h3>
+        <div className="space-y-2">
+          {recentAchievements.length > 0 ? (
+            recentAchievements.map((achievement) => (
+              <Card 
+                key={achievement.id}
+                className="p-3 flex items-center gap-3 bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50 rounded-xl cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+              >
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={achievement.avatar_url} />
+                  <AvatarFallback className="bg-primary/20 text-primary text-xs">
+                    {achievement.type === 'mission' ? '🎯' : '💰'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {achievement.display_name || 'User'} {achievement.description}
+                  </p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              </Card>
+            ))
+          ) : (
+            <>
+              <Card className="p-3 flex items-center gap-3 bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50 rounded-xl">
+                <Avatar className="w-10 h-10">
+                  <AvatarFallback className="bg-primary/20 text-primary text-xs">🎯</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">Complete your first mission to see achievements</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </Card>
+            </>
+          )}
         </div>
       </div>
     </div>
