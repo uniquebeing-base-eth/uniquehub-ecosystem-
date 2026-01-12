@@ -3,284 +3,370 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ChevronRight, Trophy, Coins, Target } from 'lucide-react';
+import { ChevronRight, Play, Wallet, BookOpen, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useSandboxWallet } from '@/hooks/useSandboxWallet';
+import cubeLogo from '@/assets/uniquehub-cube.png';
 
 interface HomeSectionProps {
   onNavigate?: (tab: string) => void;
-  userName?: string;
 }
 
-interface UserStats {
-  totalPoints: number;
-  missionsCompleted: number;
-  totalMissions: number;
-}
-
-interface RecentAchievement {
+interface FeaturedCourse {
   id: string;
-  type: string;
-  description: string;
-  avatar_url?: string;
-  display_name?: string;
-  created_at: string;
+  title: string;
+  thumbnail_url: string;
+  price_usdc: number;
+  creator_name: string;
+  creator_avatar: string;
+  enrollment_count: number;
 }
 
-export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
+interface ActiveCreator {
+  user_id: string;
+  display_name: string;
+  avatar_url: string;
+  coin_symbol: string;
+  holders_count: number;
+}
+
+export const HomeSection = ({ onNavigate }: HomeSectionProps) => {
   const { user } = useAuth();
-  const [userStats, setUserStats] = useState<UserStats>({
-    totalPoints: 0,
-    missionsCompleted: 0,
-    totalMissions: 3,
-  });
-  const [nextMission, setNextMission] = useState<any>(null);
-  const [recentAchievements, setRecentAchievements] = useState<RecentAchievement[]>([]);
+  const { wallet, tokenBalances, loading: walletLoading } = useSandboxWallet();
   const [profile, setProfile] = useState<any>(null);
+  const [featuredCourses, setFeaturedCourses] = useState<FeaturedCourse[]>([]);
+  const [activeCreators, setActiveCreators] = useState<ActiveCreator[]>([]);
+  const [enrolledCount, setEnrolledCount] = useState(0);
 
   useEffect(() => {
     if (user) {
-      fetchUserData();
-      fetchNextMission();
-      fetchRecentAchievements();
+      fetchProfile();
+      fetchFeaturedCourses();
+      fetchActiveCreators();
+      fetchEnrollmentCount();
     }
   }, [user]);
 
-  const fetchUserData = async () => {
+  const fetchProfile = async () => {
     if (!user) return;
-
-    // Fetch profile
-    const { data: profileData } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .select('*')
       .eq('user_id', user.id)
       .single();
-    
-    if (profileData) {
-      setProfile(profileData);
+    setProfile(data);
+  };
+
+  const fetchFeaturedCourses = async () => {
+    const { data: courses } = await supabase
+      .from('courses')
+      .select('*')
+      .eq('status', 'published')
+      .order('enrollment_count', { ascending: false })
+      .limit(3);
+
+    if (courses) {
+      const enriched = await Promise.all(
+        courses.map(async (course) => {
+          const { data: creatorProfile } = await supabase
+            .from('profiles')
+            .select('display_name, avatar_url')
+            .eq('user_id', course.user_id)
+            .single();
+
+          return {
+            id: course.id,
+            title: course.title,
+            thumbnail_url: course.thumbnail_url || '',
+            price_usdc: course.price_usdc || 0,
+            creator_name: creatorProfile?.display_name || 'Creator',
+            creator_avatar: creatorProfile?.avatar_url || '',
+            enrollment_count: course.enrollment_count || 0,
+          };
+        })
+      );
+      setFeaturedCourses(enriched);
     }
+  };
 
-    // Fetch points
-    const { data: pointsData } = await supabase
-      .from('user_points')
-      .select('total_points')
-      .eq('user_id', user.id)
-      .single();
+  const fetchActiveCreators = async () => {
+    const { data: coins } = await supabase
+      .from('creator_coins')
+      .select('*')
+      .order('holders_count', { ascending: false })
+      .limit(5);
 
-    // Fetch completed courses/missions
-    const { data: completions } = await supabase
-      .from('module_completions')
-      .select('id')
-      .eq('user_id', user.id);
+    if (coins) {
+      const enriched = await Promise.all(
+        coins.map(async (coin) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('display_name, avatar_url')
+            .eq('user_id', coin.creator_user_id)
+            .single();
 
-    // Count unique courses completed
-    const { data: courseCompletions } = await supabase
+          return {
+            user_id: coin.creator_user_id,
+            display_name: profile?.display_name || 'Creator',
+            avatar_url: profile?.avatar_url || '',
+            coin_symbol: coin.symbol,
+            holders_count: coin.holders_count,
+          };
+        })
+      );
+      setActiveCreators(enriched);
+    }
+  };
+
+  const fetchEnrollmentCount = async () => {
+    if (!user) return;
+    const { data } = await supabase
       .from('enrollments')
       .select('id')
-      .eq('user_id', user.id)
-      .not('completed_at', 'is', null);
-
-    setUserStats({
-      totalPoints: pointsData?.total_points || 0,
-      missionsCompleted: courseCompletions?.length || 0,
-      totalMissions: 3,
-    });
+      .eq('user_id', user.id);
+    setEnrolledCount(data?.length || 0);
   };
 
-  const fetchNextMission = async () => {
-    // Fetch next available learning course as mission
-    const { data: courses } = await supabase
-      .from('learning_courses')
-      .select('*, learning_modules(*)')
-      .eq('is_active', true)
-      .limit(1);
-
-    if (courses && courses.length > 0) {
-      const course = courses[0];
-      
-      // Get completion status for this user
-      let completedModules = 0;
-      if (user) {
-        const { data: completions } = await supabase
-          .from('module_completions')
-          .select('module_id')
-          .eq('user_id', user.id)
-          .eq('course_id', course.id);
-        completedModules = completions?.length || 0;
-      }
-
-      const totalModules = course.learning_modules?.length || 0;
-      const tasks = [
-        { id: 1, title: 'Connect Wallet', completed: true },
-        { id: 2, title: `Complete ${completedModules}/${totalModules} modules`, completed: completedModules > 0 },
-        { id: 3, title: 'Earn your first points', completed: userStats.totalPoints > 0 },
-      ];
-
-      setNextMission({
-        title: course.title || 'Build Your Base Presence',
-        tasks,
-        reward: '50 Points',
-      });
-    } else {
-      // Default mission
-      setNextMission({
-        title: 'Build Your Base Presence',
-        tasks: [
-          { id: 1, title: 'Connect Wallet', completed: true },
-          { id: 2, title: 'Do 3 Onchain Actions (2/3)', completed: false },
-          { id: 3, title: 'Post Your First gBase Cast', completed: false },
-        ],
-        reward: '50 Points',
-      });
-    }
-  };
-
-  const fetchRecentAchievements = async () => {
-    // Fetch recent activity from various sources
-    const achievements: RecentAchievement[] = [];
-
-    // Get recent module completions with user info
-    const { data: completions } = await supabase
-      .from('module_completions')
-      .select(`
-        id,
-        completed_at,
-        points_earned,
-        course_id,
-        learning_courses(title)
-      `)
-      .order('completed_at', { ascending: false })
-      .limit(3);
-
-    if (completions) {
-      for (const completion of completions) {
-        achievements.push({
-          id: completion.id,
-          type: 'mission',
-          description: `completed "${(completion as any).learning_courses?.title || 'a mission'}"`,
-          created_at: completion.completed_at || '',
-        });
-      }
-    }
-
-    // Get recent point events
-    const { data: pointEvents } = await supabase
-      .from('point_events')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(3);
-
-    if (pointEvents) {
-      for (const event of pointEvents) {
-        if (event.event_type === 'course_completion') {
-          achievements.push({
-            id: event.id,
-            type: 'earn',
-            description: `earned ${event.points_earned} points`,
-            created_at: event.created_at,
-          });
-        }
-      }
-    }
-
-    // Sort and limit
-    achievements.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    setRecentAchievements(achievements.slice(0, 3));
-  };
-
-  const pointsValue = (userStats.totalPoints * 0.0267).toFixed(2);
+  const totalTokens = tokenBalances.reduce((sum, t) => sum + t.balance, 0);
 
   return (
-    <div className="space-y-4 pb-24 animate-fade-in">
-      {/* User Profile Card */}
+    <div className="space-y-6 pb-24 animate-fade-in">
+      {/* Welcome Header */}
       <div className="space-y-1">
         <h1 className="text-2xl font-bold text-foreground">
-          Hello, {userName || profile?.display_name || 'User'} 👋
+          Welcome back{profile?.display_name ? `, ${profile.display_name}` : ''} 👋
         </h1>
-        <p className="text-sm text-muted-foreground">Status: Rising Star</p>
+        <p className="text-sm text-muted-foreground">
+          Discover, learn, and grow with UniqueHub
+        </p>
       </div>
 
-      {/* Stats Row */}
-      <div className="flex items-center gap-4 text-sm">
-        <div className="flex items-center gap-1.5">
-          <Target className="w-4 h-4 text-primary" />
-          <span className="text-foreground">Missions Completed: <strong>{userStats.missionsCompleted} / {userStats.totalMissions}</strong></span>
-        </div>
-      </div>
-      <div className="flex items-center gap-1.5 text-sm">
-        <Coins className="w-4 h-4 text-primary" />
-        <span className="text-foreground">Points: <strong>{userStats.totalPoints}</strong> (~${pointsValue})</span>
-      </div>
-
-      {/* Next Mission Card */}
-      {nextMission && (
-        <Card className="bg-primary text-primary-foreground p-4 rounded-2xl space-y-3">
-          <h3 className="font-semibold text-sm">Next Mission: {nextMission.title}</h3>
-          <div className="space-y-2">
-            {nextMission.tasks.map((task: any) => (
-              <div key={task.id} className="flex items-center gap-2 text-sm">
-                {task.completed ? (
-                  <div className="w-4 h-4 rounded-full bg-green-400 flex items-center justify-center">
-                    <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                ) : (
-                  <div className="w-4 h-4 rounded border-2 border-white/50" />
-                )}
-                <span className={task.completed ? 'opacity-70' : ''}>{task.title}</span>
-              </div>
-            ))}
+      {/* Wallet Summary Card */}
+      <Card className="p-4 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Wallet className="w-5 h-5" />
+            <span className="font-semibold">Sandbox Wallet</span>
           </div>
           <Button 
             variant="secondary" 
-            className="bg-white text-primary hover:bg-white/90 font-semibold rounded-xl"
-            onClick={() => onNavigate?.('missions')}
+            size="sm" 
+            className="bg-white/20 hover:bg-white/30 text-white border-0"
+            onClick={() => onNavigate?.('profile')}
           >
-            Start Mission <ChevronRight className="w-4 h-4 ml-1" />
+            View Wallet
           </Button>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <p className="text-xs opacity-80">USDC Balance</p>
+            <p className="text-lg font-bold">
+              ${walletLoading ? '...' : wallet?.usdc_balance?.toLocaleString() || '10,000'}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs opacity-80">ETH Balance</p>
+            <p className="text-lg font-bold">
+              {walletLoading ? '...' : wallet?.eth_balance?.toFixed(2) || '5.00'}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs opacity-80">Tokens</p>
+            <p className="text-lg font-bold">
+              {walletLoading ? '...' : tokenBalances.length || '0'}
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 gap-3">
+        <Card 
+          className="p-4 rounded-2xl cursor-pointer hover:border-primary/50 transition-all"
+          onClick={() => onNavigate?.('courses')}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <BookOpen className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{enrolledCount}</p>
+              <p className="text-xs text-muted-foreground">Courses Enrolled</p>
+            </div>
+          </div>
         </Card>
+        <Card 
+          className="p-4 rounded-2xl cursor-pointer hover:border-primary/50 transition-all"
+          onClick={() => onNavigate?.('profile')}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-success" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{totalTokens.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">Total Tokens</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Active Creators */}
+      {(activeCreators.length > 0 || true) && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">Active Creators</h2>
+            <button 
+              className="text-sm text-primary font-medium"
+              onClick={() => onNavigate?.('discover')}
+            >
+              See All
+            </button>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+            {activeCreators.length > 0 ? (
+              activeCreators.map((creator) => (
+                <div key={creator.user_id} className="flex flex-col items-center gap-2 min-w-[80px]">
+                  <Avatar className="w-14 h-14 ring-2 ring-primary/30">
+                    <AvatarImage src={creator.avatar_url} />
+                    <AvatarFallback className="bg-primary/20 text-primary text-sm">
+                      {creator.display_name.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-center">
+                    <div className="flex items-center gap-1 justify-center">
+                      <img src={cubeLogo} alt="" className="w-3 h-3" />
+                      <span className="text-xs font-semibold text-primary">{creator.coin_symbol}</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground truncate max-w-[70px]">
+                      {creator.display_name}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              [...Array(4)].map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-2 min-w-[80px]">
+                  <Avatar className="w-14 h-14 ring-2 ring-primary/30">
+                    <AvatarFallback className="bg-primary/20 text-primary text-sm">
+                      {['BD', 'SD', 'AW', 'JF'][i]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-center">
+                    <div className="flex items-center gap-1 justify-center">
+                      <img src={cubeLogo} alt="" className="w-3 h-3" />
+                      <span className="text-xs font-semibold text-primary">
+                        ${['BANK', 'SARA', 'ALEX', 'JACK'][i]}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      {['Bankless', 'Sara D.', 'Alex W3', 'Jack F.'][i]}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       )}
 
-      {/* Recent Achievements */}
+      {/* Featured Courses */}
       <div className="space-y-3">
-        <h3 className="font-semibold text-base text-foreground">Recent Achievements</h3>
-        <div className="space-y-2">
-          {recentAchievements.length > 0 ? (
-            recentAchievements.map((achievement) => (
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground">Featured Courses</h2>
+          <button 
+            className="text-sm text-primary font-medium"
+            onClick={() => onNavigate?.('courses')}
+          >
+            View All
+          </button>
+        </div>
+        <div className="space-y-3">
+          {featuredCourses.length > 0 ? (
+            featuredCourses.map((course) => (
               <Card 
-                key={achievement.id}
-                className="p-3 flex items-center gap-3 bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50 rounded-xl cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                key={course.id}
+                className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:border-primary/50 transition-all"
+                onClick={() => onNavigate?.('courses')}
               >
-                <Avatar className="w-10 h-10">
-                  <AvatarImage src={achievement.avatar_url} />
-                  <AvatarFallback className="bg-primary/20 text-primary text-xs">
-                    {achievement.type === 'mission' ? '🎯' : '💰'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {achievement.display_name || 'User'} {achievement.description}
-                  </p>
+                <div className="w-20 h-14 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                  {course.thumbnail_url ? (
+                    <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                      <Play className="w-6 h-6 text-primary" />
+                    </div>
+                  )}
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm text-foreground truncate">{course.title}</h4>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Avatar className="w-4 h-4">
+                      <AvatarImage src={course.creator_avatar} />
+                      <AvatarFallback className="text-[8px] bg-primary/20">
+                        {course.creator_name.slice(0, 2)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs text-muted-foreground">{course.creator_name}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs font-medium text-primary">
+                      {course.price_usdc === 0 ? 'Free' : `$${course.price_usdc} USDC`}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      • {course.enrollment_count} students
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
               </Card>
             ))
           ) : (
-            <>
-              <Card className="p-3 flex items-center gap-3 bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50 rounded-xl">
-                <Avatar className="w-10 h-10">
-                  <AvatarFallback className="bg-primary/20 text-primary text-xs">🎯</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">Complete your first mission to see achievements</p>
+            [...Array(3)].map((_, i) => (
+              <Card 
+                key={i}
+                className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:border-primary/50 transition-all"
+                onClick={() => onNavigate?.('courses')}
+              >
+                <div className="w-20 h-14 rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0">
+                  <Play className="w-6 h-6 text-primary" />
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm text-foreground">
+                    {['Crypto Fundamentals', 'Web3 Development', 'DeFi Mastery'][i]}
+                  </h4>
+                  <span className="text-xs text-muted-foreground">
+                    {['BanklessDave', 'Sara Digital', 'Alex Web3'][i]}
+                  </span>
+                  <div className="mt-1">
+                    <span className="text-xs font-medium text-primary">${[5, 10, 15][i]} USDC</span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
               </Card>
-            </>
+            ))
           )}
         </div>
       </div>
+
+      {/* CTA to Discover */}
+      <Card 
+        className="p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 cursor-pointer hover:border-primary/40 transition-all"
+        onClick={() => onNavigate?.('discover')}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-foreground mb-1">Explore More</h3>
+            <p className="text-sm text-muted-foreground">
+              Discover creators, courses, and grow your knowledge
+            </p>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+            <ChevronRight className="w-6 h-6 text-primary-foreground" />
+          </div>
+        </div>
+      </Card>
     </div>
   );
 };
