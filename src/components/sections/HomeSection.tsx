@@ -1,302 +1,372 @@
 
-
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Sparkles, TrendingUp, Wallet, BookOpen, Users, Star } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { ChevronRight, Play, Wallet, BookOpen, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import animeLearnBg from '@/assets/anime-bg-learn.jpg';
-import animeHeroBg from '@/assets/anime-hero-bg.jpg';
-import animeNftBg from '@/assets/anime-nft-bg.jpg';
-import animeEarnBg from '@/assets/anime-earn-bg.jpg';
-import animeFactsBg from '@/assets/anime-facts-bg.jpg';
-
+import { useAuth } from '@/hooks/useAuth';
+import { useSandboxWallet } from '@/hooks/useSandboxWallet';
+import cubeLogo from '@/assets/uniquehub-cube.png';
 
 interface HomeSectionProps {
   onNavigate?: (tab: string) => void;
-  userName?: string;
 }
 
-interface TrendingCourse {
+interface FeaturedCourse {
   id: string;
   title: string;
-  description: string;
-  rating: number;
+  thumbnail_url: string;
+  price_usdc: number;
+  creator_name: string;
+  creator_avatar: string;
   enrollment_count: number;
-  thumbnail_url?: string;
 }
 
-export const HomeSection = ({ onNavigate, userName }: HomeSectionProps) => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [trendingCourses, setTrendingCourses] = useState<TrendingCourse[]>([]);
-  const [startX, setStartX] = useState(0);
+interface ActiveCreator {
+  user_id: string;
+  display_name: string;
+  avatar_url: string;
+  coin_symbol: string;
+  holders_count: number;
+}
+
+export const HomeSection = ({ onNavigate }: HomeSectionProps) => {
+  const { user } = useAuth();
+  const { wallet, tokenBalances, loading: walletLoading } = useSandboxWallet();
+  const [profile, setProfile] = useState<any>(null);
+  const [featuredCourses, setFeaturedCourses] = useState<FeaturedCourse[]>([]);
+  const [activeCreators, setActiveCreators] = useState<ActiveCreator[]>([]);
+  const [enrolledCount, setEnrolledCount] = useState(0);
 
   useEffect(() => {
-    fetchTrendingCourses();
-  }, []);
+    if (user) {
+      fetchProfile();
+      fetchFeaturedCourses();
+      fetchActiveCreators();
+      fetchEnrollmentCount();
+    }
+  }, [user]);
 
-  const fetchTrendingCourses = async () => {
+  const fetchProfile = async () => {
+    if (!user) return;
     const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+    setProfile(data);
+  };
+
+  const fetchFeaturedCourses = async () => {
+    const { data: courses } = await supabase
       .from('courses')
-      .select('id, title, description, rating, enrollment_count, thumbnail_url')
+      .select('*')
       .eq('status', 'published')
-      .order('rating', { ascending: false })
       .order('enrollment_count', { ascending: false })
-      .limit(2);
+      .limit(3);
 
-    if (data) {
-      setTrendingCourses(data);
+    if (courses) {
+      const enriched = await Promise.all(
+        courses.map(async (course) => {
+          const { data: creatorProfile } = await supabase
+            .from('profiles')
+            .select('display_name, avatar_url')
+            .eq('user_id', course.user_id)
+            .single();
+
+          return {
+            id: course.id,
+            title: course.title,
+            thumbnail_url: course.thumbnail_url || '',
+            price_usdc: course.price_usdc || 0,
+            creator_name: creatorProfile?.display_name || 'Creator',
+            creator_avatar: creatorProfile?.avatar_url || '',
+            enrollment_count: course.enrollment_count || 0,
+          };
+        })
+      );
+      setFeaturedCourses(enriched);
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setStartX(e.touches[0].clientX);
-  };
+  const fetchActiveCreators = async () => {
+    const { data: coins } = await supabase
+      .from('creator_coins')
+      .select('*')
+      .order('holders_count', { ascending: false })
+      .limit(5);
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const endX = e.changedTouches[0].clientX;
-    const diff = startX - endX;
+    if (coins) {
+      const enriched = await Promise.all(
+        coins.map(async (coin) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('display_name, avatar_url')
+            .eq('user_id', coin.creator_user_id)
+            .single();
 
-    if (Math.abs(diff) > 50) {
-      if (diff > 0 && currentSlide < 3) {
-        setCurrentSlide(currentSlide + 1);
-      } else if (diff < 0 && currentSlide > 0) {
-        setCurrentSlide(currentSlide - 1);
-      }
+          return {
+            user_id: coin.creator_user_id,
+            display_name: profile?.display_name || 'Creator',
+            avatar_url: profile?.avatar_url || '',
+            coin_symbol: coin.symbol,
+            holders_count: coin.holders_count,
+          };
+        })
+      );
+      setActiveCreators(enriched);
     }
   };
 
-  const slides = [
-    {
-      type: 'web3',
-      title: 'Learn Web3.0',
-      description: 'Master blockchain technology, smart contracts, and decentralized applications',
-      icon: '🔗',
-      action: () => onNavigate?.('courses'),
-    },
-    {
-      type: 'facts',
-      title: 'About UniqueHub',
-      description: 'Your all-in-one platform',
-      icon: '✨',
-    },
-    ...(trendingCourses.length >= 1 ? [{
-      type: 'course',
-      course: trendingCourses[0],
-    }] : []),
-    ...(trendingCourses.length >= 2 ? [{
-      type: 'course',
-      course: trendingCourses[1],
-    }] : []),
-  ];
+  const fetchEnrollmentCount = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('enrollments')
+      .select('id')
+      .eq('user_id', user.id);
+    setEnrolledCount(data?.length || 0);
+  };
+
+  const totalTokens = tokenBalances.reduce((sum, t) => sum + t.balance, 0);
 
   return (
-    <div className="space-y-3 pb-20 animate-fade-in">
-      {/* Hero Section */}
-      <div className="rounded-2xl p-4 space-y-2 relative overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-100"
-          style={{ backgroundImage: `url(${animeHeroBg})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-black/20 to-black/30" />
-        <div className="relative z-10">
-          <h2 className="text-sm font-semibold text-white mb-3">
-            Hi {userName}
-          </h2>
-          <h1 className="text-base font-bold leading-snug text-white">
-            Welcome to UniqueHub your super app for learning, earning and trading.
-          </h1>
+    <div className="space-y-6 pb-24 animate-fade-in">
+      {/* Welcome Header */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold text-foreground">
+          Welcome back{profile?.display_name ? `, ${profile.display_name}` : ''} 👋
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Discover, learn, and grow with UniqueHub
+        </p>
+      </div>
+
+      {/* Wallet Summary Card */}
+      <Card className="p-4 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Wallet className="w-5 h-5" />
+            <span className="font-semibold">Sandbox Wallet</span>
+          </div>
           <Button 
             variant="secondary" 
-            className="bg-white/90 text-blue-600 hover:bg-white hover:shadow-lg font-semibold rounded-2xl px-5 py-1.5 h-auto text-xs transition-all duration-300 hover:scale-105 mt-2"
-            onClick={() => onNavigate?.('courses')}
+            size="sm" 
+            className="bg-white/20 hover:bg-white/30 text-white border-0"
+            onClick={() => onNavigate?.('profile')}
           >
-            Get started
+            View Wallet
           </Button>
         </div>
-      </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <p className="text-xs opacity-80">USDC Balance</p>
+            <p className="text-lg font-bold">
+              ${walletLoading ? '...' : wallet?.usdc_balance?.toLocaleString() || '10,000'}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs opacity-80">ETH Balance</p>
+            <p className="text-lg font-bold">
+              {walletLoading ? '...' : wallet?.eth_balance?.toFixed(2) || '5.00'}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs opacity-80">Tokens</p>
+            <p className="text-lg font-bold">
+              {walletLoading ? '...' : tokenBalances.length || '0'}
+            </p>
+          </div>
+        </div>
+      </Card>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 gap-3">
         <Card 
-          className="p-3 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group rounded-2xl hover:scale-105 relative overflow-hidden border-none"
-          onClick={() => onNavigate?.('marketplace')}
+          className="p-4 rounded-2xl cursor-pointer hover:border-primary/50 transition-all"
+          onClick={() => onNavigate?.('courses')}
         >
-          <div 
-            className="absolute inset-0 bg-cover bg-center opacity-100"
-            style={{ backgroundImage: `url(${animeNftBg})` }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 to-slate-800/85" />
-          <div className="space-y-1.5 relative z-10">
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Sparkles className="w-4 h-4 text-white" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <BookOpen className="w-5 h-5 text-primary" />
             </div>
-            <h3 className="font-semibold text-sm text-white">Discover NFTs</h3>
-            <p className="text-xs text-white/80">Explore digital art</p>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{enrolledCount}</p>
+              <p className="text-xs text-muted-foreground">Courses Enrolled</p>
+            </div>
           </div>
         </Card>
         <Card 
-          className="p-3 cursor-pointer hover:border-primary hover:shadow-glow transition-all duration-300 group rounded-2xl hover:scale-105 relative overflow-hidden border-none"
-          onClick={() => onNavigate?.('earn')}
+          className="p-4 rounded-2xl cursor-pointer hover:border-primary/50 transition-all"
+          onClick={() => onNavigate?.('profile')}
         >
-          <div 
-            className="absolute inset-0 bg-cover bg-center opacity-100"
-            style={{ backgroundImage: `url(${animeEarnBg})` }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-green-900/80 to-emerald-800/85" />
-          <div className="space-y-1.5 relative z-10">
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <TrendingUp className="w-4 h-4 text-white" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-success" />
             </div>
-            <h3 className="font-semibold text-sm text-white">Start Earning</h3>
-            <p className="text-xs text-white/80">Complete tasks & earn</p>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{totalTokens.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">Total Tokens</p>
+            </div>
           </div>
         </Card>
       </div>
 
-      {/* Featured Carousel */}
-      <div 
-        className="relative overflow-hidden"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        <div 
-          className="flex transition-transform duration-300 ease-out"
-          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-        >
-          {slides.map((slide, index) => (
-            <div key={index} className="w-full flex-shrink-0">
-              {slide.type === 'web3' && (
-                <Card className="p-4 text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col">
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center opacity-100"
-                    style={{ 
-                      backgroundImage: `url(${animeLearnBg})`,
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-br from-black/40 to-black/50" />
-                  <div className="flex-1 relative z-10">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Wallet className="w-5 h-5" />
-                      <h3 className="text-base font-bold">{slide.title}</h3>
+      {/* Active Creators */}
+      {(activeCreators.length > 0 || true) && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">Active Creators</h2>
+            <button 
+              className="text-sm text-primary font-medium"
+              onClick={() => onNavigate?.('discover')}
+            >
+              See All
+            </button>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+            {activeCreators.length > 0 ? (
+              activeCreators.map((creator) => (
+                <div key={creator.user_id} className="flex flex-col items-center gap-2 min-w-[80px]">
+                  <Avatar className="w-14 h-14 ring-2 ring-primary/30">
+                    <AvatarImage src={creator.avatar_url} />
+                    <AvatarFallback className="bg-primary/20 text-primary text-sm">
+                      {creator.display_name.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-center">
+                    <div className="flex items-center gap-1 justify-center">
+                      <img src={cubeLogo} alt="" className="w-3 h-3" />
+                      <span className="text-xs font-semibold text-primary">{creator.coin_symbol}</span>
                     </div>
-                    <p className="text-sm text-white/90 leading-relaxed">{slide.description}</p>
+                    <p className="text-[10px] text-muted-foreground truncate max-w-[70px]">
+                      {creator.display_name}
+                    </p>
                   </div>
-                  <div className="flex items-center justify-between relative z-10">
-                    <div className="flex gap-1.5">
-                      {slides.map((_, dotIndex) => (
-                        <div
-                          key={dotIndex}
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            dotIndex === currentSlide ? 'bg-white' : 'bg-white/40'
-                          }`}
-                        />
-                      ))}
+                </div>
+              ))
+            ) : (
+              [...Array(4)].map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-2 min-w-[80px]">
+                  <Avatar className="w-14 h-14 ring-2 ring-primary/30">
+                    <AvatarFallback className="bg-primary/20 text-primary text-sm">
+                      {['BD', 'SD', 'AW', 'JF'][i]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-center">
+                    <div className="flex items-center gap-1 justify-center">
+                      <img src={cubeLogo} alt="" className="w-3 h-3" />
+                      <span className="text-xs font-semibold text-primary">
+                        ${['BANK', 'SARA', 'ALEX', 'JACK'][i]}
+                      </span>
                     </div>
-                    <Button 
-                      variant="secondary"
-                      className="bg-white/90 text-primary hover:bg-white hover:shadow-lg rounded-xl px-3 py-1 h-auto text-xs font-medium transition-all duration-300 hover:scale-105"
-                      onClick={slide.action}
-                    >
-                      Start Now
-                    </Button>
+                    <p className="text-[10px] text-muted-foreground">
+                      {['Bankless', 'Sara D.', 'Alex W3', 'Jack F.'][i]}
+                    </p>
                   </div>
-                </Card>
-              )}
-              
-              {slide.type === 'facts' && (
-                <Card className="p-4 text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col">
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${animeFactsBg})` }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/85 via-primary/75 to-primary/65" />
-                  <div className="flex-1 relative z-10">
-                    <h3 className="text-base font-bold mb-3">{slide.title}</h3>
-                    <div className="space-y-1.5 text-xs text-white/90">
-                      <p>• Learn Web3 skills from expert tutors</p>
-                      <p>• Trade NFTs and digital collectibles</p>
-                      <p>• Earn rewards by completing tasks</p>
-                      <p>• Built on Base blockchain</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Featured Courses */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground">Featured Courses</h2>
+          <button 
+            className="text-sm text-primary font-medium"
+            onClick={() => onNavigate?.('courses')}
+          >
+            View All
+          </button>
+        </div>
+        <div className="space-y-3">
+          {featuredCourses.length > 0 ? (
+            featuredCourses.map((course) => (
+              <Card 
+                key={course.id}
+                className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:border-primary/50 transition-all"
+                onClick={() => onNavigate?.('courses')}
+              >
+                <div className="w-20 h-14 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                  {course.thumbnail_url ? (
+                    <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                      <Play className="w-6 h-6 text-primary" />
                     </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm text-foreground truncate">{course.title}</h4>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Avatar className="w-4 h-4">
+                      <AvatarImage src={course.creator_avatar} />
+                      <AvatarFallback className="text-[8px] bg-primary/20">
+                        {course.creator_name.slice(0, 2)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs text-muted-foreground">{course.creator_name}</span>
                   </div>
-                  <div className="flex gap-1.5 mt-auto relative z-10">
-                    {slides.map((_, dotIndex) => (
-                      <div
-                        key={dotIndex}
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          dotIndex === currentSlide ? 'bg-white' : 'bg-white/40'
-                        }`}
-                      />
-                    ))}
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs font-medium text-primary">
+                      {course.price_usdc === 0 ? 'Free' : `$${course.price_usdc} USDC`}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      • {course.enrollment_count} students
+                    </span>
                   </div>
-                </Card>
-              )}
-              
-              {slide.type === 'course' && slide.course && (
-                <Card className="p-4 text-white rounded-2xl overflow-hidden relative mx-0.5 h-[180px] flex flex-col">
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{ 
-                      backgroundImage: slide.course.thumbnail_url 
-                        ? `url(${slide.course.thumbnail_url})` 
-                        : `url(${animeLearnBg})`
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/85 to-primary/80" />
-                  <div className="flex gap-3 flex-1 relative z-10">
-                    {slide.course.thumbnail_url && (
-                      <div className="w-24 h-full rounded-xl overflow-hidden flex-shrink-0 bg-white/10 border border-white/20">
-                        <img 
-                          src={slide.course.thumbnail_url} 
-                          alt={slide.course.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0 flex flex-col">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <BookOpen className="w-4 h-4" />
-                        <span className="text-xs font-medium opacity-80">Trending</span>
-                      </div>
-                      <h3 className="text-sm font-bold mb-1 line-clamp-2">{slide.course.title}</h3>
-                      <div className="flex items-center gap-2 text-xs mb-2">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-3 h-3 fill-white" />
-                          <span className="font-medium">{slide.course.rating.toFixed(1)}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="w-3 h-3" />
-                          <span className="font-medium">{slide.course.enrollment_count}</span>
-                        </div>
-                      </div>
-                    </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+              </Card>
+            ))
+          ) : (
+            [...Array(3)].map((_, i) => (
+              <Card 
+                key={i}
+                className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:border-primary/50 transition-all"
+                onClick={() => onNavigate?.('courses')}
+              >
+                <div className="w-20 h-14 rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0">
+                  <Play className="w-6 h-6 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm text-foreground">
+                    {['Crypto Fundamentals', 'Web3 Development', 'DeFi Mastery'][i]}
+                  </h4>
+                  <span className="text-xs text-muted-foreground">
+                    {['BanklessDave', 'Sara Digital', 'Alex Web3'][i]}
+                  </span>
+                  <div className="mt-1">
+                    <span className="text-xs font-medium text-primary">${[5, 10, 15][i]} USDC</span>
                   </div>
-                  <div className="flex items-center justify-between relative z-10 mt-2">
-                    <div className="flex gap-1.5">
-                      {slides.map((_, dotIndex) => (
-                        <div
-                          key={dotIndex}
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            dotIndex === currentSlide ? 'bg-white' : 'bg-white/40'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <Button 
-                      variant="secondary"
-                      className="bg-white/90 text-primary hover:bg-white hover:shadow-lg rounded-xl px-3 py-1 h-auto text-xs font-medium transition-all duration-300 hover:scale-105"
-                      onClick={() => onNavigate?.('courses')}
-                    >
-                      View Course
-                    </Button>
-                  </div>
-                </Card>
-              )}
-            </div>
-          ))}
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+              </Card>
+            ))
+          )}
         </div>
       </div>
+
+      {/* CTA to Discover */}
+      <Card 
+        className="p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 cursor-pointer hover:border-primary/40 transition-all"
+        onClick={() => onNavigate?.('discover')}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-foreground mb-1">Explore More</h3>
+            <p className="text-sm text-muted-foreground">
+              Discover creators, courses, and grow your knowledge
+            </p>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+            <ChevronRight className="w-6 h-6 text-primary-foreground" />
+          </div>
+        </div>
+      </Card>
     </div>
   );
 };

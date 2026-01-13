@@ -1,5 +1,5 @@
 
-import { Home, BookOpen, Box, ShoppingBag, Coins, Trophy, Gift } from "lucide-react";
+import { Home, Compass, BookOpen, ShoppingBag, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BottomNavigationProps {
@@ -9,56 +9,52 @@ interface BottomNavigationProps {
 
 const navItems = [
   { id: "home", icon: Home, label: "Home" },
+  { id: "discover", icon: Compass, label: "Discover" },
   { id: "courses", icon: BookOpen, label: "Courses" },
-  { id: "earning", icon: Gift, label: "Earn" },
-  { id: "upload", icon: Box, label: "Upload" },
-  { id: "quest", icon: Trophy, label: "Quest" },
   { id: "marketplace", icon: ShoppingBag, label: "Market" },
-  { id: "rewards", icon: Coins, label: "Rewards" },
+  { id: "profile", icon: User, label: "Profile" },
 ];
-
 
 export const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-card via-card/98 to-card/95 backdrop-blur-md border-t border-primary/20 z-50 shadow-[0_-10px_40px_-10px_hsl(var(--primary)/0.3)]">
-      <div className="flex items-center justify-around px-2 py-2 max-w-2xl mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 bg-card/98 backdrop-blur-md border-t border-border z-50 shadow-lg">
+      <div className="flex items-center justify-around px-1 py-2 max-w-2xl mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
-          const isUpload = item.id === "upload";
           
           return (
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
               aria-label={item.label}
-              className={cn(
-                "relative flex items-center justify-center transition-all duration-300 group",
-                isUpload && "relative -top-4"
-              )}
+              className="relative flex flex-col items-center justify-center transition-all duration-200 group flex-1 py-1"
             >
               <div
                 className={cn(
-                  "flex items-center justify-center rounded-full transition-all duration-300",
-                  isUpload
-                    ? "w-14 h-14 bg-gradient-primary shadow-[0_0_30px_hsl(var(--primary)/0.6)] hover:shadow-[0_0_40px_hsl(var(--primary)/0.8)] hover:scale-110"
-                    : "w-11 h-11",
-                  isActive && !isUpload && "bg-gradient-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)] scale-105",
-                  !isActive && !isUpload && "hover:bg-primary/10 hover:scale-105 active:scale-95"
+                  "flex items-center justify-center rounded-xl transition-all duration-200 w-10 h-10 relative",
+                  isActive && "bg-primary shadow-md",
+                  !isActive && "hover:bg-muted"
                 )}
               >
                 <Icon 
                   className={cn(
-                    "transition-all duration-300",
-                    isUpload ? "w-7 h-7 text-white" : "w-5 h-5",
-                    isActive && !isUpload ? "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" : "text-muted-foreground group-hover:text-primary"
+                    "w-5 h-5 transition-all duration-200",
+                    isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
                   )} 
-                  strokeWidth={isActive || isUpload ? 3 : 2} 
+                  strokeWidth={isActive ? 2.5 : 2} 
                 />
               </div>
               
-              {isActive && !isUpload && (
-                <div className="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))] animate-pulse" />
+              <span className={cn(
+                "text-[10px] mt-0.5 font-medium transition-colors",
+                isActive ? "text-primary" : "text-muted-foreground"
+              )}>
+                {item.label}
+              </span>
+              
+              {isActive && (
+                <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-primary" />
               )}
             </button>
           );
