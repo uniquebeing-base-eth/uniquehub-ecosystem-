@@ -6,11 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, Send, Plus, Coins, BookOpen, Copy, Check, Users, ChevronRight, LogOut } from "lucide-react";
+import { Wallet, Send, Coins, BookOpen, Copy, Check, Users, ChevronRight, LogOut, History, TrendingUp, ArrowUpRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSandboxWallet } from "@/hooks/useSandboxWallet";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { TokenDetailModal } from "@/components/TokenDetailModal";
+import { TransactionHistory } from "@/components/TransactionHistory";
+import { CREATOR_COIN_DEFAULTS, UNIQUEHUB_TOKEN, generate24hChange, formatPrice } from "@/lib/tokenPricing";
 import cubeLogo from "@/assets/uniquehub-cube.png";
 
 interface TokenBalance {
@@ -30,23 +33,14 @@ interface UserSearchResult {
 
 export const ProfileSection = () => {
   const { user, signOut } = useAuth();
-  const { 
-    wallet, 
-    tokenBalances, 
-    creatorCoin, 
-    loading, 
-    createCreatorCoin, 
-    sendTokens, 
-    refetch 
-  } = useSandboxWallet();
+  const { wallet, tokenBalances, creatorCoin, loading, sendTokens, refetch } = useSandboxWallet();
   
   const [profile, setProfile] = useState<any>(null);
   const [showWalletModal, setShowWalletModal] = useState(false);
-  const [showCreateCoinModal, setShowCreateCoinModal] = useState(false);
   const [showSendModal, setShowSendModal] = useState(false);
-  const [coinName, setCoinName] = useState('');
-  const [coinSymbol, setCoinSymbol] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
+  const [showTokenDetail, setShowTokenDetail] = useState(false);
+  const [showTransactionHistory, setShowTransactionHistory] = useState(false);
+  const [selectedTokenForDetail, setSelectedTokenForDetail] = useState<any>(null);
   const [selectedToken, setSelectedToken] = useState<TokenBalance | { type: 'usdc' | 'eth' } | null>(null);
   const [sendAmount, setSendAmount] = useState('');
   const [recipientSearch, setRecipientSearch] = useState('');
@@ -66,121 +60,91 @@ export const ProfileSection = () => {
 
   const fetchProfile = async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+    const { data } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
     setProfile(data);
   };
 
   const fetchStats = async () => {
     if (!user) return;
-    
-    const { data: enrollments } = await supabase
-      .from('enrollments')
-      .select('id')
-      .eq('user_id', user.id);
+    const { data: enrollments } = await supabase.from('enrollments').select('id').eq('user_id', user.id);
     setEnrolledCount(enrollments?.length || 0);
-    
-    const { data: courses } = await supabase
-      .from('courses')
-      .select('id')
-      .eq('user_id', user.id);
+    const { data: courses } = await supabase.from('courses').select('id').eq('user_id', user.id);
     setCreatedCoursesCount(courses?.length || 0);
   };
 
-  const handleCreateCoin = async () => {
-    if (!coinName || !coinSymbol) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-
-    setIsCreating(true);
-    try {
-      const coin = await createCreatorCoin(coinName, `$${coinSymbol.toUpperCase()}`);
-      if (coin) {
-        toast.success('Creator coin created!', {
-          description: `${coin.symbol} is now in your wallet`,
-        });
-        setShowCreateCoinModal(false);
-        setCoinName('');
-        setCoinSymbol('');
-      } else {
-        toast.error('Failed to create coin');
-      }
-    } catch (error) {
-      toast.error('Failed to create coin');
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
   const searchUsers = async (term: string) => {
-    if (term.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-
+    if (term.length < 2) { setSearchResults([]); return; }
     const { data } = await supabase
       .from('profiles')
       .select('user_id, display_name, avatar_url, farcaster_username')
       .or(`display_name.ilike.%${term}%,farcaster_username.ilike.%${term}%`)
       .neq('user_id', user?.id || '')
       .limit(5);
-
     setSearchResults(data || []);
   };
 
   const handleSend = async () => {
-    if (!selectedRecipient || !sendAmount || !selectedToken) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-
+    if (!selectedRecipient || !sendAmount || !selectedToken) return;
     const amount = parseFloat(sendAmount);
-    if (isNaN(amount) || amount <= 0) {
-      toast.error('Please enter a valid amount');
-      return;
-    }
+    if (isNaN(amount) || amount <= 0) return;
 
     setIsSending(true);
     try {
       let success = false;
-      
       if ('type' in selectedToken) {
-        success = await sendTokens(
-          selectedRecipient.user_id,
-          selectedToken.type,
-          amount
-        );
+        success = await sendTokens(selectedRecipient.user_id, selectedToken.type, amount);
       } else {
-        success = await sendTokens(
-          selectedRecipient.user_id,
-          'token',
-          amount,
-          selectedToken.token_id || undefined,
-          selectedToken.token_symbol
-        );
+        success = await sendTokens(selectedRecipient.user_id, 'token', amount, selectedToken.token_id || undefined, selectedToken.token_symbol);
       }
-
       if (success) {
-        toast.success('Transfer successful!', {
-          description: `Sent ${amount} to ${selectedRecipient.display_name}`,
-        });
+        toast.success('Transfer successful!');
         setShowSendModal(false);
         setSendAmount('');
         setSelectedRecipient(null);
-        setSelectedToken(null);
         await refetch();
-      } else {
-        toast.error('Transfer failed. Check your balance.');
       }
-    } catch (error) {
-      toast.error('Transfer failed');
     } finally {
       setIsSending(false);
     }
+  };
+
+  const handleTokenClick = (token: TokenBalance) => {
+    const price = token.token_type === 'creator_coin' ? CREATOR_COIN_DEFAULTS.initialPrice : 0.01;
+    const marketCap = token.token_type === 'creator_coin' ? CREATOR_COIN_DEFAULTS.initialMarketCap : 10000;
+    
+    setSelectedTokenForDetail({
+      id: token.token_id || token.id,
+      symbol: token.token_symbol,
+      name: token.token_symbol.replace('$', '') + ' Token',
+      price,
+      marketCap,
+      change24h: generate24hChange(token.token_symbol),
+      totalSupply: token.token_type === 'creator_coin' ? 10_000_000 : 1_000_000,
+      circulatingSupply: token.balance * 10,
+      holdersCount: Math.floor(Math.random() * 500) + 50,
+      type: token.token_type as any,
+    });
+    setShowTokenDetail(true);
+  };
+
+  const handleBuyToken = async (tokenId: string, amount: number, paymentType: 'usdc' | 'eth') => {
+    if (!wallet) return false;
+    const cost = paymentType === 'usdc' ? amount : amount * 2500;
+    if (paymentType === 'usdc' && wallet.usdc_balance < amount) return false;
+    if (paymentType === 'eth' && wallet.eth_balance < amount) return false;
+
+    // Simulate purchase
+    await supabase.from('sandbox_transactions').insert({
+      from_user_id: user!.id,
+      transaction_type: 'token_buy',
+      amount: cost,
+      currency: selectedTokenForDetail?.symbol || 'TOKEN',
+      description: `Bought ${selectedTokenForDetail?.symbol} tokens`,
+    });
+    
+    toast.success('Token purchase successful!');
+    await refetch();
+    return true;
   };
 
   const copyUserId = () => {
@@ -203,7 +167,12 @@ export const ProfileSection = () => {
 
   return (
     <div className="space-y-4 pb-24 animate-fade-in">
-      <h1 className="text-2xl font-bold text-foreground">Profile</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-foreground">Profile</h1>
+        <Button variant="ghost" size="icon" onClick={() => setShowTransactionHistory(true)}>
+          <History className="w-5 h-5" />
+        </Button>
+      </div>
 
       {/* Profile Card */}
       <Card className="p-4 rounded-2xl">
@@ -215,16 +184,9 @@ export const ProfileSection = () => {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <h2 className="font-bold text-lg text-foreground">
-              {profile?.display_name || 'UniqueHub User'}
-            </h2>
-            {profile?.farcaster_username && (
-              <p className="text-sm text-muted-foreground">@{profile.farcaster_username}</p>
-            )}
-            <button 
-              onClick={copyUserId}
-              className="flex items-center gap-1 text-xs text-muted-foreground mt-1 hover:text-primary transition-colors"
-            >
+            <h2 className="font-bold text-lg text-foreground">{profile?.display_name || 'UniqueHub User'}</h2>
+            {profile?.farcaster_username && <p className="text-sm text-muted-foreground">@{profile.farcaster_username}</p>}
+            <button onClick={copyUserId} className="flex items-center gap-1 text-xs text-muted-foreground mt-1 hover:text-primary">
               {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
               <span className="truncate max-w-[150px]">{user.id.slice(0, 8)}...{user.id.slice(-4)}</span>
             </button>
@@ -252,10 +214,7 @@ export const ProfileSection = () => {
       </div>
 
       {/* Wallet Card */}
-      <Card 
-        className="p-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground cursor-pointer hover:opacity-95 transition-all"
-        onClick={() => setShowWalletModal(true)}
-      >
+      <Card className="p-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground cursor-pointer" onClick={() => setShowWalletModal(true)}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Wallet className="w-5 h-5" />
@@ -266,390 +225,124 @@ export const ProfileSection = () => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-xs opacity-80">USDC</p>
-            <p className="text-xl font-bold">
-              ${loading ? '...' : wallet?.usdc_balance?.toLocaleString() || '10,000'}
-            </p>
+            <p className="text-xl font-bold">${loading ? '...' : wallet?.usdc_balance?.toLocaleString() || '10,000'}</p>
           </div>
           <div>
             <p className="text-xs opacity-80">ETH</p>
-            <p className="text-xl font-bold">
-              {loading ? '...' : wallet?.eth_balance?.toFixed(4) || '5.0000'}
-            </p>
+            <p className="text-xl font-bold">{loading ? '...' : wallet?.eth_balance?.toFixed(4) || '5.0000'}</p>
           </div>
         </div>
       </Card>
 
-      {/* Creator Coin Section */}
-      <Card className="p-4 rounded-2xl">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <img src={cubeLogo} alt="" className="w-5 h-5" />
-            <h3 className="font-semibold text-foreground">Creator Coin</h3>
-          </div>
-        </div>
-        {creatorCoin ? (
-          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-              {creatorCoin.icon_url ? (
-                <img src={creatorCoin.icon_url} alt="" className="w-full h-full rounded-full object-cover" />
-              ) : (
-                <Coins className="w-5 h-5 text-primary" />
-              )}
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-foreground">{creatorCoin.name}</p>
-              <p className="text-xs text-primary font-medium">{creatorCoin.symbol}</p>
-            </div>
-            <Badge variant="secondary" className="bg-primary/10 text-primary">
-              {creatorCoin.holders_count} holders
-            </Badge>
-          </div>
-        ) : (
-          <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground mb-3">
-              Create your own creator coin to build your economy
-            </p>
-            <Button 
-              onClick={() => setShowCreateCoinModal(true)}
-              className="rounded-full"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Creator Coin
-            </Button>
-          </div>
-        )}
-      </Card>
-
-      {/* Token Balances */}
+      {/* Token Balances with Charts */}
       {tokenBalances.length > 0 && (
         <Card className="p-4 rounded-2xl">
           <h3 className="font-semibold text-foreground mb-3">Your Tokens</h3>
           <div className="space-y-2">
-            {tokenBalances.slice(0, 5).map((token) => (
-              <div 
-                key={token.id}
-                className="flex items-center justify-between p-3 bg-muted/50 rounded-xl"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Coins className="w-4 h-4 text-primary" />
+            {tokenBalances.slice(0, 5).map((token) => {
+              const price = token.token_type === 'creator_coin' ? CREATOR_COIN_DEFAULTS.initialPrice : 0.01;
+              const change = generate24hChange(token.token_symbol);
+              const isPositive = change >= 0;
+              
+              return (
+                <Card
+                  key={token.id}
+                  className="p-3 rounded-xl cursor-pointer hover:border-primary/50 transition-all"
+                  onClick={() => handleTokenClick(token)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <img src={cubeLogo} alt="" className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-foreground">{token.token_symbol}</p>
+                      <p className="text-xs text-muted-foreground">{formatPrice(price)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-foreground">{token.balance.toLocaleString()}</p>
+                      <div className={`flex items-center gap-1 text-xs ${isPositive ? 'text-success' : 'text-destructive'}`}>
+                        <TrendingUp className={`w-3 h-3 ${!isPositive && 'rotate-180'}`} />
+                        {isPositive ? '+' : ''}{change.toFixed(2)}%
+                      </div>
+                    </div>
+                    <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{token.token_symbol}</p>
-                    <p className="text-[10px] text-muted-foreground capitalize">{token.token_type.replace('_', ' ')}</p>
-                  </div>
-                </div>
-                <p className="font-semibold text-foreground">{token.balance.toLocaleString()}</p>
-              </div>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         </Card>
       )}
 
       {/* Actions */}
       <div className="grid grid-cols-2 gap-3">
-        <Button 
-          variant="outline" 
-          className="rounded-xl h-12"
-          onClick={() => {
-            setSelectedToken({ type: 'usdc' });
-            setShowSendModal(true);
-          }}
-        >
-          <Send className="w-4 h-4 mr-2" />
-          Send Tokens
+        <Button variant="outline" className="rounded-xl h-12" onClick={() => { setSelectedToken({ type: 'usdc' }); setShowSendModal(true); }}>
+          <Send className="w-4 h-4 mr-2" />Send Tokens
         </Button>
-        <Button 
-          variant="outline" 
-          className="rounded-xl h-12 text-destructive border-destructive/30 hover:bg-destructive/10"
-          onClick={signOut}
-        >
-          <LogOut className="w-4 h-4 mr-2" />
-          Sign Out
+        <Button variant="outline" className="rounded-xl h-12 text-destructive border-destructive/30" onClick={signOut}>
+          <LogOut className="w-4 h-4 mr-2" />Sign Out
         </Button>
       </div>
 
       {/* Wallet Modal */}
       <Dialog open={showWalletModal} onOpenChange={setShowWalletModal}>
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl">Wallet</DialogTitle>
-            <DialogDescription>Your sandbox wallet balances</DialogDescription>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Wallet</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            {/* Balances */}
             <div className="grid grid-cols-2 gap-3">
-              <Card 
-                className="p-4 rounded-xl cursor-pointer hover:border-primary/50 transition-all"
-                onClick={() => {
-                  setSelectedToken({ type: 'usdc' });
-                  setShowWalletModal(false);
-                  setShowSendModal(true);
-                }}
-              >
+              <Card className="p-4 rounded-xl">
                 <p className="text-xs text-muted-foreground mb-1">USDC</p>
-                <p className="text-2xl font-bold text-foreground">
-                  ${wallet?.usdc_balance?.toLocaleString() || '10,000'}
-                </p>
+                <p className="text-2xl font-bold">${wallet?.usdc_balance?.toLocaleString() || '10,000'}</p>
               </Card>
-              <Card 
-                className="p-4 rounded-xl cursor-pointer hover:border-primary/50 transition-all"
-                onClick={() => {
-                  setSelectedToken({ type: 'eth' });
-                  setShowWalletModal(false);
-                  setShowSendModal(true);
-                }}
-              >
+              <Card className="p-4 rounded-xl">
                 <p className="text-xs text-muted-foreground mb-1">ETH</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {wallet?.eth_balance?.toFixed(4) || '5.0000'}
-                </p>
+                <p className="text-2xl font-bold">{wallet?.eth_balance?.toFixed(4) || '5.0000'}</p>
               </Card>
             </div>
-
-            {/* All Tokens */}
-            {tokenBalances.length > 0 && (
-              <div>
-                <h4 className="font-semibold text-foreground mb-2">All Tokens</h4>
-                <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                  {tokenBalances.map((token) => (
-                    <Card 
-                      key={token.id}
-                      className="p-3 rounded-xl cursor-pointer hover:border-primary/50 transition-all"
-                      onClick={() => {
-                        setSelectedToken(token);
-                        setShowWalletModal(false);
-                        setShowSendModal(true);
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                            <Coins className="w-4 h-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{token.token_symbol}</p>
-                            <p className="text-[10px] text-muted-foreground capitalize">
-                              {token.token_type.replace('_', ' ')}
-                            </p>
-                          </div>
-                        </div>
-                        <p className="font-semibold">{token.balance.toLocaleString()}</p>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <Button 
-              variant="outline"
-              className="w-full rounded-full"
-              onClick={() => setShowWalletModal(false)}
-            >
-              Close
+            <Button variant="outline" className="w-full rounded-full" onClick={() => { setShowWalletModal(false); setShowTransactionHistory(true); }}>
+              <History className="w-4 h-4 mr-2" />View Transaction History
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Create Coin Modal */}
-      <Dialog open={showCreateCoinModal} onOpenChange={setShowCreateCoinModal}>
-        <DialogContent className="max-w-md rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl">Create Creator Coin</DialogTitle>
-            <DialogDescription>
-              Create your own token to build your creator economy
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-foreground mb-1 block">Coin Name</label>
-              <Input
-                placeholder="e.g., Alex Coin"
-                value={coinName}
-                onChange={(e) => setCoinName(e.target.value)}
-                className="rounded-xl"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-foreground mb-1 block">Symbol</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <Input
-                  placeholder="ALEX"
-                  value={coinSymbol}
-                  onChange={(e) => setCoinSymbol(e.target.value.toUpperCase().slice(0, 6))}
-                  className="pl-7 rounded-xl uppercase"
-                  maxLength={6}
-                />
-              </div>
-            </div>
-
-            <Card className="p-3 bg-primary/5 border-primary/20 rounded-xl">
-              <p className="text-xs text-muted-foreground">
-                <strong>Tokenomics:</strong> 10% (100,000 tokens) will be allocated to your wallet immediately. 
-                The remaining tokens are reserved for future distribution.
-              </p>
-            </Card>
-
-            <Button
-              className="w-full rounded-full"
-              onClick={handleCreateCoin}
-              disabled={isCreating || !coinName || !coinSymbol}
-            >
-              {isCreating ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                'Create Coin'
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Send Tokens Modal */}
+      {/* Send Modal */}
       <Dialog open={showSendModal} onOpenChange={setShowSendModal}>
         <DialogContent className="max-w-md rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl">Send Tokens</DialogTitle>
-            <DialogDescription>
-              Transfer tokens to another UniqueHub user
-            </DialogDescription>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Send Tokens</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            {/* Token Selection */}
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">Token</label>
-              <div className="flex gap-2 flex-wrap">
-                <Badge
-                  variant={selectedToken && 'type' in selectedToken && selectedToken.type === 'usdc' ? 'default' : 'secondary'}
-                  className="cursor-pointer"
-                  onClick={() => setSelectedToken({ type: 'usdc' })}
-                >
-                  USDC (${wallet?.usdc_balance?.toLocaleString() || 0})
-                </Badge>
-                <Badge
-                  variant={selectedToken && 'type' in selectedToken && selectedToken.type === 'eth' ? 'default' : 'secondary'}
-                  className="cursor-pointer"
-                  onClick={() => setSelectedToken({ type: 'eth' })}
-                >
-                  ETH ({wallet?.eth_balance?.toFixed(4) || 0})
-                </Badge>
-                {tokenBalances.map((token) => (
-                  <Badge
-                    key={token.id}
-                    variant={selectedToken && !('type' in selectedToken) && selectedToken.id === token.id ? 'default' : 'secondary'}
-                    className="cursor-pointer"
-                    onClick={() => setSelectedToken(token)}
-                  >
-                    {token.token_symbol} ({token.balance.toLocaleString()})
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            {/* Amount */}
-            <div>
-              <label className="text-sm font-medium text-foreground mb-1 block">Amount</label>
-              <Input
-                type="number"
-                placeholder="0.00"
-                value={sendAmount}
-                onChange={(e) => setSendAmount(e.target.value)}
-                className="rounded-xl"
-              />
-            </div>
-
-            {/* Recipient Search */}
-            <div>
-              <label className="text-sm font-medium text-foreground mb-1 block">Recipient</label>
-              {selectedRecipient ? (
-                <Card className="p-3 rounded-xl">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src={selectedRecipient.avatar_url} />
-                        <AvatarFallback className="text-xs bg-primary/20">
-                          {selectedRecipient.display_name.slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium">{selectedRecipient.display_name}</p>
-                        {selectedRecipient.farcaster_username && (
-                          <p className="text-xs text-muted-foreground">@{selectedRecipient.farcaster_username}</p>
-                        )}
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedRecipient(null)}
-                    >
-                      Change
-                    </Button>
+            <Input placeholder="Search user..." value={recipientSearch} onChange={(e) => { setRecipientSearch(e.target.value); searchUsers(e.target.value); }} className="rounded-xl" />
+            {searchResults.length > 0 && (
+              <div className="space-y-2">{searchResults.map((u) => (
+                <Card key={u.user_id} className={`p-3 rounded-xl cursor-pointer ${selectedRecipient?.user_id === u.user_id ? 'border-primary' : ''}`} onClick={() => setSelectedRecipient(u)}>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="w-8 h-8"><AvatarImage src={u.avatar_url} /><AvatarFallback>{u.display_name?.slice(0,2)}</AvatarFallback></Avatar>
+                    <span className="text-sm font-medium">{u.display_name}</span>
                   </div>
                 </Card>
-              ) : (
-                <div>
-                  <Input
-                    placeholder="Search by name or username..."
-                    value={recipientSearch}
-                    onChange={(e) => {
-                      setRecipientSearch(e.target.value);
-                      searchUsers(e.target.value);
-                    }}
-                    className="rounded-xl"
-                  />
-                  {searchResults.length > 0 && (
-                    <div className="mt-2 space-y-1">
-                      {searchResults.map((result) => (
-                        <Card
-                          key={result.user_id}
-                          className="p-2 rounded-xl cursor-pointer hover:bg-muted/50"
-                          onClick={() => {
-                            setSelectedRecipient(result);
-                            setRecipientSearch('');
-                            setSearchResults([]);
-                          }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <Avatar className="w-6 h-6">
-                              <AvatarImage src={result.avatar_url} />
-                              <AvatarFallback className="text-[10px] bg-primary/20">
-                                {result.display_name.slice(0, 2)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm">{result.display_name}</span>
-                            {result.farcaster_username && (
-                              <span className="text-xs text-muted-foreground">@{result.farcaster_username}</span>
-                            )}
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <Button
-              className="w-full rounded-full"
-              onClick={handleSend}
-              disabled={isSending || !selectedRecipient || !sendAmount || !selectedToken}
-            >
-              {isSending ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <Send className="w-4 h-4 mr-2" />
-                  Send
-                </>
-              )}
+              ))}</div>
+            )}
+            <Input type="number" placeholder="Amount" value={sendAmount} onChange={(e) => setSendAmount(e.target.value)} className="rounded-xl" />
+            <Button className="w-full rounded-full" onClick={handleSend} disabled={isSending || !selectedRecipient || !sendAmount}>
+              {isSending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Send'}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Token Detail Modal */}
+      <TokenDetailModal
+        open={showTokenDetail}
+        onClose={() => setShowTokenDetail(false)}
+        token={selectedTokenForDetail}
+        usdcBalance={wallet?.usdc_balance || 0}
+        ethBalance={wallet?.eth_balance || 0}
+        onBuy={handleBuyToken}
+        onSwap={async () => true}
+      />
+
+      {/* Transaction History */}
+      <TransactionHistory open={showTransactionHistory} onClose={() => setShowTransactionHistory(false)} />
     </div>
   );
 };

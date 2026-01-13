@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Bell, MessageSquare } from "lucide-react";
 import { HomeSection } from "@/components/sections/HomeSection";
 import { DiscoverSection } from "@/components/sections/DiscoverSection";
-import { CoursesSection } from "@/components/sections/CoursesSection";
+import { CreateSection } from "@/components/CreateSection";
 import { MarketplaceSection } from "@/components/sections/MarketplaceSection";
 import { ProfileSection } from "@/components/sections/ProfileSection";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
@@ -117,7 +117,7 @@ const Dashboard = () => {
     switch (activeTab) {
       case "home": return <HomeSection onNavigate={handleTabChange} />;
       case "discover": return <DiscoverSection />;
-      case "courses": return <CoursesSection />;
+      case "create": return <CreateSection />;
       case "marketplace": return <MarketplaceSection />;
       case "profile": return <ProfileSection />;
       default: return <HomeSection onNavigate={handleTabChange} />;
