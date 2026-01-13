@@ -4,524 +4,389 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { BookOpen, Search, Play, Star, Check, Lock, X, Coins } from "lucide-react";
+import { BookOpen, Search, TrendingUp, Star } from "lucide-react";
+import { CoursePurchase } from "@/components/CoursePurchase";
+import { CourseViewer } from "@/components/CourseViewer";
+import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useSandboxWallet } from "@/hooks/useSandboxWallet";
 import { toast } from "sonner";
-import cubeLogo from "@/assets/uniquehub-cube.png";
 
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  thumbnail_url: string;
-  price_usdc: number;
-  user_id: string;
-  enrollment_count: number;
-  rating: number;
-  creator_name?: string;
-  creator_avatar?: string;
-  coin_symbol?: string;
-  isEnrolled?: boolean;
-}
-
-interface CourseLesson {
-  id: string;
-  title: string;
-  description: string;
-  video_url: string;
-  lesson_order: number;
-}
 
 export const CoursesSection = () => {
   const { user } = useAuth();
-  const { wallet, purchaseCourse, refetch: refetchWallet } = useSandboxWallet();
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [myCourses, setMyCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [trendingCourses, setTrendingCourses] = useState<any[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<'all' | 'my'>('all');
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [showCourseDetail, setShowCourseDetail] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [priceFilter, setPriceFilter] = useState("all");
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-  const [lessons, setLessons] = useState<CourseLesson[]>([]);
-  const [isPurchasing, setIsPurchasing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [showCourseViewer, setShowCourseViewer] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [ratingCounts, setRatingCounts] = useState<Record<string, number>>({});
+
+  const categories = [
+    { value: "all", label: "All Categories" },
+    { value: "web3-basics", label: "Web3 Basics" },
+    { value: "defi", label: "DeFi" },
+    { value: "nfts", label: "NFTs" },
+    { value: "trading", label: "Trading" },
+    { value: "development", label: "Tech & Development" },
+    { value: "art", label: "Art & Design" },
+    { value: "embroidery", label: "Embroidery & Crafts" },
+    { value: "non-tech", label: "Non-Tech" },
+  ];
 
   useEffect(() => {
     fetchCourses();
-    if (user) {
-      fetchMyCourses();
+    
+    // Check for course parameter in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseId = urlParams.get('course');
+    if (courseId) {
+      handleDirectCourseLink(courseId);
     }
-  }, [user]);
+  }, []);
+
+  useEffect(() => {
+    filterCourses();
+  }, [courses, searchTerm, selectedCategory, priceFilter]);
+
+  const handleDirectCourseLink = async (courseId: string) => {
+    const { data: courseData } = await supabase
+      .from('courses')
+      .select('*')
+      .eq('id', courseId)
+      .eq('status', 'published')
+      .maybeSingle();
+    
+    if (courseData) {
+      await handleCourseClick(courseData);
+    }
+  };
 
   const fetchCourses = async () => {
-    setIsLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('courses')
       .select('*')
       .eq('status', 'published')
       .order('created_at', { ascending: false });
-
-    if (data) {
-      const enriched = await Promise.all(
-        data.map(async (course) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('display_name, avatar_url')
-            .eq('user_id', course.user_id)
-            .single();
-
-          const { data: coin } = await supabase
-            .from('course_coins')
-            .select('symbol')
-            .eq('course_id', course.id)
-            .single();
-
-          // Check if user is enrolled
-          let isEnrolled = false;
-          if (user) {
-            const { data: enrollment } = await supabase
-              .from('enrollments')
-              .select('id')
-              .eq('user_id', user.id)
-              .eq('course_id', course.id)
-              .single();
-            isEnrolled = !!enrollment;
-          }
-
-          return {
-            ...course,
-            creator_name: profile?.display_name || 'Creator',
-            creator_avatar: profile?.avatar_url || '',
-            coin_symbol: coin?.symbol || `$${course.title.slice(0, 4).toUpperCase()}`,
-            isEnrolled,
-          };
-        })
-      );
-      setCourses(enriched);
-    }
-    setIsLoading(false);
-  };
-
-  const fetchMyCourses = async () => {
-    if (!user) return;
     
-    const { data: enrollments } = await supabase
-      .from('enrollments')
-      .select(`
-        course_id,
-        progress_percentage,
-        courses (*)
-      `)
-      .eq('user_id', user.id);
-
-    if (enrollments) {
-      const enriched = await Promise.all(
-        enrollments.map(async (enrollment: any) => {
-          const course = enrollment.courses;
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('display_name, avatar_url')
-            .eq('user_id', course.user_id)
-            .single();
-
-          return {
-            ...course,
-            creator_name: profile?.display_name || 'Creator',
-            creator_avatar: profile?.avatar_url || '',
-            isEnrolled: true,
-            progress: enrollment.progress_percentage || 0,
-          };
+    if (!error && data) {
+      setCourses(data);
+      
+      // Fetch rating counts for all courses
+      const courseIds = data.map(c => c.id);
+      const { data: ratingsData } = await supabase
+        .from('course_ratings')
+        .select('course_id')
+        .in('course_id', courseIds);
+      
+      // Count ratings per course
+      const counts: Record<string, number> = {};
+      ratingsData?.forEach(rating => {
+        counts[rating.course_id] = (counts[rating.course_id] || 0) + 1;
+      });
+      setRatingCounts(counts);
+      
+      // Calculate trending courses based on rating and enrollment
+      const trending = [...data]
+        .sort((a, b) => {
+          const scoreA = (a.rating || 0) * 0.5 + (a.enrollment_count || 0) * 0.5;
+          const scoreB = (b.rating || 0) * 0.5 + (b.enrollment_count || 0) * 0.5;
+          return scoreB - scoreA;
         })
-      );
-      setMyCourses(enriched);
+        .slice(0, 3);
+      
+      setTrendingCourses(trending);
     }
   };
 
-  const fetchLessons = async (courseId: string) => {
-    const { data } = await supabase
-      .from('course_lessons')
-      .select('*')
-      .eq('course_id', courseId)
-      .order('lesson_order', { ascending: true });
-    setLessons(data || []);
+  const filterCourses = () => {
+    let filtered = [...courses];
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(course =>
+        course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filter by category
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(course => course.category === selectedCategory);
+    }
+
+    // Filter by price
+    if (priceFilter === "free") {
+      filtered = filtered.filter(course => course.price_usdc === 0);
+    } else if (priceFilter === "paid") {
+      filtered = filtered.filter(course => course.price_usdc > 0);
+    }
+
+    setFilteredCourses(filtered);
   };
 
-  const handleCourseClick = async (course: Course) => {
+  const handleCourseClick = async (course: any) => {
     setSelectedCourse(course);
-    await fetchLessons(course.id);
     
-    if (course.isEnrolled) {
-      setShowCourseDetail(true);
-    } else {
-      setShowPurchaseModal(true);
-    }
-  };
-
-  const handlePurchase = async () => {
-    if (!user || !selectedCourse || !wallet) return;
-    
-    if (wallet.usdc_balance < selectedCourse.price_usdc) {
-      toast.error('Insufficient USDC balance');
-      return;
-    }
-
-    setIsPurchasing(true);
-    try {
-      const success = await purchaseCourse(
-        selectedCourse.id,
-        selectedCourse.price_usdc,
-        selectedCourse.user_id
-      );
-
-      if (success) {
-        // Create enrollment
-        await supabase.from('enrollments').insert({
-          user_id: user.id,
-          course_id: selectedCourse.id,
-        });
-
-        // Update enrollment count
-        await supabase.rpc('increment_enrollment_count', { course_id: selectedCourse.id });
-
-        toast.success('Course purchased! You now own the course coin.', {
-          description: `${selectedCourse.coin_symbol} has been added to your wallet`,
-        });
-
-        setShowPurchaseModal(false);
-        setShowCourseDetail(true);
-        await fetchCourses();
-        await fetchMyCourses();
-        await refetchWallet();
-      } else {
-        toast.error('Purchase failed. Please try again.');
+    // Check if user is enrolled
+    if (user) {
+      const { data: enrollment } = await supabase
+        .from('enrollments')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('course_id', course.id)
+        .maybeSingle();
+      
+      if (enrollment) {
+        setIsEnrolled(true);
+        setShowCourseViewer(true);
+        return;
       }
-    } catch (error) {
-      console.error('Purchase error:', error);
-      toast.error('Purchase failed');
-    } finally {
-      setIsPurchasing(false);
     }
+    
+    setIsEnrolled(false);
+    setShowPurchaseModal(true);
   };
 
-  const filteredCourses = (activeTab === 'all' ? courses : myCourses).filter(
-    (c) =>
-      c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.creator_name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  const handlePurchaseComplete = () => {
+    setShowPurchaseModal(false);
+    setIsEnrolled(true);
+    setShowCourseViewer(true);
+    fetchCourses();
+  };
 
   return (
     <div className="space-y-4 pb-24 animate-fade-in">
-      <h1 className="text-2xl font-bold text-foreground">Courses</h1>
+      <h1 className="text-2xl font-bold text-foreground">Explore Courses</h1>
 
-      {/* Tabs */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => setActiveTab('all')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-            activeTab === 'all'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'
-          }`}
-        >
-          All Courses
-        </button>
-        <button
-          onClick={() => setActiveTab('my')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-            activeTab === 'my'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'
-          }`}
-        >
-          My Courses ({myCourses.length})
-        </button>
-      </div>
-
-      {/* Search */}
+      {/* Search Bar */}
       <div className="relative">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search courses..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 rounded-full bg-muted border-0"
+          className="pl-8 h-8 text-xs rounded-full bg-card border-border"
         />
       </div>
 
-      {/* Wallet Balance Indicator */}
-      {wallet && (
-        <Card className="p-3 rounded-xl bg-primary/5 border-primary/20">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Available Balance</span>
-            <span className="text-sm font-semibold text-primary">
-              ${wallet.usdc_balance.toLocaleString()} USDC
-            </span>
+      {/* Filters */}
+      <div className="grid grid-cols-2 gap-2">
+        {/* Category Filter */}
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="w-full px-2.5 py-1.5 rounded-full border border-border bg-card text-foreground text-[11px] font-medium"
+        >
+          {categories.map((category) => (
+            <option key={category.value} value={category.value}>
+              {category.label}
+            </option>
+          ))}
+        </select>
+
+        {/* Price Filter */}
+        <select
+          value={priceFilter}
+          onChange={(e) => setPriceFilter(e.target.value)}
+          className="w-full px-2.5 py-1.5 rounded-full border border-border bg-card text-foreground text-[11px] font-medium"
+        >
+          <option value="all">All Prices</option>
+          <option value="free">Free</option>
+          <option value="paid">Paid</option>
+        </select>
+      </div>
+
+      {/* Trending Courses */}
+      {trendingCourses.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-primary" />
+            <h2 className="text-lg font-bold text-foreground">Trending Courses</h2>
           </div>
-        </Card>
+          <div className="space-y-2.5">
+            {trendingCourses.map((course: any, index: number) => (
+              <Card 
+                key={course.id} 
+                className="overflow-hidden hover:shadow-glow transition-all duration-300 cursor-pointer border-border bg-card rounded-2xl group hover:scale-[1.02]"
+                onClick={() => handleCourseClick(course)}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="flex gap-3 p-3">
+                  <div className="w-20 h-20 rounded-xl flex-shrink-0 overflow-hidden bg-primary/10 relative">
+                    {course.thumbnail_url ? (
+                      <>
+                        <img 
+                          src={course.thumbnail_url} 
+                          alt={course.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="text-white text-[10px] font-semibold">View Course</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+                        <BookOpen className="w-8 h-8 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <h3 className="text-sm font-bold text-foreground line-clamp-2 flex-1">{course.title}</h3>
+                      <Badge variant="secondary" className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border-0 flex-shrink-0">
+                        {course.price_usdc === 0 ? 'FREE' : 'PAID'}
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mb-2 line-clamp-1">
+                      {course.description}
+                    </p>
+                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-1.5">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <span>{course.rating?.toFixed(1) || '0.0'}</span>
+                        {ratingCounts[course.id] > 0 && (
+                          <span className="text-[10px]">({ratingCounts[course.id]})</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <BookOpen className="w-3 h-3" />
+                        <span>{course.enrollment_count || 0} students</span>
+                      </div>
+                    </div>
+                    <span className="font-bold text-sm text-primary">
+                      {course.price_usdc === 0 ? 'Free' : `$${course.price_usdc}`}
+                    </span>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
       )}
 
-      {/* Courses List */}
+      {/* All Courses Grid */}
       <div className="space-y-3">
-        {filteredCourses.length > 0 ? (
-          filteredCourses.map((course) => (
-            <Card
-              key={course.id}
-              className="overflow-hidden rounded-2xl cursor-pointer hover:border-primary/50 transition-all"
+        <h2 className="text-lg font-bold text-foreground">All Courses</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {filteredCourses.map((course: any, index: number) => (
+            <Card 
+              key={course.id} 
+              className="overflow-hidden hover:shadow-glow transition-all duration-300 cursor-pointer border-border bg-card rounded-2xl hover:scale-105 group animate-fade-in"
               onClick={() => handleCourseClick(course)}
+              style={{ animationDelay: `${index * 50}ms` }}
             >
-              <div className="flex gap-3 p-3">
-                <div className="w-24 h-16 rounded-xl overflow-hidden bg-muted flex-shrink-0 relative">
-                  {course.thumbnail_url ? (
-                    <img
-                      src={course.thumbnail_url}
+              <div className="w-full h-32 overflow-hidden bg-primary/10 relative">
+                {course.thumbnail_url ? (
+                  <>
+                    <img 
+                      src={course.thumbnail_url} 
                       alt={course.title}
                       className="w-full h-full object-cover"
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                      <BookOpen className="w-8 h-8 text-primary" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="text-white text-xs font-semibold bg-primary/80 px-3 py-1 rounded-full">View Course</span>
                     </div>
-                  )}
-                  {course.isEnrolled && (
-                    <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-success flex items-center justify-center">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-sm text-foreground line-clamp-1">
-                    {course.title}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Avatar className="w-4 h-4">
-                      <AvatarImage src={course.creator_avatar} />
-                      <AvatarFallback className="text-[8px] bg-primary/20">
-                        {course.creator_name?.slice(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-xs text-muted-foreground truncate">
-                      {course.creator_name}
-                    </span>
-                    <span className="text-xs font-medium text-primary">
-                      {course.coin_symbol}
-                    </span>
+                  </>
+                ) : (
+                  <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+                    <BookOpen className="w-10 h-10 text-white" />
                   </div>
-                  <div className="flex items-center gap-3 mt-1">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs text-muted-foreground">
-                        {course.rating?.toFixed(1) || '5.0'}
-                      </span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {course.enrollment_count || 0} students
-                    </span>
-                  </div>
-                </div>
-                <div className="flex-shrink-0 flex flex-col items-end justify-between">
-                  <Badge
-                    variant={course.isEnrolled ? 'default' : 'secondary'}
-                    className={`text-[10px] ${course.isEnrolled ? 'bg-success' : ''}`}
-                  >
-                    {course.isEnrolled ? 'Enrolled' : course.price_usdc === 0 ? 'Free' : `$${course.price_usdc}`}
+                )}
+              </div>
+              <div className="p-2.5 space-y-1.5">
+                <div className="flex items-center justify-between gap-1">
+                  <Badge variant="secondary" className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border-0">
+                    {categories.find(c => c.value === course.category)?.label || course.category}
                   </Badge>
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mt-1">
-                    <Play className="w-4 h-4 text-primary" />
+                  <Badge variant="secondary" className="text-[9px] px-1.5 py-0.5 rounded-full bg-success/10 text-success border-0">
+                    {course.price_usdc === 0 ? 'FREE' : 'PAID'}
+                  </Badge>
+                </div>
+                <h3 className="text-xs font-bold text-foreground line-clamp-2 min-h-[2.25rem]">{course.title}</h3>
+                <p className="text-[10px] text-muted-foreground line-clamp-1">
+                  {course.description}
+                </p>
+                <div className="flex items-center gap-2.5 text-[10px] text-muted-foreground">
+                  <div className="flex items-center gap-0.5">
+                    <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
+                    <span>{course.rating?.toFixed(1) || '0.0'}</span>
+                    {ratingCounts[course.id] > 0 && (
+                      <span className="text-[9px]">({ratingCounts[course.id]})</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-0.5">
+                    <BookOpen className="w-2.5 h-2.5" />
+                    <span>{course.enrollment_count || 0}</span>
                   </div>
                 </div>
-              </div>
-            </Card>
-          ))
-        ) : (
-          <Card className="p-8 text-center rounded-2xl">
-            <BookOpen className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
-            <p className="text-muted-foreground text-sm">
-              {activeTab === 'my' ? 'No enrolled courses yet.' : 'No courses found.'}
-            </p>
-            {activeTab === 'my' && (
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={() => setActiveTab('all')}
-              >
-                Browse Courses
-              </Button>
-            )}
-          </Card>
-        )}
-      </div>
-
-      {/* Purchase Modal */}
-      <Dialog open={showPurchaseModal} onOpenChange={setShowPurchaseModal}>
-        <DialogContent className="max-w-md rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl">Purchase Course</DialogTitle>
-          </DialogHeader>
-          {selectedCourse && (
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <div className="w-24 h-16 rounded-xl overflow-hidden bg-muted flex-shrink-0">
-                  {selectedCourse.thumbnail_url ? (
-                    <img
-                      src={selectedCourse.thumbnail_url}
-                      alt={selectedCourse.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                      <BookOpen className="w-8 h-8 text-primary" />
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">{selectedCourse.title}</h3>
-                  <p className="text-sm text-muted-foreground">{selectedCourse.creator_name}</p>
-                </div>
-              </div>
-
-              <Card className="p-4 bg-primary/5 border-primary/20 rounded-xl">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Coins className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Course Coin Included</p>
-                    <p className="text-xs text-muted-foreground">
-                      You'll receive {selectedCourse.coin_symbol} tokens
-                    </p>
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  When you buy this course, you automatically receive course tokens that represent your ownership.
-                </div>
-              </Card>
-
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Course Price</span>
-                  <span className="font-medium">${selectedCourse.price_usdc} USDC</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Your Balance</span>
-                  <span className={`font-medium ${wallet && wallet.usdc_balance >= selectedCourse.price_usdc ? 'text-success' : 'text-destructive'}`}>
-                    ${wallet?.usdc_balance.toLocaleString() || 0} USDC
+                <div className="pt-1 border-t border-border">
+                  <span className="font-bold text-xs text-primary">
+                    {course.price_usdc === 0 ? 'Free' : `$${course.price_usdc}`}
                   </span>
                 </div>
               </div>
+            </Card>
+          ))}
+        </div>
+      </div>
 
-              <Button
-                className="w-full rounded-full"
-                onClick={handlePurchase}
-                disabled={isPurchasing || !wallet || wallet.usdc_balance < selectedCourse.price_usdc}
-              >
-                {isPurchasing ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>Buy for ${selectedCourse.price_usdc} USDC</>
-                )}
-              </Button>
-
-              {wallet && wallet.usdc_balance < selectedCourse.price_usdc && (
-                <p className="text-xs text-destructive text-center">
-                  Insufficient balance. You need ${(selectedCourse.price_usdc - wallet.usdc_balance).toFixed(2)} more USDC.
-                </p>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Course Detail Modal */}
-      <Dialog open={showCourseDetail} onOpenChange={setShowCourseDetail}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl">Course Content</DialogTitle>
-          </DialogHeader>
-          {selectedCourse && (
-            <div className="space-y-4">
-              <div className="aspect-video rounded-xl overflow-hidden bg-muted">
-                {selectedCourse.thumbnail_url ? (
-                  <img
-                    src={selectedCourse.thumbnail_url}
-                    alt={selectedCourse.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                    <Play className="w-12 h-12 text-primary" />
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <h3 className="font-bold text-lg text-foreground">{selectedCourse.title}</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {selectedCourse.description || 'No description available.'}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={selectedCourse.creator_avatar} />
-                  <AvatarFallback className="bg-primary/20 text-primary text-sm">
-                    {selectedCourse.creator_name?.slice(0, 2)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium text-foreground">{selectedCourse.creator_name}</p>
-                  <div className="flex items-center gap-1">
-                    <img src={cubeLogo} alt="" className="w-3 h-3" />
-                    <span className="text-xs text-primary font-medium">{selectedCourse.coin_symbol}</span>
-                  </div>
+      {/* Purchase Modal */}
+      {showPurchaseModal && selectedCourse && !isEnrolled && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end justify-center z-50 p-0" onClick={() => setShowPurchaseModal(false)}>
+          <div className="w-full max-w-lg mb-14" onClick={(e) => e.stopPropagation()}>
+            <Card className="rounded-t-3xl p-3 space-y-2.5 max-h-[60vh] overflow-y-auto">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-bold text-foreground line-clamp-1">{selectedCourse.title}</h3>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{selectedCourse.description}</p>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPurchaseModal(false)}
+                  className="h-6 w-6 p-0 flex-shrink-0"
+                >
+                  ✕
+                </Button>
               </div>
+              <CoursePurchase 
+                course={selectedCourse}
+                onPurchaseComplete={handlePurchaseComplete}
+              />
+            </Card>
+          </div>
+        </div>
+      )}
 
-              <div className="space-y-2">
-                <h4 className="font-semibold text-foreground">Lessons</h4>
-                {lessons.length > 0 ? (
-                  lessons.map((lesson, index) => (
-                    <Card
-                      key={lesson.id}
-                      className="p-3 rounded-xl cursor-pointer hover:bg-muted/50 transition-all"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-foreground">{lesson.title}</p>
-                          {lesson.description && (
-                            <p className="text-xs text-muted-foreground line-clamp-1">
-                              {lesson.description}
-                            </p>
-                          )}
-                        </div>
-                        <Play className="w-4 h-4 text-primary" />
-                      </div>
-                    </Card>
-                  ))
-                ) : (
-                  <Card className="p-4 text-center rounded-xl">
-                    <p className="text-sm text-muted-foreground">No lessons available yet.</p>
-                  </Card>
-                )}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Course Viewer */}
+      {showCourseViewer && selectedCourse && (
+        <CourseViewer 
+          course={selectedCourse}
+          onClose={() => {
+            setShowCourseViewer(false);
+            setSelectedCourse(null);
+          }}
+        />
+      )}
+
+      {filteredCourses.length === 0 && (
+        <Card className="p-12 text-center">
+          <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">No courses found</h3>
+          <p className="text-muted-foreground">
+            {courses.length === 0 
+              ? "No courses available yet. Check back soon!"
+              : "Try adjusting your filters to find courses."
+            }
+          </p>
+        </Card>
+      )}
     </div>
   );
 };
