@@ -13,6 +13,7 @@ import { useViemClients } from "@/hooks/useViemClients";
 import { UNIQUE_NFT_ABI, UNIQUE_NFT_ADDRESS } from "@/config/wagmi";
 import { base } from "wagmi/chains";
 
+
 export const NFTSection = () => {
   const { user } = useAuth();
   const { address } = useFarcasterWallet();
