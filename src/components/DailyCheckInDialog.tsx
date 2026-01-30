@@ -15,6 +15,7 @@ import {
   EARN_CLAIM_FEE 
 } from "@/config/wagmi";
 
+
 interface DailyCheckInDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
