@@ -14,6 +14,7 @@ import { getAchievementTitle, getAchievementDescription } from "@/lib/achievemen
 import { ShareableProfileCard } from "@/components/ShareableProfileCard";
 
 
+
 export const ProfileSection = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
