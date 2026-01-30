@@ -12,6 +12,7 @@ import { NFTMarketplace } from "@/components/NFTMarketplace";
 import { MarketplaceItemDetail } from "@/components/MarketplaceItemDetail";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 
+
 export const MarketplaceSection = () => {
   const { user } = useAuth();
   const [nfts, setNfts] = useState<any[]>([]);
