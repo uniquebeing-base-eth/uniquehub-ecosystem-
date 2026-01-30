@@ -11,6 +11,7 @@ interface EarningCardProps {
   onAction?: () => void;
 }
 
+
 export const EarningCard = ({ title, description, icon, buttonText = "START", onAction }: EarningCardProps) => {
   return (
     <div className="bg-gradient-card rounded-xl p-6 shadow-card border border-border hover:border-primary/50 transition-all duration-300 space-y-4">
