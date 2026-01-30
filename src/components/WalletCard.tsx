@@ -3,6 +3,7 @@
 import { DollarSign, Star } from 'lucide-react';
 
 
+
 interface WalletCardProps {
   type: 'usdc' | 'eth' | 'uniq';
   amount: string;
