@@ -17,6 +17,7 @@ import { DailyCheckInDialog } from "@/components/DailyCheckInDialog";
 import animeEarnBg from '@/assets/anime-earn-bg.jpg';
 import cardBgEarn from '@/assets/card-bg-earn.jpg';
 
+
 interface Task {
   id: string;
   title: string;
