@@ -5,6 +5,7 @@ import { sdk } from '@farcaster/miniapp-sdk';
 import { Button } from '@/components/ui/button';
 import { ExternalLink } from 'lucide-react';
 
+
 export const PlatformGuard = ({ children }: { children: React.ReactNode }) => {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
