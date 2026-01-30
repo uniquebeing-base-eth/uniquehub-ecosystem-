@@ -19,6 +19,7 @@ interface LearnerEntry {
   rank: number;
 }
 
+
 export const LearnerLeaderboard = () => {
   const { user } = useAuth();
   const [learners, setLearners] = useState<LearnerEntry[]>([]);
@@ -84,6 +85,7 @@ export const LearnerLeaderboard = () => {
     );
   }
 
+  
   const renderLearnerCard = (learner: LearnerEntry, isUserCard = false) => {
     return (
       <div
