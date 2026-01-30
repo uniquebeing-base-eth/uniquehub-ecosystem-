@@ -23,6 +23,7 @@ interface Certificate {
   transaction_hash: string;
 }
 
+
 export const CertificatesSection = () => {
   const { user } = useAuth();
   const [certificates, setCertificates] = useState<Certificate[]>([]);
