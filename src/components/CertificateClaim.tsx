@@ -16,6 +16,7 @@ import {
 } from '@/config/wagmi';
 
 
+
 interface CertificateClaimProps {
   courseId: string;
   courseTitle: string;
