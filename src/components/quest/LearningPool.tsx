@@ -14,6 +14,7 @@ interface LearningPoolProps {
   onBack: () => void;
 }
 
+
 interface Pool {
   id: string;
   title: string;
