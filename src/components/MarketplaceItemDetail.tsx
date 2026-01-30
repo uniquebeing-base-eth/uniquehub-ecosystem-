@@ -19,6 +19,7 @@ interface MarketplaceItemDetailProps {
   onOpenChange: (open: boolean) => void;
 }
 
+
 export const MarketplaceItemDetail = ({ item, open, onOpenChange }: MarketplaceItemDetailProps) => {
   const { user } = useAuth();
   const [seller, setSeller] = useState<any>(null);
