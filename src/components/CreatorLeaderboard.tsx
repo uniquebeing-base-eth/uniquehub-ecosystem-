@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import animeEarnBg from "@/assets/anime-earn-bg.jpg";
 
+
 interface CreatorEntry {
   user_id: string;
   creator_points: number;
