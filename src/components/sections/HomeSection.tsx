@@ -12,6 +12,7 @@ import animeEarnBg from '@/assets/anime-earn-bg.jpg';
 import animeFactsBg from '@/assets/anime-facts-bg.jpg';
 
 
+
 interface HomeSectionProps {
   onNavigate?: (tab: string) => void;
   userName?: string;
