@@ -8,6 +8,7 @@ import { ShareToFarcaster } from '@/components/ShareToFarcaster';
 import html2canvas from 'html2canvas';
 import penguinAvatar from '@/assets/penguin-avatar.png';
 
+
 export const ShareableProfileCard = () => {
   const { user } = useAuth();
   const cardRef = useRef<HTMLDivElement>(null);
