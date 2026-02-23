@@ -9,6 +9,7 @@ import { useViemClients } from '@/hooks/useViemClients';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ShareToFarcaster } from '@/components/ShareToFarcaster';
+import { ShareButtons } from '@/components/ShareButtons';
 import {
   CERTIFICATE_CONTRACT_ABI,
   CERTIFICATE_CONTRACT_ADDRESS,
@@ -205,13 +206,13 @@ export const CertificateClaim = ({ courseId, courseTitle, isCompleted, creatorUs
                       View on Basescan
                     </Button>
                   )}
-                  <ShareToFarcaster
+                  <ShareButtons
                     text={`I just completed "${courseTitle}" on @uniquehub${creatorUsername ? ` by @${creatorUsername}` : ''}!\n\nLearn and earn with the ultimate Web3 learning platform.`}
+                    url="https://uniquehub.xyz"
                     embeds={[certificate.image_url, 'https://uniquehub.xyz']}
-                    buttonText="Share Certificate"
                     variant="default"
                     size="sm"
-                    className="w-full bg-gradient-primary"
+                    className="w-full"
                   />
                 </>
               )}

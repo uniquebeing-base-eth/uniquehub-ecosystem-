@@ -6,6 +6,84 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Generate certificate as SVG template, then convert to PNG-compatible data
+function generateCertificateSvg(userName: string, courseTitle: string, completionDate: string, certificateId: string): string {
+  // Escape XML entities
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f1729"/>
+      <stop offset="50%" style="stop-color:#1a2744"/>
+      <stop offset="100%" style="stop-color:#0d1f3c"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f0c27f"/>
+      <stop offset="50%" style="stop-color:#ffd700"/>
+      <stop offset="100%" style="stop-color:#f0c27f"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#60a5fa"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  
+  <!-- Golden border -->
+  <rect x="20" y="20" width="1160" height="590" rx="12" fill="none" stroke="url(#gold)" stroke-width="3"/>
+  <rect x="30" y="30" width="1140" height="570" rx="8" fill="none" stroke="url(#gold)" stroke-width="1" opacity="0.5"/>
+  
+  <!-- Corner decorations -->
+  <circle cx="50" cy="50" r="8" fill="url(#gold)" opacity="0.8"/>
+  <circle cx="1150" cy="50" r="8" fill="url(#gold)" opacity="0.8"/>
+  <circle cx="50" cy="580" r="8" fill="url(#gold)" opacity="0.8"/>
+  <circle cx="1150" cy="580" r="8" fill="url(#gold)" opacity="0.8"/>
+  
+  <!-- Star decoration -->
+  <text x="600" y="90" text-anchor="middle" font-size="32" fill="url(#gold)">★</text>
+  
+  <!-- Title -->
+  <text x="600" y="140" text-anchor="middle" font-family="Georgia, serif" font-size="42" font-weight="bold" fill="url(#gold)" letter-spacing="6">CERTIFICATE OF COMPLETION</text>
+  
+  <!-- Decorative line -->
+  <line x1="250" y1="165" x2="950" y2="165" stroke="url(#gold)" stroke-width="1.5" opacity="0.6"/>
+  
+  <!-- This certifies that -->
+  <text x="600" y="220" text-anchor="middle" font-family="Georgia, serif" font-size="20" fill="#94a3b8">This certifies that</text>
+  
+  <!-- User name -->
+  <text x="600" y="275" text-anchor="middle" font-family="Georgia, serif" font-size="38" font-weight="bold" fill="white">${esc(userName)}</text>
+  
+  <!-- Underline for name -->
+  <line x1="300" y1="290" x2="900" y2="290" stroke="url(#gold)" stroke-width="1" opacity="0.4"/>
+  
+  <!-- has successfully completed -->
+  <text x="600" y="340" text-anchor="middle" font-family="Georgia, serif" font-size="20" fill="#94a3b8">has successfully completed the course</text>
+  
+  <!-- Course title -->
+  <text x="600" y="395" text-anchor="middle" font-family="Georgia, serif" font-size="32" font-weight="bold" fill="url(#gold)">${esc(courseTitle)}</text>
+  
+  <!-- Date -->
+  <text x="600" y="460" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#64748b">Completion Date: ${esc(completionDate)}</text>
+  
+  <!-- Certificate ID -->
+  <text x="600" y="490" text-anchor="middle" font-family="monospace" font-size="12" fill="#475569">Certificate ID: ${esc(certificateId.substring(0, 8))}</text>
+  
+  <!-- Bottom separator -->
+  <line x1="250" y1="520" x2="950" y2="520" stroke="url(#gold)" stroke-width="1" opacity="0.4"/>
+  
+  <!-- UniqueHub branding -->
+  <rect x="480" y="540" width="240" height="40" rx="20" fill="url(#blue)" opacity="0.2"/>
+  <text x="600" y="567" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="url(#blue)">🎓 UniqueHub</text>
+  
+  <!-- Website -->
+  <text x="600" y="600" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#475569">uniquehub.xyz</text>
+</svg>`;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -27,7 +105,7 @@ serve(async (req) => {
 
     const { courseId } = await req.json();
 
-    // Verify course completion for every user
+    // Verify course completion
     const { data: enrollment, error: enrollmentError } = await supabase
       .from("enrollments")
       .select("progress_percentage, course_id")
@@ -38,7 +116,6 @@ serve(async (req) => {
     if (enrollmentError || !enrollment || enrollment.progress_percentage !== 100) {
       throw new Error("Course not completed");
     }
-    
 
     // Check if certificate already exists
     const { data: existingCert } = await supabase
@@ -79,76 +156,20 @@ serve(async (req) => {
       day: "numeric"
     });
 
-    // Generate certificate using AI image generation for proper PNG output
-    console.log("Generating certificate image with AI...");
-    
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY not configured");
-    }
-
-    // Generate a beautiful certificate image using AI
-    const imagePrompt = `Create a professional certificate of completion. The certificate should have:
-- A rich purple and blue gradient background
-- An elegant golden border with decorative corners
-- Large title "CERTIFICATE OF COMPLETION" in gold text at the top
-- Text "This certifies that" followed by the name "${userName}" in white bold text
-- Text "has successfully completed" followed by the course title "${course.title}" in gold text
-- "Completion Date: ${completionDate}" at the bottom
-- "Issued by UniqueHub" with a small blue cube icon
-- Overall professional, elegant, award-certificate style
-- Size should be 1200x630 pixels (16:9 aspect ratio for social sharing)
-Ultra high resolution, clean design, no watermarks.`;
-
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: imagePrompt
-          }
-        ],
-        modalities: ["image", "text"]
-      })
-    });
-
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error("AI image generation failed:", errorText);
-      throw new Error("Failed to generate certificate image");
-    }
-
-    const aiData = await aiResponse.json();
-    console.log("AI response received");
-
-    // Extract the base64 image from response
-    const imageBase64 = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    
-    if (!imageBase64) {
-      console.error("No image in AI response:", JSON.stringify(aiData));
-      throw new Error("No image generated");
-    }
-
-    // Remove data URL prefix if present
-    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-    
-    // Convert base64 to binary
-    const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-    
     const certificateId = crypto.randomUUID();
-    const fileName = `${user.id}/${certificateId}.png`;
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    // Generate SVG certificate
+    console.log("Generating template-based certificate...");
+    const svgContent = generateCertificateSvg(userName, course.title, completionDate, certificateId);
+    
+    // Store SVG as certificate image (SVG is a valid image format)
+    const fileName = `${user.id}/${certificateId}.svg`;
+    const svgBlob = new TextEncoder().encode(svgContent);
+
+    const { error: uploadError } = await supabase.storage
       .from("certificates")
-      .upload(fileName, binaryData, {
-        contentType: "image/png",
+      .upload(fileName, svgBlob, {
+        contentType: "image/svg+xml",
         cacheControl: "3600",
         upsert: false
       });
@@ -158,7 +179,6 @@ Ultra high resolution, clean design, no watermarks.`;
       throw new Error("Failed to upload certificate image");
     }
 
-    // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from("certificates")
       .getPublicUrl(fileName);
@@ -212,7 +232,7 @@ Ultra high resolution, clean design, no watermarks.`;
       throw new Error("Failed to save certificate");
     }
 
-    console.log("Certificate generated successfully:", certificateId);
+    console.log("Certificate generated successfully (template):", certificateId);
 
     return new Response(
       JSON.stringify({ certificate, metadata }),
