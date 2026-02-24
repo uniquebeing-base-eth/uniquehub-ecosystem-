@@ -58,31 +58,40 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           }
         } else {
           // No session - try to auto-authenticate with Farcaster
+          let authenticated = false;
+          
           try {
             const { sdk } = await import('@farcaster/miniapp-sdk');
             const context = await sdk.context;
             
             if (context?.user) {
-              // We have Farcaster user context - auto sign in
               console.log('Farcaster user detected:', context.user);
-              await signInWithFarcaster({
-                fid: context.user.fid,
-                username: context.user.username,
-                displayName: context.user.displayName || context.user.username,
-                pfpUrl: context.user.pfpUrl,
-                custodyAddress: '', // Will be fetched from Neynar
-              });
-            } else {
-              // Not in Farcaster context - sign in anonymously
-              const { error } = await supabase.auth.signInAnonymously();
-              if (error) throw error;
+              try {
+                await signInWithFarcaster({
+                  fid: context.user.fid,
+                  username: context.user.username,
+                  displayName: context.user.displayName || context.user.username,
+                  pfpUrl: context.user.pfpUrl,
+                  custodyAddress: '',
+                });
+                authenticated = true;
+              } catch (farcasterAuthError) {
+                console.error('Farcaster auth failed, trying anonymous:', farcasterAuthError);
+              }
             }
           } catch (sdkError) {
-            // Farcaster SDK not available - sign in anonymously
-            console.log('Farcaster SDK not available, signing in anonymously');
-            const { error } = await supabase.auth.signInAnonymously();
-            if (error && mounted) {
-              console.error('Anonymous sign in error:', error);
+            console.log('Farcaster SDK not available');
+          }
+          
+          // Fallback to anonymous sign-in if Farcaster auth didn't work
+          if (!authenticated && mounted) {
+            try {
+              const { error } = await supabase.auth.signInAnonymously();
+              if (error) {
+                console.error('Anonymous sign in error:', error);
+              }
+            } catch (anonError) {
+              console.error('Anonymous sign in failed:', anonError);
             }
           }
         }
