@@ -97,7 +97,8 @@ export const TutorSection = () => {
   if (!user) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-muted-foreground">Please sign in to access tutor dashboard</h1>
+        <h1 className="text-2xl font-bold text-muted-foreground">Loading tutor dashboard...</h1>
+        <p className="text-sm text-muted-foreground mt-2">Connecting to Farcaster...</p>
       </div>
     );
   }
