@@ -16,7 +16,7 @@ import { ShareableProfileCard } from "@/components/ShareableProfileCard";
 
 
 export const ProfileSection = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [enrollments, setEnrollments] = useState<any[]>([]);
@@ -170,10 +170,18 @@ export const ProfileSection = () => {
     refetch();
   };
 
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <h1 className="text-2xl font-bold text-muted-foreground">Loading profile...</h1>
+      </div>
+    );
+  }
+
   if (!user) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-muted-foreground">Please connect your wallet to view profile</h1>
+        <h1 className="text-2xl font-bold text-muted-foreground">Please sign in to view profile</h1>
       </div>
     );
   }
