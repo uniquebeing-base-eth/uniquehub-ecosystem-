@@ -25,6 +25,7 @@ export const ProfileSection = () => {
   const [achievements, setAchievements] = useState<any[]>([]);
   const [creatorLevel, setCreatorLevel] = useState<any>(null);
   const [farcasterProfile, setFarcasterProfile] = useState<any>(null);
+  const [farcasterChecked, setFarcasterChecked] = useState(false);
   
   // Hook for unclaimed achievements modal
   const { achievements: unclaimedAchievements, showModal, setShowModal, refetch } = useUnclaimedAchievements();
@@ -34,28 +35,35 @@ export const ProfileSection = () => {
     const fetchFarcasterProfile = async () => {
       try {
         const { sdk } = await import('@farcaster/miniapp-sdk');
-        const context = await sdk.context;
-        if (context?.user?.fid) {
+        const context = await Promise.race([
+          sdk.context,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Farcaster context timeout')), 2500)),
+        ]);
+
+        if ((context as any)?.user?.fid) {
+          const fcUser = (context as any).user;
           const { data, error } = await supabase.functions.invoke('sync-farcaster-profile', {
-            body: { fid: context.user.fid }
+            body: { fid: fcUser.fid }
           });
           if (!error && data?.success && data?.profile) {
             setFarcasterProfile(data.profile);
             setWalletAddress(data.profile.verifiedAddresses?.[0] || data.profile.custodyAddress || null);
           } else {
             setFarcasterProfile({
-              username: context.user.username,
-              displayName: context.user.displayName || context.user.username,
-              pfpUrl: context.user.pfpUrl,
-              fid: context.user.fid,
+              username: fcUser.username,
+              displayName: fcUser.displayName || fcUser.username,
+              pfpUrl: fcUser.pfpUrl,
+              fid: fcUser.fid,
             });
           }
         }
       } catch {
         // Not in Farcaster context
+      } finally {
+        setFarcasterChecked(true);
       }
     };
-    fetchFarcasterProfile();
+    void fetchFarcasterProfile();
   }, []);
 
   useEffect(() => {
@@ -212,7 +220,7 @@ export const ProfileSection = () => {
     );
   }
 
-  if (!user && !farcasterProfile) {
+  if (!user && !farcasterProfile && !farcasterChecked) {
     return (
       <div className="text-center py-12">
         <h1 className="text-2xl font-bold text-muted-foreground">Loading profile...</h1>

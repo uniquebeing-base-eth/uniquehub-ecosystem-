@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -159,6 +158,50 @@ export type Database = {
             columns: ["story_id"]
             isOneToOne: false
             referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_coins: {
+        Row: {
+          circulating_supply: number
+          course_id: string
+          created_at: string
+          creator_coin_id: string | null
+          holders_count: number
+          id: string
+          name: string
+          symbol: string
+          total_supply: number
+        }
+        Insert: {
+          circulating_supply?: number
+          course_id: string
+          created_at?: string
+          creator_coin_id?: string | null
+          holders_count?: number
+          id?: string
+          name: string
+          symbol: string
+          total_supply?: number
+        }
+        Update: {
+          circulating_supply?: number
+          course_id?: string
+          created_at?: string
+          creator_coin_id?: string | null
+          holders_count?: number
+          id?: string
+          name?: string
+          symbol?: string
+          total_supply?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_coins_creator_coin_id_fkey"
+            columns: ["creator_coin_id"]
+            isOneToOne: false
+            referencedRelation: "creator_coins"
             referencedColumns: ["id"]
           },
         ]
@@ -519,6 +562,45 @@ export type Database = {
           milestone_value?: number
           points_awarded?: number | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      creator_coins: {
+        Row: {
+          circulating_supply: number
+          created_at: string
+          creator_user_id: string
+          holders_count: number
+          icon_url: string | null
+          id: string
+          name: string
+          symbol: string
+          total_supply: number
+          updated_at: string
+        }
+        Insert: {
+          circulating_supply?: number
+          created_at?: string
+          creator_user_id: string
+          holders_count?: number
+          icon_url?: string | null
+          id?: string
+          name: string
+          symbol: string
+          total_supply?: number
+          updated_at?: string
+        }
+        Update: {
+          circulating_supply?: number
+          created_at?: string
+          creator_user_id?: string
+          holders_count?: number
+          icon_url?: string | null
+          id?: string
+          name?: string
+          symbol?: string
+          total_supply?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1179,6 +1261,69 @@ export type Database = {
         }
         Relationships: []
       }
+      sandbox_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          description: string | null
+          from_user_id: string
+          id: string
+          to_user_id: string | null
+          token_id: string | null
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency: string
+          description?: string | null
+          from_user_id: string
+          id?: string
+          to_user_id?: string | null
+          token_id?: string | null
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          from_user_id?: string
+          id?: string
+          to_user_id?: string | null
+          token_id?: string | null
+          transaction_type?: string
+        }
+        Relationships: []
+      }
+      sandbox_wallets: {
+        Row: {
+          created_at: string
+          eth_balance: number
+          id: string
+          updated_at: string
+          usdc_balance: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          eth_balance?: number
+          id?: string
+          updated_at?: string
+          usdc_balance?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          eth_balance?: number
+          id?: string
+          updated_at?: string
+          usdc_balance?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       stories: {
         Row: {
           author_id: string | null
@@ -1358,6 +1503,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_onboarding: {
+        Row: {
+          created_at: string
+          id: string
+          tutorial_completed: boolean
+          tutorial_skipped: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tutorial_completed?: boolean
+          tutorial_skipped?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tutorial_completed?: boolean
+          tutorial_skipped?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_points: {
         Row: {
           created_at: string
@@ -1400,6 +1572,39 @@ export type Database = {
           updated_at?: string
           user_id?: string
           weekly_streak?: number
+        }
+        Relationships: []
+      }
+      user_token_balances: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          token_id: string | null
+          token_symbol: string
+          token_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          token_id?: string | null
+          token_symbol: string
+          token_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          token_id?: string | null
+          token_symbol?: string
+          token_type?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
