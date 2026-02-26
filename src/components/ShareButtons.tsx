@@ -4,6 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Share2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+const openExternalUrl = async (url: string) => {
+  try {
+    const { sdk } = await import('@farcaster/miniapp-sdk');
+    await sdk.actions.openUrl(url);
+  } catch {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+};
+
 interface ShareButtonsProps {
   text: string;
   url?: string;
@@ -47,11 +56,7 @@ export const ShareButtons = ({
   const handleShareTwitter = () => {
     const tweetText = encodeURIComponent(text);
     const tweetUrl = encodeURIComponent(url);
-    window.open(
-      `https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`,
-      '_blank',
-      'noopener,noreferrer'
-    );
+    openExternalUrl(`https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`);
   };
 
   return (
