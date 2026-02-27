@@ -30,6 +30,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const { user, loading } = useAuth();
+  const isMaintenanceMode = true;
 
   
   // Toggle theme
@@ -89,6 +90,27 @@ const Dashboard = () => {
       window.removeEventListener('navigateToSection', navigateHandler);
     };
   }, []);
+
+  if (isMaintenanceMode) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="text-center max-w-md space-y-6">
+          <img src={cubeLogo} alt="UniqueHub" className="w-24 h-24 mx-auto animate-pulse" />
+          <h1 className="text-3xl font-bold text-foreground">UniqueHub</h1>
+          <div className="space-y-3">
+            <h2 className="text-xl font-semibold text-primary">🚀 Major Upgrades In Progress</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              We're working on exciting new features and improvements. UniqueHub will be back and better than ever very soon!
+            </p>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <div className="w-2 h-2 rounded-full bg-warning animate-pulse" />
+            <span>Upgrading systems...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
