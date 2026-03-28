@@ -8,6 +8,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
+
 interface HamburgerMenuProps {
   onNavigate: (section: string) => void;
 }

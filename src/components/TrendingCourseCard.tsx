@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { BookOpen } from 'lucide-react';
 import { ShareToFarcaster } from './ShareToFarcaster';
 
+
 interface TrendingCourseCardProps {
   course: {
     id: string;

@@ -14,6 +14,7 @@ export const MiniAppPrompt = () => {
           return;
         }
 
+        
         // Mark as prompted so we don't show again this session
         sessionStorage.setItem('miniapp-add-prompted', 'true');
         

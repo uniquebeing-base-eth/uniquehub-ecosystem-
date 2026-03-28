@@ -6,6 +6,7 @@ import { Share2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { sdk } from '@farcaster/miniapp-sdk';
 
+
 interface ShareToFarcasterProps {
   text: string;
   embeds?: string[];

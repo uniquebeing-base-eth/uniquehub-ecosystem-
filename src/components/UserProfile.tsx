@@ -11,6 +11,7 @@ interface UserProfileProps {
   username: string;
 }
 
+
 export const UserProfile = ({ username }: UserProfileProps) => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);

@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+
 export const WalletConnector = () => {
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<any>(null);

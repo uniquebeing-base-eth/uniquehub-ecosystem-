@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from "react";
 import { ArrowLeft, Flame, Lock, Star, CheckCircle2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";

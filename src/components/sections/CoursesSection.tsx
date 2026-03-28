@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -68,39 +69,47 @@ export const CoursesSection = () => {
   };
 
   const fetchCourses = async () => {
-    const { data, error } = await supabase
-      .from('courses')
-      .select('*')
-      .eq('status', 'published')
-      .order('created_at', { ascending: false });
-    
-    if (!error && data) {
-      setCourses(data);
+    try {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false });
       
-      // Fetch rating counts for all courses
-      const courseIds = data.map(c => c.id);
-      const { data: ratingsData } = await supabase
-        .from('course_ratings')
-        .select('course_id')
-        .in('course_id', courseIds);
+      if (error) {
+        console.error('Error fetching courses:', error);
+        return;
+      }
       
-      // Count ratings per course
-      const counts: Record<string, number> = {};
-      ratingsData?.forEach(rating => {
-        counts[rating.course_id] = (counts[rating.course_id] || 0) + 1;
-      });
-      setRatingCounts(counts);
-      
-      // Calculate trending courses based on rating and enrollment
-      const trending = [...data]
-        .sort((a, b) => {
-          const scoreA = (a.rating || 0) * 0.5 + (a.enrollment_count || 0) * 0.5;
-          const scoreB = (b.rating || 0) * 0.5 + (b.enrollment_count || 0) * 0.5;
-          return scoreB - scoreA;
-        })
-        .slice(0, 3);
-      
-      setTrendingCourses(trending);
+      if (data) {
+        setCourses(data);
+        
+        const courseIds = data.map(c => c.id);
+        if (courseIds.length > 0) {
+          const { data: ratingsData } = await supabase
+            .from('course_ratings')
+            .select('course_id')
+            .in('course_id', courseIds);
+          
+          const counts: Record<string, number> = {};
+          ratingsData?.forEach(rating => {
+            counts[rating.course_id] = (counts[rating.course_id] || 0) + 1;
+          });
+          setRatingCounts(counts);
+        }
+        
+        const trending = [...data]
+          .sort((a, b) => {
+            const scoreA = (a.rating || 0) * 0.5 + (a.enrollment_count || 0) * 0.5;
+            const scoreB = (b.rating || 0) * 0.5 + (b.enrollment_count || 0) * 0.5;
+            return scoreB - scoreA;
+          })
+          .slice(0, 3);
+        
+        setTrendingCourses(trending);
+      }
+    } catch (error) {
+      console.error('Unexpected error fetching courses:', error);
     }
   };
 

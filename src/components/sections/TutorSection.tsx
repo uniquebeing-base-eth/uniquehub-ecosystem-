@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import cardBgTutor from '@/assets/card-bg-tutor.jpg';
 
 
 export const TutorSection = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [courses, setCourses] = useState<any[]>([]);
   const [stats, setStats] = useState({
@@ -85,10 +86,19 @@ export const TutorSection = () => {
     fetchStats();
   };
 
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <h1 className="text-2xl font-bold text-muted-foreground">Loading...</h1>
+      </div>
+    );
+  }
+
   if (!user) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-muted-foreground">Please connect your wallet to access tutor dashboard</h1>
+        <h1 className="text-2xl font-bold text-muted-foreground">Loading tutor dashboard...</h1>
+        <p className="text-sm text-muted-foreground mt-2">Connecting to Farcaster...</p>
       </div>
     );
   }

@@ -16,6 +16,7 @@ interface MarketplaceCommentItemProps {
   isReply?: boolean;
 }
 
+
 export const MarketplaceCommentItem = ({ comment, onReplyAdded, isReply = false }: MarketplaceCommentItemProps) => {
   const { user } = useAuth();
   const [showReplyForm, setShowReplyForm] = useState(false);

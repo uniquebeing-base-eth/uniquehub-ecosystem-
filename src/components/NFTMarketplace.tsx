@@ -13,8 +13,9 @@ import { toast } from 'sonner';
 import { Wallet, Plus, Search, Loader2, ShoppingBag, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+
 /**
- * NFT Marketplace Component
+ * NFT Marketplace Component here 
  * Displays user's NFTs fetched via Neynar and allows listing them for sale on Base L2
  */
 export const NFTMarketplace = () => {

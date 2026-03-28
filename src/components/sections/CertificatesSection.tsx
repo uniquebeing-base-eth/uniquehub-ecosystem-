@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Award, Download, ExternalLink, Calendar } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { ShareButtons } from "@/components/ShareButtons";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
 import { toast } from "sonner";
 
@@ -22,6 +23,7 @@ interface Certificate {
   minted_at: string;
   transaction_hash: string;
 }
+
 
 export const CertificatesSection = () => {
   const { user } = useAuth();
@@ -192,12 +194,12 @@ export const CertificatesSection = () => {
                   </a>
                 </Button>
 
-                <ShareToFarcaster
+                <ShareButtons
                   text={`I just earned my "${cert.course_title}" certificate NFT on UniqueHub! 🎓✨`}
+                  url="https://uniquehub.xyz"
                   embeds={[cert.image_url, 'https://uniquehub.xyz']}
                   variant="outline"
                   size="sm"
-                  buttonText="Share"
                 />
               </div>
             </div>
