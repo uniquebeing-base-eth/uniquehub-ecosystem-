@@ -11,7 +11,6 @@ import animeEarnBg from "@/assets/anime-earn-bg.jpg";
 export const Leaderboard = () => {
   const [activeView, setActiveView] = useState<"creators" | "learners">("learners");
 
-  
   return (
     <Card className="p-5 bg-card border-border/50">
       <div className="flex items-center gap-2 mb-4">

@@ -11,7 +11,6 @@ import { toast } from "sonner";
 import { DailyCheckInDialog } from "@/components/DailyCheckInDialog";
 
 
-
 export const EarningSection = () => {
   const { user } = useAuth();
   const [userPoints, setUserPoints] = useState<any>(null);

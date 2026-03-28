@@ -9,7 +9,6 @@ interface NFTCardProps {
   icon?: React.ReactNode;
 }
 
-
 export const NFTCard = ({ title, price, currency, image, gradient, icon }: NFTCardProps) => {
   return (
     <div className="bg-gradient-card rounded-xl p-6 shadow-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-glow cursor-pointer group">

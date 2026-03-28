@@ -6,7 +6,6 @@ import { Coins, Gift, Loader2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ShareToFarcaster } from "@/components/ShareToFarcaster";
-import { ShareButtons } from "@/components/ShareButtons";
 import { useFarcasterWallet } from "@/hooks/useFarcasterWallet";
 import { useViemClients } from "@/hooks/useViemClients";
 import { base } from "wagmi/chains";
@@ -15,7 +14,6 @@ import {
   EARN_POINTS_CLAIM_ABI,
   EARN_CLAIM_FEE 
 } from "@/config/wagmi";
-
 
 interface DailyCheckInDialogProps {
   open: boolean;
@@ -259,16 +257,6 @@ export const DailyCheckInDialog = ({
                   variant="default"
                   size="lg"
                   className="w-full bg-gradient-primary"
-                />
-                <ShareButtons
-                  text={`I just checked in on UniqueHub! 🔥\n\n${newStreak} Day Streak | +${earnedPoints} UP Points\n\nShowing up daily to learn and earn on the ultimate Web3 learning platform!`}
-                  url="https://uniquehub.xyz"
-                  showFarcaster={false}
-                  showTwitter={true}
-                  variant="outline"
-                  size="lg"
-                  buttonText="Share on X"
-                  className="w-full"
                 />
                 <Button
                   variant="outline"

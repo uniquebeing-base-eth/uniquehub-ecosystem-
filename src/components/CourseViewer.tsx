@@ -18,7 +18,6 @@ interface CourseViewerProps {
   onClose: () => void;
 }
 
-
 export const CourseViewer = ({ course, onClose }: CourseViewerProps) => {
   const { user } = useAuth();
   const [authorProfile, setAuthorProfile] = useState<any>(null);

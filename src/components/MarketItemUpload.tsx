@@ -37,7 +37,6 @@ interface CatalogItem {
   imageFile?: File;
 }
 
-
 export const MarketItemUpload = ({ onSuccess, onCancel }: MarketItemUploadProps) => {
   const { user } = useAuth();
   const { address } = useFarcasterWallet();

@@ -14,9 +14,8 @@ import { getAchievementTitle, getAchievementDescription } from "@/lib/achievemen
 import { ShareableProfileCard } from "@/components/ShareableProfileCard";
 
 
-
 export const ProfileSection = () => {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [enrollments, setEnrollments] = useState<any[]>([]);
@@ -24,47 +23,9 @@ export const ProfileSection = () => {
   const [marketplaceItems, setMarketplaceItems] = useState<any[]>([]);
   const [achievements, setAchievements] = useState<any[]>([]);
   const [creatorLevel, setCreatorLevel] = useState<any>(null);
-  const [farcasterProfile, setFarcasterProfile] = useState<any>(null);
-  const [farcasterChecked, setFarcasterChecked] = useState(false);
   
   // Hook for unclaimed achievements modal
   const { achievements: unclaimedAchievements, showModal, setShowModal, refetch } = useUnclaimedAchievements();
-
-  // Fetch Farcaster profile directly via SDK + Neynar as fallback
-  useEffect(() => {
-    const fetchFarcasterProfile = async () => {
-      try {
-        const { sdk } = await import('@farcaster/miniapp-sdk');
-        const context = await Promise.race([
-          sdk.context,
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Farcaster context timeout')), 2500)),
-        ]);
-
-        if ((context as any)?.user?.fid) {
-          const fcUser = (context as any).user;
-          const { data, error } = await supabase.functions.invoke('sync-farcaster-profile', {
-            body: { fid: fcUser.fid }
-          });
-          if (!error && data?.success && data?.profile) {
-            setFarcasterProfile(data.profile);
-            setWalletAddress(data.profile.verifiedAddresses?.[0] || data.profile.custodyAddress || null);
-          } else {
-            setFarcasterProfile({
-              username: fcUser.username,
-              displayName: fcUser.displayName || fcUser.username,
-              pfpUrl: fcUser.pfpUrl,
-              fid: fcUser.fid,
-            });
-          }
-        }
-      } catch {
-        // Not in Farcaster context
-      } finally {
-        setFarcasterChecked(true);
-      }
-    };
-    void fetchFarcasterProfile();
-  }, []);
 
   useEffect(() => {
     if (user) {
@@ -80,16 +41,12 @@ export const ProfileSection = () => {
 
   const fetchProfile = async () => {
     if (!user) return;
-    try {
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      setProfile(data);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+    setProfile(data);
   };
 
   const fetchWalletFromFarcaster = async () => {
@@ -212,19 +169,10 @@ export const ProfileSection = () => {
     refetch();
   };
 
-  if (loading) {
+  if (!user) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-muted-foreground">Loading profile...</h1>
-      </div>
-    );
-  }
-
-  if (!user && !farcasterProfile && !farcasterChecked) {
-    return (
-      <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-muted-foreground">Loading profile...</h1>
-        <p className="text-sm text-muted-foreground mt-2">Connecting to Farcaster...</p>
+        <h1 className="text-2xl font-bold text-muted-foreground">Please connect your wallet to view profile</h1>
       </div>
     );
   }

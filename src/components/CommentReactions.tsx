@@ -1,5 +1,4 @@
 
-
 import { useState, useEffect } from 'react';
 import { Heart, Sparkles, Flame } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';

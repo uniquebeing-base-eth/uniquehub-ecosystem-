@@ -27,7 +27,6 @@ interface CourseUploadProps {
   onCancel?: () => void;
 }
 
-
 export const CourseUpload = ({ onSuccess, onCancel }: CourseUploadProps) => {
   const { user } = useAuth();
   const { address, isLoading: isWalletLoading } = useFarcasterWallet();

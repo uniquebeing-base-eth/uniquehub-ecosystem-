@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star, MessageCircle, ExternalLink, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { ShareButtons } from "@/components/ShareButtons";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { MarketplaceCommentItem } from "./MarketplaceCommentItem";
@@ -19,7 +18,6 @@ interface MarketplaceItemDetailProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
 
 export const MarketplaceItemDetail = ({ item, open, onOpenChange }: MarketplaceItemDetailProps) => {
   const { user } = useAuth();
@@ -243,20 +241,10 @@ export const MarketplaceItemDetail = ({ item, open, onOpenChange }: MarketplaceI
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <Button onClick={handleContactSeller} size="sm">
-                      <ExternalLink className="w-4 h-4 mr-1" />
-                      Contact
-                    </Button>
-                    <ShareButtons
-                      text={`Check out "${item.title}" on UniqueHub! 🛒\n\nPrice: $${item.price_usdc} USDC`}
-                      url="https://uniquehub.xyz"
-                      showFarcaster={false}
-                      showTwitter={true}
-                      size="sm"
-                      variant="outline"
-                    />
-                  </div>
+                  <Button onClick={handleContactSeller} size="sm" className="flex-shrink-0">
+                    <ExternalLink className="w-4 h-4 mr-1" />
+                    Contact Seller
+                  </Button>
                 </div>
               )}
             </div>

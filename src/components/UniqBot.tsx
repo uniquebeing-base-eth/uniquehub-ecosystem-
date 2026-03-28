@@ -15,7 +15,6 @@ interface Message {
   timestamp: number;
 }
 
-
 export const UniqBot = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);

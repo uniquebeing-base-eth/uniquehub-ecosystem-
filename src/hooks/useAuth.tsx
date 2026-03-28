@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,62 +28,66 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     const initializeAuth = async () => {
       try {
+        // Set up auth state listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, nextSession) => {
+          async (event, session) => {
             if (!mounted) return;
-            setSession(nextSession);
-            setUser(nextSession?.user ?? null);
+            setSession(session);
+            setUser(session?.user ?? null);
             setLoading(false);
 
-            if (event === 'SIGNED_IN' && nextSession?.user) {
+            // Create profile if user signs in and doesn't have one
+            if (event === 'SIGNED_IN' && session?.user) {
               setTimeout(() => {
-                void createOrUpdateProfile(nextSession.user);
+                createOrUpdateProfile(session.user);
               }, 0);
             }
           }
         );
 
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
-
-        if (!mounted) {
-          subscription.unsubscribe();
-          return;
+        // Check for existing session first
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // User already has a session
+          if (mounted) {
+            setSession(session);
+            setUser(session?.user ?? null);
+            setLoading(false);
+          }
+        } else {
+          // No session - try to auto-authenticate with Farcaster
+          try {
+            const { sdk } = await import('@farcaster/miniapp-sdk');
+            const context = await sdk.context;
+            
+            if (context?.user) {
+              // We have Farcaster user context - auto sign in
+              console.log('Farcaster user detected:', context.user);
+              await signInWithFarcaster({
+                fid: context.user.fid,
+                username: context.user.username,
+                displayName: context.user.displayName || context.user.username,
+                pfpUrl: context.user.pfpUrl,
+                custodyAddress: '', // Will be fetched from Neynar
+              });
+            } else {
+              // Not in Farcaster context - sign in anonymously
+              const { error } = await supabase.auth.signInAnonymously();
+              if (error) throw error;
+            }
+          } catch (sdkError) {
+            // Farcaster SDK not available - sign in anonymously
+            console.log('Farcaster SDK not available, signing in anonymously');
+            const { error } = await supabase.auth.signInAnonymously();
+            if (error && mounted) {
+              console.error('Anonymous sign in error:', error);
+            }
+          }
         }
 
-        setSession(existingSession);
-        setUser(existingSession?.user ?? null);
-        setLoading(false);
-
-        if (!existingSession) {
-          setTimeout(async () => {
-            try {
-              const { sdk } = await import('@farcaster/miniapp-sdk');
-              const context = await Promise.race([
-                sdk.context,
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Farcaster context timeout')), 2500)),
-              ]);
-
-              const sdkUser = (context as any)?.user;
-              if (sdkUser?.fid) {
-                await signInWithFarcaster({
-                  fid: sdkUser.fid,
-                  username: sdkUser.username,
-                  displayName: sdkUser.displayName || sdkUser.username,
-                  pfpUrl: sdkUser.pfpUrl,
-                  custodyAddress: '',
-                });
-                return;
-              }
-            } catch (farcasterAuthError) {
-              console.warn('Farcaster auto-auth unavailable:', farcasterAuthError);
-            }
-
-            try {
-              await supabase.auth.signInAnonymously();
-            } catch (anonError) {
-              console.warn('Anonymous sign in unavailable:', anonError);
-            }
-          }, 0);
+        if (mounted) {
+          setLoading(false);
         }
 
         return () => subscription.unsubscribe();
@@ -96,7 +99,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     };
 
-    void initializeAuth();
+    initializeAuth();
 
     return () => {
       mounted = false;
@@ -109,7 +112,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .maybeSingle();
+        .single();
 
       if (!existingProfile) {
         await supabase.from('profiles').insert({

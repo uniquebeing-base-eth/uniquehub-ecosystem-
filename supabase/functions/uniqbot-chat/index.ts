@@ -1,129 +1,12 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// Fallback AI providers in order of priority
-async function callAI(systemPrompt: string, chatMessages: any[]): Promise<string> {
-  const messages = [
-    { role: 'system', content: systemPrompt },
-    ...chatMessages.map((msg: any) => ({ role: msg.role, content: msg.content }))
-  ];
-
-  // 1. Try Lovable AI Gateway first
-  const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-  if (lovableApiKey) {
-    try {
-      const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${lovableApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages,
-          temperature: 0.7,
-          max_tokens: 500,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        return data.choices[0].message.content;
-      }
-      console.log('Lovable gateway failed:', res.status);
-    } catch (e) {
-      console.log('Lovable gateway error:', e);
-    }
-  }
-
-  // 2. Try OpenAI
-  const openaiKey = Deno.env.get('OPENAI_API_KEY');
-  if (openaiKey) {
-    try {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openaiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages,
-          temperature: 0.7,
-          max_tokens: 500,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        return data.choices[0].message.content;
-      }
-      console.log('OpenAI failed:', res.status);
-    } catch (e) {
-      console.log('OpenAI error:', e);
-    }
-  }
-
-  // 3. Try Groq (free tier)
-  const groqKey = Deno.env.get('GROQ_API_KEY');
-  if (groqKey) {
-    try {
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${groqKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages,
-          temperature: 0.7,
-          max_tokens: 500,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        return data.choices[0].message.content;
-      }
-      console.log('Groq failed:', res.status);
-    } catch (e) {
-      console.log('Groq error:', e);
-    }
-  }
-
-  // 4. Try Together AI (free tier)
-  const togetherKey = Deno.env.get('TOGETHER_API_KEY');
-  if (togetherKey) {
-    try {
-      const res = await fetch('https://api.together.xyz/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${togetherKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
-          messages,
-          temperature: 0.7,
-          max_tokens: 500,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        return data.choices[0].message.content;
-      }
-      console.log('Together AI failed:', res.status);
-    } catch (e) {
-      console.log('Together AI error:', e);
-    }
-  }
-
-  // 5. Hardcoded fallback response
-  return "I'm sorry, I'm currently experiencing technical difficulties. Please try again in a moment! In the meantime, feel free to explore UniqueHub's courses, earning system, and marketplace. Keep learning! 💙";
-}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -133,13 +16,15 @@ serve(async (req) => {
   try {
     const { messages, currentPage, userData } = await req.json();
 
+    // Build context-aware information for uniqbot
     let contextInfo = '';
     
     if (currentPage) {
       contextInfo += `\n\n=== CURRENT USER CONTEXT ===\n`;
       contextInfo += `User is currently on: ${currentPage.toUpperCase()} section\n`;
       
-      const pageGuidance: Record<string, string> = {
+      // Add page-specific guidance for uniqBot 
+      const pageGuidance = {
         home: 'Help them understand the platform overview and get started.',
         quest: 'Focus on learning courses, modules, and earning points through education.',
         courses: 'Guide them on browsing, purchasing, or creating courses.',
@@ -148,37 +33,53 @@ serve(async (req) => {
         earn: 'Guide them on earning UP points through various activities.',
         wallet: 'Assist with wallet balance, transactions, and blockchain info.',
         certificates: 'Help with viewing and managing earned certificates.',
-        nfts: 'Guide on NFT collection and marketplace.'
+        nfts: 'Guide on NFT creation, collection, and marketplace.'
       };
       
-      if (pageGuidance[currentPage]) {
-        contextInfo += `Context: ${pageGuidance[currentPage]}\n`;
+      if (pageGuidance[currentPage as keyof typeof pageGuidance]) {
+        contextInfo += `Context: ${pageGuidance[currentPage as keyof typeof pageGuidance]}\n`;
       }
     }
     
     if (userData) {
       contextInfo += `\n=== USER PROGRESS DATA ===\n`;
+      
       if (userData.points) {
-        contextInfo += `Total UP Points: ${userData.points.total_points || 0}\n`;
-        contextInfo += `Daily Streak: ${userData.points.daily_streak || 0} days\n`;
-        contextInfo += `Weekly Streak: ${userData.points.weekly_streak || 0} weeks\n`;
-        contextInfo += `Monthly Streak: ${userData.points.monthly_streak || 0} months\n`;
+        const totalPoints = userData.points.total_points || 0;
+        const dailyStreak = userData.points.daily_streak || 0;
+        const weeklyStreak = userData.points.weekly_streak || 0;
+        const monthlyStreak = userData.points.monthly_streak || 0;
+        
+        contextInfo += `Total UP Points: ${totalPoints}\n`;
+        contextInfo += `Daily Streak: ${dailyStreak} ${dailyStreak === 1 ? 'day' : 'days'}\n`;
+        contextInfo += `Weekly Streak: ${weeklyStreak} ${weeklyStreak === 1 ? 'week' : 'weeks'}\n`;
+        contextInfo += `Monthly Streak: ${monthlyStreak} ${monthlyStreak === 1 ? 'month' : 'months'}\n`;
       }
+      
       if (userData.streak) {
-        contextInfo += `Current Learning Streak: ${userData.streak.current_streak || 0} days\n`;
-        contextInfo += `Longest Learning Streak: ${userData.streak.longest_streak || 0} days\n`;
-        contextInfo += `Total Modules Completed: ${userData.streak.total_modules_completed || 0}\n`;
+        const currentStreak = userData.streak.current_streak || 0;
+        const longestStreak = userData.streak.longest_streak || 0;
+        const totalModules = userData.streak.total_modules_completed || 0;
+        
+        contextInfo += `Current Learning Streak: ${currentStreak} ${currentStreak === 1 ? 'day' : 'days'}\n`;
+        contextInfo += `Longest Learning Streak: ${longestStreak} ${longestStreak === 1 ? 'day' : 'days'}\n`;
+        contextInfo += `Total Modules Completed: ${totalModules}\n`;
       }
-      if (userData.enrollments?.length > 0) {
+      
+      if (userData.enrollments && userData.enrollments.length > 0) {
         contextInfo += `Enrolled Courses: ${userData.enrollments.length}\n`;
         const courseNames = userData.enrollments.map((e: any) => e.courses?.title).filter(Boolean);
-        if (courseNames.length > 0) contextInfo += `Course Names: ${courseNames.join(', ')}\n`;
+        if (courseNames.length > 0) {
+          contextInfo += `Course Names: ${courseNames.join(', ')}\n`;
+        }
       } else {
         contextInfo += `Enrolled Courses: 0\n`;
       }
+      
       if (userData.completedModules !== undefined) {
         contextInfo += `Completed Modules: ${userData.completedModules}\n`;
       }
+      
       contextInfo += `\nUse this data to provide personalized advice and encouragement!\n`;
     }
 
@@ -192,47 +93,184 @@ Your purpose is to help users:
 - Guide users through platform features and help them get started
 
 === ABOUT UNIQUEHUB ===
-UniqueHub is a Web3 education ecosystem built on Base L2 blockchain where users can learn, earn, and trade. Website: uniquehub.xyz
+UniqueHub is a Web3 education ecosystem built on Base L2 blockchain where users can learn, earn, and trade. It combines education with blockchain incentives to create an engaging learning experience.
 
 === FOUNDER & TEAM ===
 - Founder: uniquebeing (ENS: uniquebeing.base.eth)
 - Social handles: uniquebeing404 on Farcaster, Base, and X (formerly Twitter)
+- Built by a team of passionate individuals dedicated to Web3 education
 
 === EARNING SYSTEM (UP POINTS) ===
-1. DAILY CHECK-IN (5 UP) - Complete once every 24 hours
-2. WEEKLY CHECK-IN (50 UP) - After 7 consecutive daily check-ins
-3. MONTHLY CHECK-IN (250 UP) - After 30 consecutive daily check-ins
-4. SOCIAL TASKS - Follow @uniquehub on Farcaster (20 UP), Connect via Mini App (30 UP)
+Users earn UP (UniqueHub Points) through various activities:
+
+1. DAILY CHECK-IN (5 UP)
+   - Complete once every 24 hours
+   - Build your daily streak for bonus rewards
+
+2. WEEKLY CHECK-IN (50 UP)
+   - Unlocks after 7 consecutive daily check-ins
+   - Resets if you miss a day
+
+3. MONTHLY CHECK-IN (250 UP)
+   - Unlocks after 30 consecutive daily check-ins
+   - Major milestone reward
+
+4. SOCIAL TASKS
+   - Follow @uniquehub on Farcaster (20 UP)
+   - Connect via Farcaster Mini App (30 UP)
+   - Verification happens automatically after completion
+
+5. REFERRAL PROGRAM
+   - Earn commission when you refer users
+   - Get rewarded for helping grow the community
 
 === COURSES ===
-- Free and paid courses (priced in USDC)
+Course Marketplace Features:
+- Free and paid courses available (priced in USDC)
 - Categories: Web3 Basics, DeFi, NFTs, Trading, Development, Art & Design, Embroidery & Crafts, Non-Tech
+- Filter by category, price (free/paid), search by keyword
+- View trending courses based on ratings and enrollments
+- Track your progress on enrolled courses
 - Course creators can set their own prices
-- Track progress, earn certificates as NFTs
+
+For Learners:
+- Browse and search courses
+- View course details, ratings, and student count
+- Enroll in courses (free or purchase with USDC)
+- Track your learning progress
+- Share courses on Farcaster
+
+For Creators/Tutors:
+- Create and upload courses (video content, descriptions, thumbnails)
+- Set course pricing in USDC or make it free
+- Monitor student enrollments and earnings
+- View your tutor dashboard with stats:
+  * Total courses created
+  * Total students enrolled
+  * Total USDC earned
 
 === NFT MARKETPLACE ===
 - Buy and sell NFTs using USDC or ETH
 - Categories: Art, Gaming, Collectibles, Music, Utility
+- Upload fee: 0.2 USDC per listing
+- Features search and category filtering
+- Share NFTs directly to Farcaster
+- View NFT details, prices, and seller information
 
 === WALLET ===
+Built-in wallet integration:
 - Connected via Farcaster authentication
-- View balances: ETH, USDC on Base L2
+- View balances: ETH, USDC
+- UNIQ token coming soon (native platform token)
+- Wallet address auto-fetched from Farcaster profile
+- View on BaseScan (Base L2 blockchain explorer)
+- Send/Receive features coming soon
+
+=== PROFILE ===
+User Profile Features:
+- Display Farcaster avatar and username
+- View connected wallet address
+- Track achievements and levels (e.g., "Level 1 Creator")
+- Statistics dashboard:
+  * Courses enrolled
+  * Items listed on marketplace
+  * Courses created
+- View enrolled courses with progress tracking
+- Share your created courses on Farcaster
 
 === SOCIAL FEATURES ===
-- Share to Farcaster and X/Twitter
-- Profile stats sharing
-- Course completion certificates shareable on social media
+Farcaster Integration:
+- Login/authentication via Farcaster
+- Automatic profile syncing (avatar, username)
+- Share courses and achievements to Farcaster
+- Mini App integration for bonus UP points
+- Follow verification for earning rewards
+
+=== BLOCKCHAIN & TECH ===
+- Built on Base L2 (Ethereum Layer 2)
+- Uses USDC for payments and transactions
+- Smart contracts for course access and NFT marketplace
+- Low transaction fees on Base network
+- Secure wallet integration
+
+=== GETTING STARTED ===
+New users should:
+1. Connect via Farcaster for authentication
+2. Complete first daily check-in to start earning
+3. Complete social tasks (follow + mini app) for quick points
+4. Browse free courses to start learning
+5. Explore the marketplace for NFTs
+6. Build daily streak for bonus rewards
+
+=== IMPORTANT NOTES ===
+- UNIQ token is the native platform token (coming soon)
+- All payments use USDC on Base network
+- Daily streaks reset if you miss a check-in
+- Weekly/monthly check-ins require consecutive daily streaks
+- Course creators keep majority of earnings
+- Always verify on the Base network for transactions
 
 === YOUR COMMUNICATION STYLE ===
 - Be friendly, supportive, and encouraging
 - Keep answers clear, concise, and easy to understand
 - Use simple language for complex Web3 concepts
+- Be patient with beginners
+- Celebrate user progress and achievements
 - Never give financial, medical, or legal advice
-- End responses with motivational phrases
+- End responses with motivational phrases like:
+  * "Keep learning with UniqueHub 💙"
+  * "You're doing great — stay curious!"
+  * "Let's build something amazing together! 🚀"
+  * "Every day is a chance to learn something new!"
 
 Remember: You're here to make Web3 education accessible, fun, and rewarding for everyone!`;
 
-    const aiResponse = await callAI(systemPrompt, messages);
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messages.map((msg: any) => ({ role: msg.role, content: msg.content }))
+        ],
+        temperature: 0.7,
+        max_tokens: 500,
+      }),
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      console.error('Lovable AI Gateway error:', data);
+      
+      // Handle payment required (402) - out of credits
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ 
+          error: 'AI service credits depleted. Please contact the platform admin to add more credits.' 
+        }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      // Handle rate limit (429)
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ 
+          error: 'Too many requests. Please wait a moment and try again.' 
+        }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      throw new Error(data.error?.message || 'Failed to get response from AI');
+    }
+
+    const aiResponse = data.choices[0].message.content;
 
     return new Response(JSON.stringify({ response: aiResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

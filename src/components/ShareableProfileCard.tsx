@@ -5,10 +5,8 @@ import { Share2, Loader2, BookOpen, Trophy, Award, Flame, Zap } from 'lucide-rea
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { ShareToFarcaster } from '@/components/ShareToFarcaster';
-import { ShareButtons } from '@/components/ShareButtons';
 import html2canvas from 'html2canvas';
 import penguinAvatar from '@/assets/penguin-avatar.png';
-
 
 export const ShareableProfileCard = () => {
   const { user } = useAuth();
@@ -206,7 +204,7 @@ export const ShareableProfileCard = () => {
 
           {/* Branding */}
           <div className="flex items-center justify-between pt-1 border-t border-slate-700">
-            <span className="text-[10px] text-gray-500">uniquehub.xyz</span>
+            <span className="text-[10px] text-gray-500">uniquehub.app</span>
             <span className="text-xs font-bold text-blue-400">UniqueHub</span>
           </div>
         </div>
@@ -214,13 +212,13 @@ export const ShareableProfileCard = () => {
 
       {/* Share Button */}
       {shareUrl ? (
-        <ShareButtons
+        <ShareToFarcaster
           text={`Check out my stats on @uniquehub!\n\n${stats.upPoints.toLocaleString()} UP Points | ${stats.dailyStreak} Day Streak\n\nLearn, earn, and grow with the ultimate Web3 learning platform.`}
-          url="https://uniquehub.xyz"
           embeds={[shareUrl, 'https://uniquehub.xyz']}
+          buttonText="Share to Farcaster"
           variant="default"
           size="default"
-          className="w-full"
+          className="w-full bg-gradient-primary"
         />
       ) : (
         <Button 

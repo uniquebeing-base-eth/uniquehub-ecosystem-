@@ -1,5 +1,4 @@
 
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,11 +7,9 @@ import { useFarcasterWallet } from '@/hooks/useFarcasterWallet';
 import { useViemClients } from '@/hooks/useViemClients';
 import { parseUnits, formatUnits } from 'viem';
 import { toast } from 'sonner';
-import { DollarSign, Zap, BookOpen, Loader2, User, Star, CheckCircle } from 'lucide-react';
+import { DollarSign, Zap, BookOpen, Loader2, User, Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ShareButtons } from '@/components/ShareButtons';
-import { ShareToFarcaster } from '@/components/ShareToFarcaster';
-import {
+import { 
   COURSE_CONTRACT_ADDRESS, 
   USDC_ADDRESS, 
   COURSE_CONTRACT_ABI, 
@@ -41,7 +38,6 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
   const [allowance, setAllowance] = useState<bigint>(0n);
   const [requiredETH, setRequiredETH] = useState<bigint>(0n);
   const [authorProfile, setAuthorProfile] = useState<AuthorProfile | null>(null);
-  const [enrollmentComplete, setEnrollmentComplete] = useState(false);
 
   
   const priceInUSDC = parseFloat(course.price_usdc) || 0;
@@ -204,7 +200,6 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
       toast.success('Successfully enrolled! You can now access the course.');
       setIsProcessing(false);
       setApprovalStep('idle');
-      setEnrollmentComplete(true);
       onPurchaseComplete?.();
     } catch (error: any) {
       console.error('Error creating enrollment:', error);
@@ -404,36 +399,6 @@ export const CoursePurchase = ({ course, onPurchaseComplete }: CoursePurchasePro
     if (firstParagraph.length <= 80) return firstParagraph;
     return firstParagraph.substring(0, 80) + '...';
   };
-
-  if (enrollmentComplete) {
-    return (
-      <div className="space-y-4 text-center py-4">
-        <CheckCircle className="w-12 h-12 text-green-500 mx-auto" />
-        <h3 className="text-lg font-bold text-foreground">Enrolled Successfully!</h3>
-        <p className="text-sm text-muted-foreground">You're now enrolled in <strong>{course.title}</strong></p>
-        <div className="space-y-2">
-          <ShareToFarcaster
-            text={`I just enrolled in "${course.title}" on @uniquehub! 🎓\n\nJoin me on the ultimate Web3 learning platform!`}
-            embeds={['https://uniquehub.xyz']}
-            buttonText="Share on Farcaster"
-            variant="default"
-            size="lg"
-            className="w-full"
-          />
-          <ShareButtons
-            text={`I just enrolled in "${course.title}" on UniqueHub! 🎓\n\nJoin me on the ultimate Web3 learning platform!`}
-            url="https://uniquehub.xyz"
-            showFarcaster={false}
-            showTwitter={true}
-            variant="outline"
-            size="default"
-            buttonText="Share on X"
-            className="w-full justify-center"
-          />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-3">

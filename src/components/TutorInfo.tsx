@@ -2,7 +2,6 @@
 
 import { GraduationCap, Users, DollarSign, BookOpen } from "lucide-react";
 
-
 export const TutorInfo = () => {
   return (
     <div className="bg-gradient-card rounded-xl p-6 border border-border space-y-4">

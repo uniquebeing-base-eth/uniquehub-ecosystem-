@@ -1,5 +1,4 @@
 
-
 import { useState, useEffect } from "react";
 import { ArrowLeft, Lock, Star, Trophy, CheckCircle2, Loader2, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";

@@ -8,7 +8,6 @@ import { Sparkles, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { ShareToFarcaster } from '@/components/ShareToFarcaster';
 
-
 export const StatsGlowCard = () => {
   const { user } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
