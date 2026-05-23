@@ -1,5 +1,6 @@
 import { PiggyBank, Globe2, LineChart } from "lucide-react";
 
+
 const features = [
   {
     icon: PiggyBank,
