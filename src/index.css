@@ -1,128 +1,74 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-
-/* Mobile-first responsive adjustments */
-@layer base {
-  * {
-    @apply border-border;
-  }
-  
-  html {
-    @apply antialiased;
-    font-size: 16px;
-  }
-  
-  body {
-    @apply bg-background text-foreground;
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
-  }
-  
-  /* Improve touch targets for mobile */
-  button, a {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  /* Better mobile scrolling */
-  * {
-    -webkit-overflow-scrolling: touch;
-  }
-}
-
 @layer base {
   :root {
-    --background: 220 22% 18%;
-    --foreground: 210 20% 98%;
-    
-    --card: 220 20% 22%;
-    --card-hover: 220 20% 26%;
-    --card-foreground: 210 20% 98%;
-    
-    --popover: 220 20% 22%;
-    --popover-foreground: 210 20% 98%;
-    
-    --primary: 217 91% 60%;
-    --primary-glow: 212 100% 70%;
-    --primary-foreground: 0 0% 100%;
-    
-    --secondary: 220 20% 26%;
-    --secondary-foreground: 210 20% 98%;
-    
-    --muted: 220 16% 36%;
-    --muted-foreground: 220 10% 72%;
-    
-    --accent: 217 91% 60%;
-    --accent-foreground: 0 0% 100%;
-    
-    --success: 147 90% 45%;
-    --destructive: 0 72% 55%;
-    --destructive-foreground: 0 0% 100%;
-    
-    --border: 220 16% 32%;
-    --input: 220 20% 24%;
-    --ring: 217 91% 60%;
-    
-    --radius: 1rem;
-    
-    --usdc-color: 147 90% 45%;
-    --eth-color: 217 91% 60%;
-    
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(212 100% 70%));
-    --gradient-card: linear-gradient(135deg, hsl(220 20% 24%), hsl(220 20% 22%));
-    
-    --shadow-elegant: 0 10px 30px -10px hsl(217 91% 60% / 0.3);
-    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.5);
-    
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    
-    --chart-1: 217 91% 60%;
-    --chart-2: 212 100% 70%;
-    --chart-3: 200 90% 65%;
-    --chart-4: 225 85% 65%;
-    --chart-5: 210 80% 60%;
-  }
-  
-  .light {
-    --background: 210 25% 95%;
-    --foreground: 224 71% 8%;
-    
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
     --card: 0 0% 100%;
-    --card-hover: 210 20% 98%;
-    --card-foreground: 224 71% 8%;
-    
+    --card-foreground: 222 47% 11%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 8%;
-    
-    --primary: 217 91% 50%;
-    --primary-glow: 212 100% 60%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
-    
-    --secondary: 210 25% 92%;
-    --secondary-foreground: 224 71% 8%;
-    
-    --muted: 210 20% 90%;
-    --muted-foreground: 220 15% 45%;
-    
-    --accent: 217 91% 50%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 221 83% 53%;
     --accent-foreground: 0 0% 100%;
-    
-    --success: 147 90% 35%;
-    --destructive: 0 72% 50%;
+
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    
-    --border: 220 15% 88%;
-    --input: 220 15% 92%;
-    --ring: 217 91% 50%;
-    
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 50%), hsl(212 100% 60%));
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(210 20% 98%));
-    
-    --shadow-elegant: 0 10px 30px -10px hsl(217 91% 50% / 0.2);
-    --shadow-glow: 0 0 40px hsl(217 91% 50% / 0.3);
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 221 83% 53%;
+
+    --radius: 0.75rem;
+
+    --surface-subtle: 220 20% 98%;
+    --shadow-soft: 0 1px 3px hsl(222 47% 11% / 0.04), 0 1px 2px hsl(222 47% 11% / 0.06);
+    --shadow-card: 0 4px 24px -8px hsl(222 47% 11% / 0.08);
+  }
+
+  .dark {
+    --background: 222 39% 8%;
+    --foreground: 210 20% 98%;
+
+    --card: 222 35% 11%;
+    --card-foreground: 210 20% 98%;
+
+    --popover: 222 35% 11%;
+    --popover-foreground: 210 20% 98%;
+
+    --primary: 221 83% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 222 30% 14%;
+    --secondary-foreground: 210 20% 98%;
+
+    --muted: 222 30% 14%;
+    --muted-foreground: 220 10% 65%;
+
+    --accent: 221 83% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 222 25% 18%;
+    --input: 222 25% 18%;
+    --ring: 221 83% 60%;
+
+    --surface-subtle: 222 35% 10%;
   }
 }
 
@@ -130,92 +76,24 @@
   * {
     @apply border-border;
   }
-
+  html {
+    @apply antialiased scroll-smooth;
+  }
   body {
-    @apply bg-background text-foreground;
-  }
-
-  .anime-bg-main {
-    background: linear-gradient(180deg, hsl(220 22% 18%) 0%, hsl(220 22% 20%) 100%);
-  }
-  
-  .light .anime-bg-main {
-    background: linear-gradient(180deg, hsl(210 25% 95%) 0%, hsl(210 25% 92%) 100%);
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
 
-/* Additional mobile-first optimizations */
-@media (max-width: 640px) {
-  body {
-    font-size: 14px;
+@layer utilities {
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-6;
   }
-  
-  h1 {
-    font-size: 1.5rem !important;
-    line-height: 2rem;
+  .fade-in-up {
+    animation: fadeInUp 0.6s ease-out both;
   }
-  
-  h2 {
-    font-size: 1.25rem !important;
-    line-height: 1.75rem;
-  }
-  
-  h3 {
-    font-size: 1.125rem !important;
-    line-height: 1.5rem;
-  }
-  
-  /* Optimize card spacing on mobile */
-  .card {
-    border-radius: 1rem;
-  }
-  
-  /* Better mobile input fields */
-  input, select, textarea {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-}
-
-/* Gradient cards */
-.bg-gradient-card {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-  color: white;
-}
-
-.light .bg-gradient-card {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-  color: white;
-}
-
-/* Smooth scrolling and animations */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Remove tap highlight on mobile */
-* {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Better mobile button interactions */
-button:active {
-  transform: scale(0.98);
-  transition: transform 0.1s;
-}
-
-/* Optimize for safe area on modern phones */
-@supports (padding: max(0px)) {
-  body {
-    padding-left: max(0px, env(safe-area-inset-left));
-    padding-right: max(0px, env(safe-area-inset-right));
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }
