@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, FileText, ArrowUpRight, TrendingUp, Wallet, Send } from "lucide-react";
 
-export const Hero = () => (
+export const SavingsHero = () => (
   <section className="relative overflow-hidden">
     <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.08),transparent_60%)]" />
     <div className="container-page pt-16 pb-20 md:pt-24 md:pb-28 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
